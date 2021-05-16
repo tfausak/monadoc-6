@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-RUN apt-get update && apt-get install --assume-yes curl gcc git libgmp-dev libtinfo-dev make sudo
+RUN apt-get update && apt-get install --assume-yes curl gcc git libgmp-dev libtinfo-dev make sudo zlib1g-dev
 
 ARG GHCUP_VERSION=0.1.14.1
 RUN curl --output /usr/local/bin/ghcup "https://downloads.haskell.org/~ghcup/$GHCUP_VERSION/x86_64-linux-ghcup-$GHCUP_VERSION"
