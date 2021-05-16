@@ -1,0 +1,32 @@
+cabal-version: 3.4
+
+name: monadoc
+version: 0.2021.5.16
+synopsis: Better Haskell documentation.
+description: Monadoc provides better Haskell documentation.
+
+category: Documentation
+extra-source-files: README.markdown
+license: MIT
+license-file: LICENSE.markdown
+maintainer: Taylor Fausak
+
+source-repository head
+    location: https://github.com/tfausak/monadoc
+    type: git
+
+library
+    build-depends:
+        , base ^>= 4.15.0
+    exposed-modules: Monadoc
+    ghc-options:
+        -Weverything
+        -Wno-implicit-prelude
+        -Wno-missing-deriving-strategies
+        -Wno-missing-export-lists
+        -Wno-missing-exported-signatures
+        -Wno-missing-safe-haskell-mode
+        -Wno-prepositive-qualified-module
+        -Wno-safe
+        -Wno-unsafe
+    hs-source-dirs: src/lib
