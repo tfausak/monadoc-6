@@ -15,10 +15,9 @@ source-repository head
     location: https://github.com/tfausak/monadoc
     type: git
 
-library
+common basics
     build-depends:
         , base ^>= 4.15.0
-    exposed-modules: Monadoc
     ghc-options:
         -Weverything
         -Wno-implicit-prelude
@@ -29,4 +28,18 @@ library
         -Wno-prepositive-qualified-module
         -Wno-safe
         -Wno-unsafe
+
+library
+    import: basics
+
+    exposed-modules: Monadoc
     hs-source-dirs: src/lib
+
+test-suite test
+    import: basics
+
+    build-depends:
+        , hspec ^>= 2.8.2
+    hs-source-dirs: src/test
+    main-is: Main.hs
+    type: exitcode-stdio-1.0
