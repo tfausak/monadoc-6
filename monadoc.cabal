@@ -29,14 +29,26 @@ common basics
         -Wno-safe
         -Wno-unsafe
 
+common executable
+    import: basics
+
+    build-depends: monadoc
+    ghc-options: -rtsopts -threaded
+
 library
     import: basics
 
     exposed-modules: Monadoc
     hs-source-dirs: src/lib
 
+executable monadoc
+    import: executable
+
+    hs-source-dirs: src/exe
+    main-is: Main.hs
+
 test-suite test
-    import: basics
+    import: executable
 
     build-depends:
         , hspec ^>= 2.8.2
