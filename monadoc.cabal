@@ -20,6 +20,7 @@ common basics
         , base ^>= 4.15.0
     ghc-options:
         -Weverything
+        -Wno-all-missed-specialisations
         -Wno-implicit-prelude
         -Wno-missing-deriving-strategies
         -Wno-missing-export-lists
@@ -38,12 +39,27 @@ common executable
 library
     import: basics
 
+    autogen-modules: Paths_monadoc
     build-depends:
         , bytestring ^>= 0.11.1
+        , exceptions ^>= 0.10.4
         , http-types ^>= 0.12.3
+        , text ^>= 1.2.4
+        , time ^>= 1.11.1
         , wai ^>= 3.2.3
         , warp ^>= 3.3.15
-    exposed-modules: Monadoc
+    exposed-modules:
+        Monadoc
+        Monadoc.Exception.InvalidPort
+        Monadoc.Exception.OptionError
+        Monadoc.Log
+        Monadoc.Server.Application
+        Monadoc.Server.Middleware
+        Monadoc.Server.Settings
+        Monadoc.Type.Config
+        Monadoc.Type.Flag
+        Monadoc.Type.Warning
+        Paths_monadoc
     hs-source-dirs: src/lib
 
 executable monadoc
