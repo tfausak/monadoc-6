@@ -76,6 +76,10 @@ test-suite test
 
     build-depends:
         , hspec ^>= 2.8.2
+    build-tool-depends:
+        , hspec-discover:hspec-discover ^>= 2.8.2
     hs-source-dirs: src/test
     main-is: Main.hs
+    other-modules:
+        Monadoc.Type.ConfigSpec
     type: exitcode-stdio-1.0

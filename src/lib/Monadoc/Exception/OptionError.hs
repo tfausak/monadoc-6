@@ -1,6 +1,8 @@
 module Monadoc.Exception.OptionError where
 
 import qualified Control.Monad.Catch as Exception
+import qualified Data.Char as Char
+import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 
 newtype OptionError
@@ -8,4 +10,4 @@ newtype OptionError
     deriving (Eq, Show)
 
 instance Exception.Exception OptionError where
-    displayException (OptionError xs) = mconcat $ NonEmpty.toList xs
+    displayException (OptionError xs) = List.dropWhileEnd Char.isSpace . mconcat $ NonEmpty.toList xs

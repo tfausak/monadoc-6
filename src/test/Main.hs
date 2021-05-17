@@ -1,4 +1,1 @@
-import qualified Test.Hspec as Hspec
-
-main :: IO ()
-main = Hspec.hspec $ pure ()
+{-# OPTIONS_GHC -F -pgmF hspec-discover -Wno-missing-import-lists #-}
