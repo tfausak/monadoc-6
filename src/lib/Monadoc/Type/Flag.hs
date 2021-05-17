@@ -7,7 +7,8 @@ import qualified Monadoc.Type.Warning as Warning
 import qualified System.Console.GetOpt as Console
 
 data Flag
-    = Help
+    = Database String
+    | Help
     | Host String
     | Port String
     | Version
@@ -34,4 +35,6 @@ options =
         "Sets the host interface to bind to."
     , Console.Option [] ["port"] (Console.ReqArg Port "PORT")
         "Sets the port number to listen on."
+    , Console.Option [] ["database"] (Console.ReqArg Database "DATABASE")
+        "Sets the database file to use, or `:memory:` for in-memory."
     ]

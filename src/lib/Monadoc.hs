@@ -2,12 +2,16 @@ module Monadoc where
 
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
+import qualified Data.Pool as Pool
+import qualified Data.Text as Text
 import qualified Data.Version as Version
+import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
 import qualified Monadoc.Server.Application as Application
 import qualified Monadoc.Server.Middleware as Middleware
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
+import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Flag as Flag
 import qualified Monadoc.Type.Warning as Warning
 import qualified Network.Wai.Handler.Warp as Warp
@@ -26,8 +30,11 @@ main = do
 mainWith :: String -> [String] -> IO ()
 mainWith name arguments = do
     setDefaultExceptionHandler
-    config <- getConfig name arguments
-    Warp.runSettings (Settings.fromConfig config)
+    context <- getContext name arguments
+    Pool.withResource (Context.pool context) $ \ connection -> do
+        rows <- Sql.query_ connection . Sql.Query $ Text.pack "select 1"
+        Monad.guard $ rows == [[1 :: Int]]
+    Warp.runSettings (Settings.fromConfig $ Context.config context)
         $ Middleware.middleware Application.application
 
 setDefaultExceptionHandler :: IO ()
@@ -40,8 +47,8 @@ setDefaultExceptionHandler = do
 defaultHandler :: Exception.SomeException -> IO ()
 defaultHandler = IO.hPutStrLn IO.stderr . Exception.displayException
 
-getConfig :: String -> [String] -> IO Config.Config
-getConfig name arguments = do
+getContext :: String -> [String] -> IO Context.Context
+getContext name arguments = do
     (warnings, config) <- Config.fromArguments arguments
 
     Monad.forM_ warnings $ \ warning -> do
@@ -60,4 +67,4 @@ getConfig name arguments = do
         putStrLn version
         Exit.exitSuccess
 
-    pure config
+    Context.fromConfig config
