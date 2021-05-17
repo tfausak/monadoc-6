@@ -1,6 +1,7 @@
 module Monadoc.Type.Context where
 
 import qualified Data.Pool as Pool
+import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified Monadoc.Type.Config as Config
 
@@ -14,7 +15,16 @@ fromConfig c = do
     p <- Pool.createPool
         (Sql.open $ Config.database c)
         Sql.close
-        1 -- stripe count
-        60 -- seconds
-        16 -- resource count
+        stripeCount
+        idleTime
+        resourceCount
     pure Context { config = c, pool = p }
+
+stripeCount :: Int
+stripeCount = 1
+
+idleTime :: Time.NominalDiffTime
+idleTime = 60
+
+resourceCount :: Int
+resourceCount = 16
