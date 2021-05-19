@@ -44,6 +44,8 @@ library
         , bytestring ^>= 0.11.1
         , containers ^>= 0.6.4
         , exceptions ^>= 0.10.4
+        , http-client ^>= 0.7.8
+        , http-client-tls ^>= 0.3.5
         , http-types ^>= 0.12.3
         , resource-pool ^>= 0.2.3.2
         , sqlite-simple ^>= 0.4.18.0
