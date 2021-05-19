@@ -12,7 +12,6 @@ import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Paths_monadoc as Package
-import qualified System.IO as IO
 
 fromConfig :: Config.Config -> Warp.Settings
 fromConfig config = Warp.setBeforeMainLoop (beforeMainLoop config)
@@ -26,7 +25,7 @@ beforeMainLoop :: Config.Config -> IO ()
 beforeMainLoop config = Log.info $ "listening on port " <> show (Config.port config)
 
 onException :: Maybe Wai.Request -> Exception.SomeException -> IO ()
-onException _ = IO.hPutStrLn IO.stderr . Exception.displayException
+onException _ = Log.warn . Exception.displayException
 
 onExceptionResponse :: Exception.SomeException -> Wai.Response
 onExceptionResponse _ = Response.status Http.internalServerError500 []

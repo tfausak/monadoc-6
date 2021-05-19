@@ -6,6 +6,7 @@ import qualified Data.Pool as Pool
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
 import qualified Monadoc.Convert as Convert
+import qualified Monadoc.Log as Log
 import qualified Monadoc.Server.Application as Application
 import qualified Monadoc.Server.Middleware as Middleware
 import qualified Monadoc.Server.Settings as Settings
@@ -18,7 +19,6 @@ import qualified Paths_monadoc as Package
 import qualified System.Console.GetOpt as Console
 import qualified System.Environment as Environment
 import qualified System.Exit as Exit
-import qualified System.IO as IO
 
 main :: IO ()
 main = do
@@ -44,18 +44,18 @@ setDefaultExceptionHandler = do
         . defaultExceptionHandler
 
 defaultExceptionHandler :: Exception.SomeException -> IO ()
-defaultExceptionHandler = IO.hPutStrLn IO.stderr . Exception.displayException
+defaultExceptionHandler = Settings.onException Nothing
 
 getContext :: String -> [String] -> IO Context.Context
 getContext name arguments = do
     (warnings, config) <- Config.fromArguments arguments
 
     Monad.forM_ warnings $ \ warning -> do
-        IO.hPutStrLn IO.stderr $ case warning of
+        Log.warn $ case warning of
             Warning.UnexpectedArgument argument ->
-                "WARNING: unexpected argument " <> show argument
+                "unexpected argument " <> show argument
             Warning.UnrecognizedOption option ->
-                "WARNING: unrecognized option " <> show option
+                "unrecognized option " <> show option
 
     let version = Convert.versionToString Package.version
     Monad.when (Config.help config) $ do
