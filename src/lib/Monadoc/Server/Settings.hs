@@ -2,11 +2,9 @@ module Monadoc.Server.Settings where
 
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
-import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text
-import qualified Data.Version as Version
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
+import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
@@ -31,5 +29,5 @@ onExceptionResponse :: Exception.SomeException -> Wai.Response
 onExceptionResponse _ = Response.status Http.internalServerError500 []
 
 serverName :: ByteString.ByteString
-serverName = Text.encodeUtf8 . Text.pack
-    $ "monadoc/" <> Version.showVersion Package.version
+serverName = Convert.stringToUtf8
+    $ "monadoc/" <> Convert.versionToString Package.version

@@ -1,9 +1,6 @@
 module Monadoc.Server.Response where
 
 import qualified Data.Map as Map
-import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text
-import qualified Data.Text.Encoding.Error as Text
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
@@ -16,16 +13,16 @@ status s h = xml
     $ Xml.Document
         (Xml.Prologue [] Nothing [])
         (Xml.Element
-            (Xml.Name (Text.pack "status") Nothing Nothing)
+            (Xml.Name (Convert.stringToText "status") Nothing Nothing)
             Map.empty
             [ Xml.NodeElement $ Xml.Element
-                (Xml.Name (Text.pack "code") Nothing Nothing)
+                (Xml.Name (Convert.stringToText "code") Nothing Nothing)
                 Map.empty
-                [Xml.NodeContent . Text.pack . show $ Http.statusCode s]
+                [Xml.NodeContent . Convert.stringToText . show $ Http.statusCode s]
             , Xml.NodeElement $ Xml.Element
-                (Xml.Name (Text.pack "message") Nothing Nothing)
+                (Xml.Name (Convert.stringToText "message") Nothing Nothing)
                 Map.empty
-                [Xml.NodeContent . Text.decodeUtf8With Text.lenientDecode $ Http.statusMessage s]
+                [Xml.NodeContent . Convert.utf8ToText $ Http.statusMessage s]
             ])
         []
 

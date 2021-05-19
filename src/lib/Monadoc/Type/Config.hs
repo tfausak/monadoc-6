@@ -2,10 +2,10 @@ module Monadoc.Type.Config where
 
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
-import qualified Data.String as String
 import qualified Monadoc.Exception.InvalidPort as InvalidPort
 import qualified Monadoc.Type.Flag as Flag
 import qualified Monadoc.Type.Warning as Warning
+import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Text.Read as Read
 
@@ -21,7 +21,7 @@ initial :: Config
 initial = Config
     { database = ":memory:"
     , help = False
-    , host = String.fromString "127.0.0.1"
+    , host = Convert.stringToHost "127.0.0.1"
     , port = 3000
     , version = False
     }
@@ -44,7 +44,7 @@ applyFlag :: Exception.MonadThrow m => Flag.Flag -> Config -> m Config
 applyFlag flag config = case flag of
     Flag.Database x -> pure config { database = x }
     Flag.Help -> pure config { help = True }
-    Flag.Host x -> pure config { host = String.fromString x }
+    Flag.Host x -> pure config { host = Convert.stringToHost x }
     Flag.Port string -> case Read.readMaybe string of
         Nothing -> Exception.throwM $ InvalidPort.InvalidPort string
         Just x -> pure config { port = x }
