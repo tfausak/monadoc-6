@@ -5,8 +5,6 @@ import qualified Control.Monad.Catch as Exception
 import qualified Data.Pool as Pool
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
-import qualified Monadoc.Convert as Convert
-import qualified Monadoc.Log as Log
 import qualified Monadoc.Server.Application as Application
 import qualified Monadoc.Server.Middleware as Middleware
 import qualified Monadoc.Server.Settings as Settings
@@ -14,6 +12,8 @@ import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Flag as Flag
 import qualified Monadoc.Type.Warning as Warning
+import qualified Monadoc.Utility.Convert as Convert
+import qualified Monadoc.Utility.Log as Log
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Paths_monadoc as Package
 import qualified System.Console.GetOpt as Console

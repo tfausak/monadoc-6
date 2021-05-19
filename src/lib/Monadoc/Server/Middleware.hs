@@ -2,9 +2,9 @@ module Monadoc.Server.Middleware where
 
 import qualified Control.Monad.Catch as Exception
 import qualified GHC.Clock as Clock
-import qualified Monadoc.Convert as Convert
-import qualified Monadoc.Log as Log
 import qualified Monadoc.Server.Settings as Settings
+import qualified Monadoc.Utility.Convert as Convert
+import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Text.Printf as Printf

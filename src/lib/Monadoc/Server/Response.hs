@@ -4,7 +4,7 @@ import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.Text.Encoding.Error as Text
-import qualified Monadoc.Convert as Convert
+import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Text.XML as Xml

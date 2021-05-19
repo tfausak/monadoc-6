@@ -54,10 +54,8 @@ library
         , xml-conduit ^>= 1.9.1
     exposed-modules:
         Monadoc
-        Monadoc.Convert
         Monadoc.Exception.InvalidPort
         Monadoc.Exception.OptionError
-        Monadoc.Log
         Monadoc.Server.Application
         Monadoc.Server.Middleware
         Monadoc.Server.Response
@@ -66,6 +64,8 @@ library
         Monadoc.Type.Context
         Monadoc.Type.Flag
         Monadoc.Type.Warning
+        Monadoc.Utility.Convert
+        Monadoc.Utility.Log
         Paths_monadoc
     hs-source-dirs: src/lib
 

@@ -1,4 +1,4 @@
-module Monadoc.Convert where
+module Monadoc.Utility.Convert where
 
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text

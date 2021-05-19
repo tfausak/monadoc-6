@@ -1,7 +1,7 @@
-module Monadoc.Log where
+module Monadoc.Utility.Log where
 
 import qualified Data.Time as Time
-import qualified Monadoc.Convert as Convert
+import qualified Monadoc.Utility.Convert as Convert
 import qualified System.IO as IO
 
 info :: String -> IO ()

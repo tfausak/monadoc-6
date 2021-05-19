@@ -5,9 +5,9 @@ import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.Version as Version
-import qualified Monadoc.Log as Log
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
+import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
