@@ -3,10 +3,9 @@ module Monadoc where
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Pool as Pool
-import qualified Data.Text as Text
-import qualified Data.Version as Version
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
+import qualified Monadoc.Convert as Convert
 import qualified Monadoc.Server.Application as Application
 import qualified Monadoc.Server.Middleware as Middleware
 import qualified Monadoc.Server.Settings as Settings
@@ -32,20 +31,20 @@ mainWith name arguments = do
     setDefaultExceptionHandler
     context <- getContext name arguments
     Pool.withResource (Context.pool context) $ \ connection -> do
-        rows <- Sql.query_ connection . Sql.Query $ Text.pack "select 1"
+        rows <- Sql.query_ connection $ Convert.stringToQuery "select 1"
         Monad.guard $ rows == [[1 :: Int]]
     Warp.runSettings (Settings.fromConfig $ Context.config context)
         $ Middleware.middleware Application.application
 
 setDefaultExceptionHandler :: IO ()
 setDefaultExceptionHandler = do
-    originalHandler <- Ghc.getUncaughtExceptionHandler
+    originalExceptionHandler <- Ghc.getUncaughtExceptionHandler
     Ghc.setUncaughtExceptionHandler
-        $ Exception.handle originalHandler
-        . defaultHandler
+        $ Exception.handle originalExceptionHandler
+        . defaultExceptionHandler
 
-defaultHandler :: Exception.SomeException -> IO ()
-defaultHandler = IO.hPutStrLn IO.stderr . Exception.displayException
+defaultExceptionHandler :: Exception.SomeException -> IO ()
+defaultExceptionHandler = IO.hPutStrLn IO.stderr . Exception.displayException
 
 getContext :: String -> [String] -> IO Context.Context
 getContext name arguments = do
@@ -58,7 +57,7 @@ getContext name arguments = do
             Warning.UnrecognizedOption option ->
                 "WARNING: unrecognized option " <> show option
 
-    let version = Version.showVersion Package.version
+    let version = Convert.versionToString Package.version
     Monad.when (Config.help config) $ do
         putStr $ Console.usageInfo (unwords [name, "version", version]) Flag.options
         Exit.exitSuccess

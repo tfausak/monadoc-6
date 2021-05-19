@@ -42,6 +42,7 @@ library
     autogen-modules: Paths_monadoc
     build-depends:
         , bytestring ^>= 0.11.1
+        , containers ^>= 0.6.4
         , exceptions ^>= 0.10.4
         , http-types ^>= 0.12.3
         , resource-pool ^>= 0.2.3.2
@@ -50,13 +51,16 @@ library
         , time ^>= 1.11.1
         , wai ^>= 3.2.3
         , warp ^>= 3.3.15
+        , xml-conduit ^>= 1.9.1
     exposed-modules:
         Monadoc
+        Monadoc.Convert
         Monadoc.Exception.InvalidPort
         Monadoc.Exception.OptionError
         Monadoc.Log
         Monadoc.Server.Application
         Monadoc.Server.Middleware
+        Monadoc.Server.Response
         Monadoc.Server.Settings
         Monadoc.Type.Config
         Monadoc.Type.Context

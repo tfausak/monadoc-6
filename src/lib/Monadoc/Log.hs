@@ -1,11 +1,12 @@
 module Monadoc.Log where
 
 import qualified Data.Time as Time
+import qualified Monadoc.Convert as Convert
 
 info :: String -> IO ()
 info message = do
     now <- Time.getCurrentTime
     putStrLn
-        $ Time.formatTime Time.defaultTimeLocale "%Y-%m-%dT%H:%M:%S%3QZ" now
+        $ Convert.timeToString now
         <> " "
         <> message

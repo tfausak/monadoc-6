@@ -2,11 +2,11 @@ module Monadoc.Server.Settings where
 
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.Version as Version
 import qualified Monadoc.Log as Log
+import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
@@ -29,14 +29,8 @@ onException :: Maybe Wai.Request -> Exception.SomeException -> IO ()
 onException _ = IO.hPutStrLn IO.stderr . Exception.displayException
 
 onExceptionResponse :: Exception.SomeException -> Wai.Response
-onExceptionResponse _ = Wai.responseLBS
-    Http.internalServerError500
-    [(Http.hContentType, toUtf8 "text/plain; charset=utf-8")]
-    . LazyByteString.fromStrict $ toUtf8 "500 Internal Server Error"
+onExceptionResponse _ = Response.status Http.internalServerError500 []
 
 serverName :: ByteString.ByteString
 serverName = Text.encodeUtf8 . Text.pack
     $ "monadoc/" <> Version.showVersion Package.version
-
-toUtf8 :: String -> ByteString.ByteString
-toUtf8 = Text.encodeUtf8 . Text.pack

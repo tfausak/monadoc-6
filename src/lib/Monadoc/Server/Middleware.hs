@@ -1,11 +1,8 @@
 module Monadoc.Server.Middleware where
 
 import qualified Control.Monad.Catch as Exception
-import qualified Data.ByteString as ByteString
-import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text
-import qualified Data.Text.Encoding.Error as Text
 import qualified GHC.Clock as Clock
+import qualified Monadoc.Convert as Convert
 import qualified Monadoc.Log as Log
 import qualified Monadoc.Server.Settings as Settings
 import qualified Network.HTTP.Types as Http
@@ -25,9 +22,9 @@ logRequests handle request respond = do
     handle request $ \ response -> do
         after <- Clock.getMonotonicTime
         Log.info $ Printf.printf "%s %s%s %d %.3f"
-            (fromUtf8 $ Wai.requestMethod request)
-            (fromUtf8 $ Wai.rawPathInfo request)
-            (fromUtf8 $ Wai.rawQueryString request)
+            (Convert.utf8ToText $ Wai.requestMethod request)
+            (Convert.utf8ToText $ Wai.rawPathInfo request)
+            (Convert.utf8ToText $ Wai.rawQueryString request)
             (Http.statusCode $ Wai.responseStatus response)
             (after - before)
         respond response
@@ -37,6 +34,3 @@ handleExceptions handle request respond =
     Exception.catch (handle request respond) $ \ exception -> do
         Settings.onException (Just request) exception
         respond $ Settings.onExceptionResponse exception
-
-fromUtf8 :: ByteString.ByteString -> Text.Text
-fromUtf8 = Text.decodeUtf8With Text.lenientDecode
