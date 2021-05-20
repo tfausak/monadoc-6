@@ -1,14 +1,17 @@
 module Monadoc.Server.Application where
 
 import qualified Monadoc.Server.Response as Response
+import qualified Monadoc.Type.Config as Config
+import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
+import qualified System.FilePath as FilePath
 import qualified Text.XML as Xml
 
-application :: Wai.Application
-application request respond = do
+application :: Context.Context -> Wai.Application
+application context request respond = do
     let
         method = Convert.utf8ToString $ Wai.requestMethod request
         path = fmap Convert.textToString $ Wai.pathInfo request
@@ -22,6 +25,9 @@ application request respond = do
                 [])
             (Xml.element (Xml.name "monadoc") [] [])
             []
+        ("GET", ["bootstrap.css"]) -> respond
+            . Response.file Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/css; charset=utf-8")]
+            $ FilePath.combine (Config.dataDirectory $ Context.config context) "bootstrap.css"
         ("GET", ["favicon.ico"]) -> respond $ Response.status Http.found302
             [ (Http.hLocation, Convert.stringToUtf8 "monadoc.svg")
             ]
@@ -58,7 +64,7 @@ application request respond = do
                             , Xml.node (Xml.name "title") [] [Xml.content "Monadoc"]
                             , Xml.node (Xml.name "link")
                                 [ (Xml.name "rel", "stylesheet")
-                                , (Xml.name "href", "https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css")
+                                , (Xml.name "href", "bootstrap.css")
                                 ] []
                             , Xml.node (Xml.name "link")
                                 [ (Xml.name "rel", "icon")

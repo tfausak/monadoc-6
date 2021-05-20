@@ -34,7 +34,7 @@ mainWith name arguments = do
         rows <- Sql.query_ connection $ Convert.stringToQuery "select 1"
         Monad.guard $ rows == [[1 :: Int]]
     Warp.runSettings (Settings.fromConfig $ Context.config context)
-        $ Middleware.middleware Application.application
+        . Middleware.middleware $ Application.application context
 
 setDefaultExceptionHandler :: IO ()
 setDefaultExceptionHandler = do

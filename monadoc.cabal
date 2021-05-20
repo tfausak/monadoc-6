@@ -6,6 +6,8 @@ synopsis: Better Haskell documentation.
 description: Monadoc provides better Haskell documentation.
 
 category: Documentation
+data-dir: data
+data-files: bootstrap.css
 extra-source-files: README.markdown
 license: MIT
 license-file: LICENSE.markdown
@@ -44,6 +46,7 @@ library
         , bytestring ^>= 0.11.1
         , containers ^>= 0.6.4
         , exceptions ^>= 0.10.4
+        , filepath ^>= 1.4.2
         , http-client ^>= 0.7.8
         , http-client-tls ^>= 0.3.5
         , http-types ^>= 0.12.3

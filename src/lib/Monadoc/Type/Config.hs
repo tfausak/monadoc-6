@@ -11,6 +11,7 @@ import qualified Text.Read as Read
 
 data Config = Config
     { database :: String
+    , dataDirectory :: FilePath
     , help :: Bool
     , host :: Warp.HostPreference
     , port :: Warp.Port
@@ -20,6 +21,7 @@ data Config = Config
 initial :: Config
 initial = Config
     { database = ":memory:"
+    , dataDirectory = "./data"
     , help = False
     , host = Convert.stringToHost "127.0.0.1"
     , port = 3000
@@ -43,6 +45,7 @@ applyFlags flags config = Monad.foldM (flip applyFlag) config flags
 applyFlag :: Exception.MonadThrow m => Flag.Flag -> Config -> m Config
 applyFlag flag config = case flag of
     Flag.Database x -> pure config { database = x }
+    Flag.DataDirectory x -> pure config { dataDirectory = x }
     Flag.Help -> pure config { help = True }
     Flag.Host x -> pure config { host = Convert.stringToHost x }
     Flag.Port string -> case Read.readMaybe string of

@@ -8,6 +8,7 @@ import qualified System.Console.GetOpt as Console
 
 data Flag
     = Database String
+    | DataDirectory FilePath
     | Help
     | Host String
     | Port String
@@ -37,4 +38,6 @@ options =
         "Sets the port number to listen on."
     , Console.Option [] ["database"] (Console.ReqArg Database "DATABASE")
         "Sets the database file to use, or `:memory:` for in-memory."
+    , Console.Option [] ["data-directory"] (Console.ReqArg DataDirectory "DATA_DIRECTORY")
+        "Sets the directory to load data files from."
     ]

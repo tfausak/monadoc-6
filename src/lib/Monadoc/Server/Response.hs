@@ -6,6 +6,9 @@ import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Text.XML as Xml
 
+file :: Http.Status -> Http.ResponseHeaders -> FilePath -> Wai.Response
+file s h f = Wai.responseFile s h f Nothing
+
 status :: Http.Status -> Http.ResponseHeaders -> Wai.Response
 status s h = xml
     s
