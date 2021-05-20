@@ -6,12 +6,15 @@ synopsis: Better Haskell documentation.
 description: Monadoc provides better Haskell documentation.
 
 category: Documentation
-data-dir: data
-data-files: bootstrap.css
 extra-source-files: README.markdown
 license: MIT
 license-file: LICENSE.markdown
 maintainer: Taylor Fausak
+
+data-dir: data
+data-files:
+    bootstrap.css
+    monadoc.svg
 
 source-repository head
     location: https://github.com/tfausak/monadoc

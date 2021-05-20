@@ -26,26 +26,14 @@ application context request respond = do
             (Xml.element (Xml.name "monadoc") [] [])
             []
         ("GET", ["bootstrap.css"]) -> respond
-            . Response.file Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/css; charset=utf-8")]
+            . Response.file Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/css; charset=UTF-8")]
             $ FilePath.combine (Config.dataDirectory $ Context.config context) "bootstrap.css"
         ("GET", ["favicon.ico"]) -> respond $ Response.status Http.found302
             [ (Http.hLocation, Convert.stringToUtf8 "monadoc.svg")
             ]
-        ("GET", ["monadoc.svg"]) -> respond . Response.xml Http.ok200 [] $ Xml.Document
-            (Xml.Prologue [] Nothing [])
-            (Xml.element (Xml.name "svg")
-                [ (Xml.name "xmlns", "http://www.w3.org/2000/svg")
-                , (Xml.name "viewBox", "0 0 16 16")
-                ]
-                [ Xml.node (Xml.name "g")
-                    [(Xml.name "fill", "#5e2ca5")]
-                    [ Xml.node (Xml.name "path") [(Xml.name "d", "M 2 7 h 2 v 7 h -2 z")] []
-                    , Xml.node (Xml.name "path") [(Xml.name "d", "M 12 7 h 2 v 7 h -2 z")] []
-                    , Xml.node (Xml.name "path") [(Xml.name "d", "M 2 5 l 6 2 l 6 -2 v 2 l -6 2 l -6 -2 z")] []
-                    , Xml.node (Xml.name "path") [(Xml.name "d", "M 2 2 l 6 2 l 6 -2 v 2 l -6 2 l -6 -2 z")] []
-                    ]
-                ])
-            []
+        ("GET", ["monadoc.svg"]) -> respond
+            . Response.file Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "image/svg+xml; charset=UTF-8")]
+            $ FilePath.combine (Config.dataDirectory $ Context.config context) "monadoc.svg"
         ("GET", ["monadoc.xsl"]) -> respond . Response.xml Http.ok200 [] $ Xml.Document
             (Xml.Prologue [] Nothing [])
             (Xml.element (Xml.name "xsl:stylesheet") [(Xml.name "version", "1.0")]
