@@ -68,6 +68,7 @@ library
         Monadoc.Type.Warning
         Monadoc.Utility.Convert
         Monadoc.Utility.Log
+        Monadoc.Utility.Xml
         Paths_monadoc
     hs-source-dirs: src/lib
 
