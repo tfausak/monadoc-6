@@ -43,11 +43,23 @@ application request respond = do
         ("GET", ["monadoc.xsl"]) -> respond . Response.xml Http.ok200 [] $ Xml.Document
             (Xml.Prologue [] Nothing [])
             (Xml.element (Xml.name "xsl:stylesheet") [(Xml.name "version", "1.0")]
-                [ Xml.node (Xml.name "xsl:output") [(Xml.name "method", "html")] []
+                [ Xml.node (Xml.name "xsl:output")
+                    [ (Xml.name "method", "html")
+                    -- https://stackoverflow.com/a/3404922/1274282
+                    , (Xml.name "doctype-system", "about:legacy-compat")
+                    ] []
                 , Xml.node (Xml.name "xsl:template") [(Xml.name "match", "/")]
-                    [ Xml.node (Xml.name "html") []
+                    [ Xml.node (Xml.name "html") [(Xml.name "lang", "en-US")]
                         [ Xml.node (Xml.name "head") []
-                            [ Xml.node (Xml.name "title") [] [Xml.content "Monadoc"]
+                            [ Xml.node (Xml.name "meta")
+                                [ (Xml.name "name", "viewport")
+                                , (Xml.name "content", "initial-scale = 1, width = device-width")
+                                ] []
+                            , Xml.node (Xml.name "title") [] [Xml.content "Monadoc"]
+                            , Xml.node (Xml.name "link")
+                                [ (Xml.name "rel", "stylesheet")
+                                , (Xml.name "href", "https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css")
+                                ] []
                             , Xml.node (Xml.name "link")
                                 [ (Xml.name "rel", "icon")
                                 , (Xml.name "type", "image/svg+xml")
