@@ -2,6 +2,7 @@ module Monadoc.Server.Settings where
 
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
+import qualified Data.Typeable as Typeable
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Utility.Convert as Convert
@@ -23,7 +24,8 @@ beforeMainLoop :: Config.Config -> IO ()
 beforeMainLoop config = Log.info $ "listening on port " <> show (Config.port config)
 
 onException :: Maybe Wai.Request -> Exception.SomeException -> IO ()
-onException _ = Log.warn . Exception.displayException
+onException _ (Exception.SomeException e) = Log.warn $
+    "[" <> show (Typeable.typeOf e) <> "] " <> Exception.displayException e
 
 onExceptionResponse :: Exception.SomeException -> Wai.Response
 onExceptionResponse _ = Response.status Http.internalServerError500 []
