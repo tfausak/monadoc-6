@@ -1,6 +1,7 @@
 module Monadoc.Server.Middleware where
 
 import qualified Control.Monad.Catch as Exception
+import qualified Data.CaseInsensitive as CI
 import qualified GHC.Clock as Clock
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Utility.Convert as Convert
@@ -14,7 +15,7 @@ import qualified Text.Printf as Printf
 -- first, then it will go to @b@, then the application will handle it, then @b@
 -- will get the response, then it will go to @a@.
 middleware :: Wai.Middleware
-middleware = logRequests . handleExceptions
+middleware = logRequests . addSecurityHeaders . handleExceptions
 
 logRequests :: Wai.Middleware
 logRequests handle request respond = do
@@ -28,6 +29,17 @@ logRequests handle request respond = do
             (Http.statusCode $ Wai.responseStatus response)
             (after - before)
         respond response
+
+addSecurityHeaders :: Wai.Middleware
+addSecurityHeaders =
+    let k =: v = (CI.mk $ Convert.stringToUtf8 k, Convert.stringToUtf8 v)
+    in Wai.modifyResponse . Wai.mapResponseHeaders $ \ headers ->
+        "Content-Security-Policy" =: "default-src 'self'"
+        : "Referrer-Policy" =: "same-origin"
+        : "X-Content-Type-Options" =: "nosniff"
+        : "X-Frame-Options" =: "SAMEORIGIN"
+        : "X-Xss-Protection" =: "1; mode=block"
+        : headers
 
 handleExceptions :: Wai.Middleware
 handleExceptions handle request respond =

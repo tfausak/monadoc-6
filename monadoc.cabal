@@ -47,6 +47,7 @@ library
     autogen-modules: Paths_monadoc
     build-depends:
         , bytestring ^>= 0.11.1
+        , case-insensitive ^>= 1.2.1
         , containers ^>= 0.6.4
         , exceptions ^>= 0.10.4
         , filepath ^>= 1.4.2
