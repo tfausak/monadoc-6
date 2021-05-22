@@ -5,7 +5,9 @@ import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
+import qualified Data.UUID as Uuid
 import qualified Database.SQLite.Simple as Sql
+import qualified Database.SQLite.Simple.FromField as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Exception.InvalidJson as InvalidJson
 import qualified Monadoc.Exception.MissingCode as MissingCode
@@ -14,12 +16,14 @@ import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Utility.Convert as Convert
+import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Paths_monadoc as Package
 import qualified System.FilePath as FilePath
+import qualified System.Random.Stateful as Random
 import qualified Text.XML as Xml
 
 application :: Context.Context -> Wai.Application
@@ -79,15 +83,17 @@ application context request respond = do
                             Left message -> Exception.throwM $ InvalidJson.InvalidJson message
                             Right githubUser -> pure githubUser
                     now <- Time.getCurrentTime
+                    newGuid <- uniformIO
                     let
                         user = User
                             { userCreatedAt = now
                             , userGithubId = githubUserId githubUser
                             , userGithubLogin = githubUserLogin githubUser
                             , userGithubToken = accessToken
+                            , userGuid = newGuid
                             , userUpdatedAt = now
                             }
-                    Pool.withResource (Context.pool context) $ \ connection ->
+                    [Sql.Only guid] <- Pool.withResource (Context.pool context) $ \ connection -> do
                         Sql.execute
                             connection
                             (Convert.stringToQuery "insert into user \
@@ -95,8 +101,9 @@ application context request respond = do
                             \ , githubId \
                             \ , githubLogin \
                             \ , githubToken \
+                            \ , guid \
                             \ , updatedAt \
-                            \ ) values (?, ?, ?, ?, ?) \
+                            \ ) values (?, ?, ?, ?, ?, ?) \
                             \ on conflict (githubId) do update \
                             \ set githubId = excluded.githubId \
                             \ , githubLogin = excluded.githubLogin \
@@ -106,8 +113,11 @@ application context request respond = do
                             , Sql.toField $ userGithubId user
                             , Sql.toField $ userGithubLogin user
                             , Sql.toField $ userGithubToken user
+                            , Sql.toField $ userGuid user
                             , Sql.toField $ userUpdatedAt user
                             ]
+                        Sql.query connection (Convert.stringToQuery "select guid from user where githubId = ?") [userGithubId user]
+                    Log.info $ show (guid :: Guid) -- TODO
                     respond $ Response.status Http.found302 [(Http.hLocation, Convert.stringToUtf8 $ baseUrl <> "/")]
                 _ -> Exception.throwM $ MissingCode.MissingCode request
         ("GET", ["monadoc.svg"]) -> do
@@ -205,5 +215,32 @@ data User = User
     , userGithubId :: Int
     , userGithubLogin :: String
     , userGithubToken :: String
+    , userGuid :: Guid
     , userUpdatedAt :: Time.UTCTime
     } deriving (Eq, Show)
+
+newtype Guid
+    = Guid Uuid.UUID
+    deriving (Eq, Show)
+
+instance Sql.FromField Guid where
+    fromField field = do
+        text <- Sql.fromField field
+        case Uuid.fromText text of
+            Nothing -> Sql.returnError Sql.ConversionFailed field "invalid Guid"
+            Just uuid -> pure $ uuidToGuid uuid
+
+instance Sql.ToField Guid where
+    toField = Sql.toField . Uuid.toText . guidToUuid
+
+instance Random.Uniform Guid where
+    uniformM = fmap uuidToGuid . Random.uniformM
+
+uuidToGuid :: Uuid.UUID -> Guid
+uuidToGuid = Guid
+
+guidToUuid :: Guid -> Uuid.UUID
+guidToUuid (Guid x) = x
+
+uniformIO :: Random.Uniform a => IO a
+uniformIO = Random.getStdRandom Random.uniform

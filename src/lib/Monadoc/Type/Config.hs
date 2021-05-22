@@ -23,7 +23,7 @@ data Config = Config
 
 initial :: Config
 initial = Config
-    { baseUrl = ""
+    { baseUrl = "http://localhost:3000"
     , clientId = "235ce8c873f4ed90905c"
     , clientSecret = "48e202a2b3aa30ad2a4e844f77b7d10807ab1deb"
     , database = "monadoc.sqlite3"

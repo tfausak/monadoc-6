@@ -37,6 +37,7 @@ mainWith name arguments = do
             \ , githubId integer primary key \
             \ , githubLogin text not null \
             \ , githubToken text not null \
+            \ , guid text not null unique \
             \ , updatedAt text not null )"
         rows <- Sql.query_ connection $ Convert.stringToQuery "select 1"
         Monad.guard $ rows == [[1 :: Int]]
