@@ -3,6 +3,10 @@ module Monadoc.Server.Application where
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.Pool as Pool
+import qualified Data.Time as Time
+import qualified Database.SQLite.Simple as Sql
+import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Exception.InvalidJson as InvalidJson
 import qualified Monadoc.Exception.MissingCode as MissingCode
 import qualified Monadoc.Server.Response as Response
@@ -10,10 +14,9 @@ import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Utility.Convert as Convert
-import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Utility.Xml as Xml
-import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Client as Client
+import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Paths_monadoc as Package
 import qualified System.FilePath as FilePath
@@ -44,7 +47,7 @@ application context request respond = do
             contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "bootstrap.css"
             respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/css; charset=UTF-8")] contents
         ("GET", ["favicon.ico"]) -> respond $ Response.status Http.found302
-            [ (Http.hLocation, Convert.stringToUtf8 "monadoc.svg")
+            [ (Http.hLocation, Convert.stringToUtf8 $ baseUrl <> "/monadoc.svg")
             ]
         ("GET", ["github-callback"]) ->
             case lookup (Convert.stringToUtf8 "code") $ Wai.queryString request of
@@ -63,7 +66,7 @@ application context request respond = do
                         case Aeson.eitherDecode $ Client.responseBody res of
                             Left message -> Exception.throwM $ InvalidJson.InvalidJson message
                             Right oAuthResponse -> pure $ oAuthResponseAccessToken oAuthResponse
-                    user <- do
+                    githubUser <- do
                         initial <- Client.parseUrlThrow "https://api.github.com/user"
                         let
                             headers
@@ -74,10 +77,38 @@ application context request respond = do
                         res <- Client.httpLbs req manager
                         case Aeson.eitherDecode $ Client.responseBody res of
                             Left message -> Exception.throwM $ InvalidJson.InvalidJson message
-                            Right user -> pure user
-                    -- TODO
-                    Log.info $ show (accessToken, user :: GitHubUser)
-                    respond $ Response.status Http.notImplemented501 []
+                            Right githubUser -> pure githubUser
+                    now <- Time.getCurrentTime
+                    let
+                        user = User
+                            { userCreatedAt = now
+                            , userGithubId = githubUserId githubUser
+                            , userGithubLogin = githubUserLogin githubUser
+                            , userGithubToken = accessToken
+                            , userUpdatedAt = now
+                            }
+                    Pool.withResource (Context.pool context) $ \ connection ->
+                        Sql.execute
+                            connection
+                            (Convert.stringToQuery "insert into user \
+                            \ ( createdAt \
+                            \ , githubId \
+                            \ , githubLogin \
+                            \ , githubToken \
+                            \ , updatedAt \
+                            \ ) values (?, ?, ?, ?, ?) \
+                            \ on conflict (githubId) do update \
+                            \ set githubId = excluded.githubId \
+                            \ , githubLogin = excluded.githubLogin \
+                            \ , githubToken = excluded.githubToken \
+                            \ , updatedAt = excluded.updatedAt")
+                            [ Sql.toField $ userCreatedAt user
+                            , Sql.toField $ userGithubId user
+                            , Sql.toField $ userGithubLogin user
+                            , Sql.toField $ userGithubToken user
+                            , Sql.toField $ userUpdatedAt user
+                            ]
+                    respond $ Response.status Http.found302 [(Http.hLocation, Convert.stringToUtf8 $ baseUrl <> "/")]
                 _ -> Exception.throwM $ MissingCode.MissingCode request
         ("GET", ["monadoc.svg"]) -> do
             contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "monadoc.svg"
@@ -155,17 +186,24 @@ instance Aeson.FromJSON OAuthResponse where
         accessToken <- object Aeson..: Convert.stringToText "access_token"
         pure $ OAuthResponse accessToken
 
-
-data GitHubUser = GitHubUser
-    { gitHubUserId :: Int
-    , gitHubUserLogin :: String
+data GithubUser = GithubUser
+    { githubUserId :: Int
+    , githubUserLogin :: String
     } deriving (Eq, Show)
 
-instance Aeson.FromJSON GitHubUser where
-    parseJSON = Aeson.withObject "GitHubUser" $ \ object -> do
+instance Aeson.FromJSON GithubUser where
+    parseJSON = Aeson.withObject "GithubUser" $ \ object -> do
         id_ <- object Aeson..: Convert.stringToText "id"
         login <- object Aeson..: Convert.stringToText "login"
-        pure GitHubUser
-            { gitHubUserId = id_
-            , gitHubUserLogin = login
+        pure GithubUser
+            { githubUserId = id_
+            , githubUserLogin = login
             }
+
+data User = User
+    { userCreatedAt :: Time.UTCTime
+    , userGithubId :: Int
+    , userGithubLogin :: String
+    , userGithubToken :: String
+    , userUpdatedAt :: Time.UTCTime
+    } deriving (Eq, Show)

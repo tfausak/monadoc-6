@@ -31,6 +31,13 @@ mainWith name arguments = do
     setDefaultExceptionHandler
     context <- getContext name arguments
     Pool.withResource (Context.pool context) $ \ connection -> do
+        Sql.execute_ connection $ Convert.stringToQuery
+            "create table if not exists user \
+            \ ( createdAt text not null \
+            \ , githubId integer primary key \
+            \ , githubLogin text not null \
+            \ , githubToken text not null \
+            \ , updatedAt text not null )"
         rows <- Sql.query_ connection $ Convert.stringToQuery "select 1"
         Monad.guard $ rows == [[1 :: Int]]
     Warp.runSettings (Settings.fromConfig $ Context.config context)
