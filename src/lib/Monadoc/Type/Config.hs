@@ -11,6 +11,8 @@ import qualified Text.Read as Read
 
 data Config = Config
     { baseUrl :: String
+    , clientId :: String
+    , clientSecret :: String
     , database :: String
     , dataDirectory :: FilePath
     , help :: Bool
@@ -21,7 +23,9 @@ data Config = Config
 
 initial :: Config
 initial = Config
-    { baseUrl = "/"
+    { baseUrl = ""
+    , clientId = "235ce8c873f4ed90905c"
+    , clientSecret = "48e202a2b3aa30ad2a4e844f77b7d10807ab1deb"
     , database = ":memory:"
     , dataDirectory = "./data"
     , help = False
@@ -47,6 +51,8 @@ applyFlags flags config = Monad.foldM (flip applyFlag) config flags
 applyFlag :: Exception.MonadThrow m => Flag.Flag -> Config -> m Config
 applyFlag flag config = case flag of
     Flag.BaseUrl x -> pure config { baseUrl = x }
+    Flag.ClientId x -> pure config { clientId = x }
+    Flag.ClientSecret x -> pure config { clientSecret = x }
     Flag.Database x -> pure config { database = x }
     Flag.DataDirectory x -> pure config { dataDirectory = x }
     Flag.Help -> pure config { help = True }

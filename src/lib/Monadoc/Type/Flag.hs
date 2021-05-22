@@ -8,6 +8,8 @@ import qualified System.Console.GetOpt as Console
 
 data Flag
     = BaseUrl String
+    | ClientId String
+    | ClientSecret String
     | Database String
     | DataDirectory FilePath
     | Help
@@ -35,6 +37,10 @@ options =
         "Outputs the version number to STDOUT and exits successfully."
     , Console.Option [] ["base-url"] (Console.ReqArg BaseUrl "BASE_URL")
         "Sets the base URL that the site is available from."
+    , Console.Option [] ["client-id"] (Console.ReqArg ClientId "CLIENT_ID")
+        "Sets the OAuth client ID for interacting with GitHub."
+    , Console.Option [] ["client-secret"] (Console.ReqArg ClientSecret "CLIENT_SECRET")
+        "Sets the OAuth client secret for interacting with GitHub."
     , Console.Option [] ["database"] (Console.ReqArg Database "DATABASE")
         "Sets the database file to use, or `:memory:` for in-memory."
     , Console.Option [] ["data-directory"] (Console.ReqArg DataDirectory "DATA_DIRECTORY")

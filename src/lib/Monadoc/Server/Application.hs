@@ -17,14 +17,16 @@ application context request respond = do
     let
         method = Convert.utf8ToString $ Wai.requestMethod request
         path = fmap Convert.textToString $ Wai.pathInfo request
-        dataDirectory = Config.dataDirectory $ Context.config context
-        baseUrl = Config.baseUrl $ Context.config context
+        config = Context.config context
+        dataDirectory = Config.dataDirectory config
+        baseUrl = Config.baseUrl config
+        clientId = Config.clientId config
     case (method, path) of
         ("GET", []) -> respond . Response.xml Http.ok200 [] $ Xml.Document
             (Xml.Prologue
                 [Xml.MiscInstruction $ Xml.Instruction
                     (Convert.stringToText "xml-stylesheet")
-                    (Convert.stringToText $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape baseUrl <> "monadoc.xsl\"")]
+                    (Convert.stringToText $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape baseUrl <> "/monadoc.xsl\"")]
                 Nothing
                 [])
             (Xml.element "monadoc" [] [])
@@ -59,12 +61,12 @@ application context request respond = do
                             , Xml.node "title" [] [Xml.content "Monadoc"]
                             , Xml.node "link"
                                 [ ("rel", "stylesheet")
-                                , ("href", "{$base-url}bootstrap.css")
+                                , ("href", "{$base-url}/bootstrap.css")
                                 ] []
                             , Xml.node "link"
                                 [ ("rel", "icon")
                                 , ("type", "image/svg+xml")
-                                , ("href", "{$base-url}monadoc.svg")
+                                , ("href", "{$base-url}/monadoc.svg")
                                 ]
                                 []
                             ]
@@ -72,7 +74,15 @@ application context request respond = do
                             [ Xml.node "header" [("class", "mb-3")]
                                 [ Xml.node "nav" [("class", "navbar navbar-light bg-light")]
                                     [ Xml.node "div" [("class", "container-fluid")]
-                                        [ Xml.node "a" [("class", "navbar-brand"), ("href", "{$base-url}")] [Xml.content "Monadoc"]
+                                        [ Xml.node "a" [("class", "navbar-brand"), ("href", "{$base-url}/")] [Xml.content "Monadoc"]
+                                        , Xml.node "ul" [("class", "navbar-nav")]
+                                            [ Xml.node "li" [("class", "nav-item")]
+                                                [ Xml.node "a"
+                                                    [ ("class", "nav-link")
+                                                    , ("href", "https://github.com/login/oauth/authorize?client_id=" <> clientId <> "&redirect_uri={$base-url}/TODO")
+                                                    ] [Xml.content "Log in"]
+                                                ]
+                                            ]
                                         ]
                                     ]
                                 ]
