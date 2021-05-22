@@ -1,5 +1,6 @@
 module Monadoc.Server.Application where
 
+import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
@@ -20,20 +21,20 @@ application context request respond = do
             (Xml.Prologue
                 [Xml.MiscInstruction $ Xml.Instruction
                     (Convert.stringToText "xml-stylesheet")
-                    (Convert.stringToText "type=\"text/xsl\" href=\"monadoc.xsl\"")]
+                    (Convert.stringToText "type=\"text/xsl\" charset=\"UTF-8\" href=\"monadoc.xsl\"")]
                 Nothing
                 [])
             (Xml.element (Xml.name "monadoc") [] [])
             []
-        ("GET", ["bootstrap.css"]) -> respond
-            . Response.file Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/css; charset=UTF-8")]
-            $ FilePath.combine (Config.dataDirectory $ Context.config context) "bootstrap.css"
+        ("GET", ["bootstrap.css"]) -> do
+            contents <- LazyByteString.readFile $ FilePath.combine (Config.dataDirectory $ Context.config context) "bootstrap.css"
+            respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/css; charset=UTF-8")] contents
         ("GET", ["favicon.ico"]) -> respond $ Response.status Http.found302
             [ (Http.hLocation, Convert.stringToUtf8 "monadoc.svg")
             ]
-        ("GET", ["monadoc.svg"]) -> respond
-            . Response.file Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "image/svg+xml; charset=UTF-8")]
-            $ FilePath.combine (Config.dataDirectory $ Context.config context) "monadoc.svg"
+        ("GET", ["monadoc.svg"]) -> do
+            contents <- LazyByteString.readFile $ FilePath.combine (Config.dataDirectory $ Context.config context) "monadoc.svg"
+            respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "image/svg+xml; charset=UTF-8")] contents
         ("GET", ["monadoc.xsl"]) -> respond . Response.xml Http.ok200 [] $ Xml.Document
             (Xml.Prologue [] Nothing [])
             (Xml.element (Xml.name "xsl:stylesheet") [(Xml.name "version", "1.0")]
