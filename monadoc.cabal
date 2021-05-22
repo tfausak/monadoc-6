@@ -46,6 +46,7 @@ library
 
     autogen-modules: Paths_monadoc
     build-depends:
+        , aeson ^>= 1.5.6
         , bytestring ^>= 0.11.1
         , case-insensitive ^>= 1.2.1
         , containers ^>= 0.6.4
@@ -64,6 +65,7 @@ library
         , xml-conduit ^>= 1.9.1
     exposed-modules:
         Monadoc
+        Monadoc.Exception.InvalidJson
         Monadoc.Exception.InvalidPort
         Monadoc.Exception.MissingCode
         Monadoc.Exception.OptionError

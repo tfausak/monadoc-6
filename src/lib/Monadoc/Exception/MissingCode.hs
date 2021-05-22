@@ -1,10 +1,11 @@
 module Monadoc.Exception.MissingCode where
 
 import qualified Control.Monad.Catch as Exception
+import qualified Network.Wai as Wai
 
-data MissingCode
-    = MissingCode
-    deriving (Eq, Show)
+newtype MissingCode
+    = MissingCode Wai.Request
+    deriving Show
 
 instance Exception.Exception MissingCode where
-    displayException MissingCode = "missing OAuth code"
+    displayException (MissingCode x) = "missing OAuth code: " <> show x

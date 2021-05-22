@@ -1,7 +1,9 @@
 module Monadoc.Server.Application where
 
 import qualified Control.Monad.Catch as Exception
+import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Monadoc.Exception.InvalidJson as InvalidJson
 import qualified Monadoc.Exception.MissingCode as MissingCode
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
@@ -10,6 +12,7 @@ import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
+import qualified Network.HTTP.Client as Client
 import qualified Network.Wai as Wai
 import qualified Paths_monadoc as Package
 import qualified System.FilePath as FilePath
@@ -24,6 +27,8 @@ application context request respond = do
         dataDirectory = Config.dataDirectory config
         baseUrl = Config.baseUrl config
         clientId = Config.clientId config
+        clientSecret = Config.clientSecret config
+        manager = Context.manager context
     case (method, path) of
         ("GET", []) -> respond . Response.xml Http.ok200 [] $ Xml.Document
             (Xml.Prologue
@@ -43,10 +48,24 @@ application context request respond = do
         ("GET", ["github-callback"]) ->
             case lookup (Convert.stringToUtf8 "code") $ Wai.queryString request of
                 Just (Just code) -> do
+                    req <- do
+                        initial <- Client.parseUrlThrow "https://github.com/login/oauth/access_token"
+                        let
+                            body =
+                                [ (Convert.stringToUtf8 "client_id", Convert.stringToUtf8 clientId)
+                                , (Convert.stringToUtf8 "client_secret", Convert.stringToUtf8 clientSecret)
+                                , (Convert.stringToUtf8 "code", code)
+                                ]
+                            headers = (Http.hAccept, Convert.stringToUtf8 "application/json") : Client.requestHeaders initial
+                        pure $ Client.urlEncodedBody body initial { Client.requestHeaders = headers }
+                    res <- Client.httpLbs req manager
+                    accessToken <- case Aeson.eitherDecode $ Client.responseBody res of
+                        Left message -> Exception.throwM $ InvalidJson.InvalidJson message
+                        Right (OAuthResponse accessToken) -> pure accessToken
                     -- TODO
-                    Log.info $ show code
+                    Log.info $ show accessToken
                     respond $ Response.status Http.notImplemented501 []
-                _ -> Exception.throwM $ MissingCode.MissingCode
+                _ -> Exception.throwM $ MissingCode.MissingCode request
         ("GET", ["monadoc.svg"]) -> do
             contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "monadoc.svg"
             respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "image/svg+xml; charset=UTF-8")] contents
@@ -113,3 +132,12 @@ application context request respond = do
             []
         ("GET", ["robots.txt"]) -> respond . Response.string Http.ok200 [] $ unlines ["User-Agent: *", "Allow: /"]
         _ -> respond $ Response.status Http.notFound404 []
+
+newtype OAuthResponse
+    = OAuthResponse String
+    deriving (Eq, Show)
+
+instance Aeson.FromJSON OAuthResponse where
+    parseJSON = Aeson.withObject "OAuthResponse" $ \ object -> do
+        accessToken <- object Aeson..: Convert.stringToText "access_token"
+        pure $ OAuthResponse accessToken
