@@ -2,6 +2,7 @@ module Monadoc.Server.Application where
 
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Aeson as Aeson
+import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
@@ -16,15 +17,16 @@ import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Utility.Convert as Convert
-import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
+import qualified Network.HTTP.Types.Header as Http
 import qualified Network.Wai as Wai
 import qualified Paths_monadoc as Package
 import qualified System.FilePath as FilePath
 import qualified System.Random.Stateful as Random
 import qualified Text.XML as Xml
+import qualified Web.Cookie as Cookie
 
 application :: Context.Context -> Wai.Application
 application context request respond = do
@@ -117,8 +119,19 @@ application context request respond = do
                             , Sql.toField $ userUpdatedAt user
                             ]
                         Sql.query connection (Convert.stringToQuery "select guid from user where githubId = ?") [userGithubId user]
-                    Log.info $ show (guid :: Guid) -- TODO
-                    respond $ Response.status Http.found302 [(Http.hLocation, Convert.stringToUtf8 $ baseUrl <> "/")]
+                    let
+                        cookie = Cookie.defaultSetCookie
+                            { Cookie.setCookieHttpOnly = True
+                            , Cookie.setCookieName = Convert.stringToUtf8 "guid"
+                            , Cookie.setCookiePath = Just $ Convert.stringToUtf8 "/"
+                            , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
+                            , Cookie.setCookieSecure = Config.isSecure config
+                            , Cookie.setCookieValue = Uuid.toASCIIBytes $ guidToUuid guid
+                            }
+                    respond $ Response.status Http.found302
+                        [ (Http.hLocation, Convert.stringToUtf8 $ baseUrl <> "/")
+                        , (Http.hSetCookie, LazyByteString.toStrict . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
+                        ]
                 _ -> Exception.throwM $ MissingCode.MissingCode request
         ("GET", ["monadoc.svg"]) -> do
             contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "monadoc.svg"

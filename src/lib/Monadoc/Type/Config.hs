@@ -2,6 +2,7 @@ module Monadoc.Type.Config where
 
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
+import qualified Data.List as List
 import qualified Monadoc.Exception.InvalidPort as InvalidPort
 import qualified Monadoc.Type.Flag as Flag
 import qualified Monadoc.Type.Warning as Warning
@@ -33,6 +34,9 @@ initial = Config
     , port = 3000
     , version = False
     }
+
+isSecure :: Config -> Bool
+isSecure = List.isPrefixOf "https://" . baseUrl
 
 fromArguments :: Exception.MonadThrow m => [String] -> m ([Warning.Warning], Config)
 fromArguments arguments = do
