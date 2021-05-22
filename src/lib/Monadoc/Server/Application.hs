@@ -8,6 +8,7 @@ import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
+import qualified Paths_monadoc as Package
 import qualified System.FilePath as FilePath
 import qualified Text.XML as Xml
 
@@ -40,6 +41,8 @@ application context request respond = do
             (Xml.element (Xml.name "xsl:stylesheet") [(Xml.name "version", "1.0")]
                 [ Xml.node (Xml.name "xsl:output")
                     [ (Xml.name "method", "html")
+                    , (Xml.name "media-type", "text/html")
+                    , (Xml.name "encoding", "UTF-8")
                     -- https://stackoverflow.com/a/3404922/1274282
                     , (Xml.name "doctype-system", "about:legacy-compat")
                     ] []
@@ -63,9 +66,21 @@ application context request respond = do
                                 []
                             ]
                         , Xml.node (Xml.name "body") []
-                            [ Xml.node (Xml.name "nav") [(Xml.name "class", "navbar navbar-light bg-light")]
-                                [ Xml.node (Xml.name "div") [(Xml.name "class", "container-fluid")]
-                                    [ Xml.node (Xml.name "a") [(Xml.name "class", "navbar-brand")] [Xml.content "Monadoc"]
+                            [ Xml.node (Xml.name "header") [(Xml.name "class", "mb-3")]
+                                [ Xml.node (Xml.name "nav") [(Xml.name "class", "navbar navbar-light bg-light")]
+                                    [ Xml.node (Xml.name "div") [(Xml.name "class", "container-fluid")]
+                                        [ Xml.node (Xml.name "a") [(Xml.name "class", "navbar-brand")] [Xml.content "Monadoc"]
+                                        ]
+                                    ]
+                                ]
+                            , Xml.node (Xml.name "main") [(Xml.name "class", "container-fluid mt-3 mb-3")]
+                                [ Xml.node (Xml.name "p") [] [Xml.content "\x1f516 Better Haskell documentation."]
+                                ]
+                            , Xml.node (Xml.name "footer") [(Xml.name "class", "container-fluid pt-3 mt-3 text-muted border-top")]
+                                [ Xml.node (Xml.name "p") []
+                                    [ Xml.content "Powered by "
+                                    , Xml.node (Xml.name "a") [(Xml.name "href", "https://github.com/tfausak/monadoc")] [Xml.content "Monadoc"]
+                                    , Xml.content $ " version " <> Convert.versionToString Package.version <> "."
                                     ]
                                 ]
                             ]
