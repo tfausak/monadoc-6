@@ -7,7 +7,8 @@ import qualified Monadoc.Type.Warning as Warning
 import qualified System.Console.GetOpt as Console
 
 data Flag
-    = Database String
+    = BaseUrl String
+    | Database String
     | DataDirectory FilePath
     | Help
     | Host String
@@ -32,12 +33,14 @@ options =
         "Outputs this help message to STDOUT and exits successfully."
     , Console.Option [] ["version"] (Console.NoArg Version)
         "Outputs the version number to STDOUT and exits successfully."
-    , Console.Option [] ["host"] (Console.ReqArg Host "HOST")
-        "Sets the host interface to bind to."
-    , Console.Option [] ["port"] (Console.ReqArg Port "PORT")
-        "Sets the port number to listen on."
+    , Console.Option [] ["base-url"] (Console.ReqArg BaseUrl "BASE_URL")
+        "Sets the base URL that the site is available from."
     , Console.Option [] ["database"] (Console.ReqArg Database "DATABASE")
         "Sets the database file to use, or `:memory:` for in-memory."
     , Console.Option [] ["data-directory"] (Console.ReqArg DataDirectory "DATA_DIRECTORY")
         "Sets the directory to load data files from."
+    , Console.Option [] ["host"] (Console.ReqArg Host "HOST")
+        "Sets the host interface to bind to."
+    , Console.Option [] ["port"] (Console.ReqArg Port "PORT")
+        "Sets the port number to listen on."
     ]

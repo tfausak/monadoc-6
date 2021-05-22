@@ -46,6 +46,7 @@ application context request respond = do
                     -- https://stackoverflow.com/a/3404922/1274282
                     , (Xml.name "doctype-system", "about:legacy-compat")
                     ] []
+                , Xml.node (Xml.name "xsl:variable") [(Xml.name "name", "base-url")] [Xml.content . Config.baseUrl $ Context.config context]
                 , Xml.node (Xml.name "xsl:template") [(Xml.name "match", "/")]
                     [ Xml.node (Xml.name "html") [(Xml.name "lang", "en-US")]
                         [ Xml.node (Xml.name "head") []
@@ -69,7 +70,7 @@ application context request respond = do
                             [ Xml.node (Xml.name "header") [(Xml.name "class", "mb-3")]
                                 [ Xml.node (Xml.name "nav") [(Xml.name "class", "navbar navbar-light bg-light")]
                                     [ Xml.node (Xml.name "div") [(Xml.name "class", "container-fluid")]
-                                        [ Xml.node (Xml.name "a") [(Xml.name "class", "navbar-brand")] [Xml.content "Monadoc"]
+                                        [ Xml.node (Xml.name "a") [(Xml.name "class", "navbar-brand"), (Xml.name "href", "{$base-url}")] [Xml.content "Monadoc"]
                                         ]
                                     ]
                                 ]

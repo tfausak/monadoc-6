@@ -10,7 +10,8 @@ import qualified Network.Wai.Handler.Warp as Warp
 import qualified Text.Read as Read
 
 data Config = Config
-    { database :: String
+    { baseUrl :: String
+    , database :: String
     , dataDirectory :: FilePath
     , help :: Bool
     , host :: Warp.HostPreference
@@ -20,7 +21,8 @@ data Config = Config
 
 initial :: Config
 initial = Config
-    { database = ":memory:"
+    { baseUrl = "/"
+    , database = ":memory:"
     , dataDirectory = "./data"
     , help = False
     , host = Convert.stringToHost "127.0.0.1"
@@ -44,6 +46,7 @@ applyFlags flags config = Monad.foldM (flip applyFlag) config flags
 
 applyFlag :: Exception.MonadThrow m => Flag.Flag -> Config -> m Config
 applyFlag flag config = case flag of
+    Flag.BaseUrl x -> pure config { baseUrl = x }
     Flag.Database x -> pure config { database = x }
     Flag.DataDirectory x -> pure config { dataDirectory = x }
     Flag.Help -> pure config { help = True }
