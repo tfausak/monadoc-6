@@ -101,4 +101,5 @@ application context request respond = do
                     ]
                 ])
             []
+        ("GET", ["robots.txt"]) -> respond . Response.string Http.ok200 [] $ unlines ["User-Agent: *", "Allow: /"]
         _ -> respond $ Response.status Http.notFound404 []

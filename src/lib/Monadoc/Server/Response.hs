@@ -27,6 +27,12 @@ status s h = xml
             ])
         []
 
+string :: Http.Status -> Http.ResponseHeaders -> String -> Wai.Response
+string s h =
+    lazyByteString s ((Http.hContentType, Convert.stringToUtf8 "text/plain; charset=UTF-8") : h)
+    . LazyByteString.fromStrict
+    . Convert.stringToUtf8
+
 xml :: Http.Status -> Http.ResponseHeaders -> Xml.Document -> Wai.Response
 xml s h d = lazyByteString
     s
