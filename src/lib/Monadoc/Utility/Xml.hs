@@ -1,8 +1,18 @@
 module Monadoc.Utility.Xml where
 
+import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Map as Map
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Text.XML as Xml
+
+escape :: String -> String
+escape = concatMap $ \ c -> case c of
+    '"' -> "&quot;"
+    '\'' -> "&apos;"
+    '&' -> "&amp;"
+    '<' -> "&lt;"
+    '>' -> "&gt;"
+    _ -> [c]
 
 name :: String -> Xml.Name
 name s = case break (== ':') s of
@@ -13,11 +23,13 @@ name s = case break (== ':') s of
             (Just $ Convert.stringToText prefix)
     _ -> Xml.Name (Convert.stringToText s) Nothing Nothing
 
-node :: Xml.Name -> [(Xml.Name, String)] -> [Xml.Node] -> Xml.Node
+node :: String -> [(String, String)] -> [Xml.Node] -> Xml.Node
 node n as = Xml.NodeElement . element n as
 
-element :: Xml.Name -> [(Xml.Name, String)] -> [Xml.Node] -> Xml.Element
-element n = Xml.Element n . Map.fromList . fmap (fmap Convert.stringToText)
+element :: String -> [(String, String)] -> [Xml.Node] -> Xml.Element
+element n = Xml.Element (name n)
+    . Map.fromList
+    . fmap (Bifunctor.bimap name Convert.stringToText)
 
 content :: String -> Xml.Node
 content = Xml.NodeContent . Convert.stringToText

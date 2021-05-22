@@ -19,10 +19,10 @@ status s h = xml
     h
     $ Xml.Document
         (Xml.Prologue [] Nothing [])
-        (Xml.element (Xml.name "status") []
-            [ Xml.node (Xml.name "code") []
+        (Xml.element "status" []
+            [ Xml.node "code" []
                 [Xml.content . show $ Http.statusCode s]
-            , Xml.node (Xml.name "message") []
+            , Xml.node "message" []
                 [Xml.content . Convert.utf8ToString $ Http.statusMessage s]
             ])
         []
