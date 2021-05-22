@@ -6,6 +6,7 @@ import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Monadoc.Exception.InvalidJson as InvalidJson
 import qualified Monadoc.Exception.MissingCode as MissingCode
 import qualified Monadoc.Server.Response as Response
+import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Utility.Convert as Convert
@@ -48,7 +49,7 @@ application context request respond = do
         ("GET", ["github-callback"]) ->
             case lookup (Convert.stringToUtf8 "code") $ Wai.queryString request of
                 Just (Just code) -> do
-                    req <- do
+                    accessToken <- do
                         initial <- Client.parseUrlThrow "https://github.com/login/oauth/access_token"
                         let
                             body =
@@ -57,13 +58,25 @@ application context request respond = do
                                 , (Convert.stringToUtf8 "code", code)
                                 ]
                             headers = (Http.hAccept, Convert.stringToUtf8 "application/json") : Client.requestHeaders initial
-                        pure $ Client.urlEncodedBody body initial { Client.requestHeaders = headers }
-                    res <- Client.httpLbs req manager
-                    accessToken <- case Aeson.eitherDecode $ Client.responseBody res of
-                        Left message -> Exception.throwM $ InvalidJson.InvalidJson message
-                        Right (OAuthResponse accessToken) -> pure accessToken
+                            req = Client.urlEncodedBody body initial { Client.requestHeaders = headers }
+                        res <- Client.httpLbs req manager
+                        case Aeson.eitherDecode $ Client.responseBody res of
+                            Left message -> Exception.throwM $ InvalidJson.InvalidJson message
+                            Right oAuthResponse -> pure $ oAuthResponseAccessToken oAuthResponse
+                    user <- do
+                        initial <- Client.parseUrlThrow "https://api.github.com/user"
+                        let
+                            headers
+                                = (Http.hAuthorization, Convert.stringToUtf8 $ "Bearer " <> accessToken)
+                                : (Http.hUserAgent, Settings.serverName)
+                                : Client.requestHeaders initial
+                            req = initial { Client.requestHeaders = headers }
+                        res <- Client.httpLbs req manager
+                        case Aeson.eitherDecode $ Client.responseBody res of
+                            Left message -> Exception.throwM $ InvalidJson.InvalidJson message
+                            Right user -> pure user
                     -- TODO
-                    Log.info $ show accessToken
+                    Log.info $ show (accessToken, user :: GitHubUser)
                     respond $ Response.status Http.notImplemented501 []
                 _ -> Exception.throwM $ MissingCode.MissingCode request
         ("GET", ["monadoc.svg"]) -> do
@@ -133,11 +146,26 @@ application context request respond = do
         ("GET", ["robots.txt"]) -> respond . Response.string Http.ok200 [] $ unlines ["User-Agent: *", "Allow: /"]
         _ -> respond $ Response.status Http.notFound404 []
 
-newtype OAuthResponse
-    = OAuthResponse String
-    deriving (Eq, Show)
+newtype OAuthResponse = OAuthResponse
+    { oAuthResponseAccessToken :: String
+    } deriving (Eq, Show)
 
 instance Aeson.FromJSON OAuthResponse where
     parseJSON = Aeson.withObject "OAuthResponse" $ \ object -> do
         accessToken <- object Aeson..: Convert.stringToText "access_token"
         pure $ OAuthResponse accessToken
+
+
+data GitHubUser = GitHubUser
+    { gitHubUserId :: Int
+    , gitHubUserLogin :: String
+    } deriving (Eq, Show)
+
+instance Aeson.FromJSON GitHubUser where
+    parseJSON = Aeson.withObject "GitHubUser" $ \ object -> do
+        id_ <- object Aeson..: Convert.stringToText "id"
+        login <- object Aeson..: Convert.stringToText "login"
+        pure GitHubUser
+            { gitHubUserId = id_
+            , gitHubUserLogin = login
+            }
