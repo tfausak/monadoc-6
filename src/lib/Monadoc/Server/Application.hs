@@ -1,10 +1,13 @@
 module Monadoc.Server.Application where
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Monadoc.Exception.MissingCode as MissingCode
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Utility.Convert as Convert
+import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
@@ -37,6 +40,13 @@ application context request respond = do
         ("GET", ["favicon.ico"]) -> respond $ Response.status Http.found302
             [ (Http.hLocation, Convert.stringToUtf8 "monadoc.svg")
             ]
+        ("GET", ["github-callback"]) ->
+            case lookup (Convert.stringToUtf8 "code") $ Wai.queryString request of
+                Just (Just code) -> do
+                    -- TODO
+                    Log.info $ show code
+                    respond $ Response.status Http.notImplemented501 []
+                _ -> Exception.throwM $ MissingCode.MissingCode
         ("GET", ["monadoc.svg"]) -> do
             contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "monadoc.svg"
             respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "image/svg+xml; charset=UTF-8")] contents
@@ -79,7 +89,7 @@ application context request respond = do
                                             [ Xml.node "li" [("class", "nav-item")]
                                                 [ Xml.node "a"
                                                     [ ("class", "nav-link")
-                                                    , ("href", "https://github.com/login/oauth/authorize?client_id=" <> clientId <> "&redirect_uri={$base-url}/TODO")
+                                                    , ("href", "https://github.com/login/oauth/authorize?client_id=" <> clientId <> "&redirect_uri={$base-url}/github-callback")
                                                     ] [Xml.content "Log in"]
                                                 ]
                                             ]

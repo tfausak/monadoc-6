@@ -65,6 +65,7 @@ library
     exposed-modules:
         Monadoc
         Monadoc.Exception.InvalidPort
+        Monadoc.Exception.MissingCode
         Monadoc.Exception.OptionError
         Monadoc.Server.Application
         Monadoc.Server.Middleware
