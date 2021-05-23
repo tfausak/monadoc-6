@@ -8,12 +8,13 @@
 
     <xsl:variable name="base-url" select="normalize-space(/monadoc/config/base-url)"/>
     <xsl:variable name="client-id" select="normalize-space(/monadoc/config/client-id)"/>
+    <xsl:variable name="user" select="normalize-space(/monadoc/user/login)"/>
     <xsl:variable name="version" select="normalize-space(/monadoc/config/version)"/>
 
     <xsl:template match="user">
         <xsl:choose>
-            <xsl:when test="login">
-                @<xsl:value-of select="login"/>
+            <xsl:when test="$user">
+                @<xsl:value-of select="$user"/>
             </xsl:when>
             <xsl:otherwise>
                 <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$client-id}&amp;redirect_uri={$base-url}/github-callback">Log in</a>
