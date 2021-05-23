@@ -64,7 +64,8 @@ application context request respond = do
                 Nothing
                 [])
             (Xml.element "monadoc" []
-                [ Xml.node "user" [] $ case maybeUser of
+                [ Xml.node "base-url" [] [Xml.content baseUrl]
+                , Xml.node "user" [] $ case maybeUser of
                     Nothing -> []
                     Just user ->  [Xml.node "login" [] [Xml.content $ userGithubLogin user]]
                 ])
@@ -173,7 +174,7 @@ application context request respond = do
                     -- https://stackoverflow.com/a/3404922/1274282
                     , ("doctype-system", "about:legacy-compat")
                     ] []
-                , Xml.node "xsl:variable" [("name", "base-url")] [Xml.content baseUrl]
+                , Xml.node "xsl:variable" [("name", "base-url"), ("select", "normalize-space(/monadoc/base-url)")] []
                 , Xml.node "xsl:template" [("match", "user")]
                     [ Xml.node "xsl:choose" []
                         [ Xml.node "xsl:when" [("test", "login")]
