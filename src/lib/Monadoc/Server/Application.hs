@@ -49,7 +49,7 @@ application context request respond = do
                     sessions <- Sql.query connection (Convert.stringToQuery "select createdAt, deletedAt, guid, userAgent, userGithubId from session where guid = ? and deletedAt is null limit 1") [guid]
                     case sessions of
                         session : _ -> do
-                            users <- Sql.query connection (Convert.stringToQuery "select createdAt, githubId, githubLogin, githubToken, updatedAt from user where githubId = ? limit 1") [sessionUserGithubId session]
+                            users <- Sql.query connection (Convert.stringToQuery "select createdAt, githubId, githubLogin, githubToken, updatedAt from user where githubId = ? and deletedAt is null limit 1") [sessionUserGithubId session]
                             case users of
                                 user : _ -> pure $ Just user
                                 _ -> pure Nothing
@@ -107,6 +107,7 @@ application context request respond = do
                     let
                         user = User
                             { userCreatedAt = now
+                            , userDeletedAt = Nothing
                             , userGithubId = githubUserId githubUser
                             , userGithubLogin = githubUserLogin githubUser
                             , userGithubToken = accessToken
@@ -124,13 +125,15 @@ application context request respond = do
                             connection
                             (Convert.stringToQuery "insert into user \
                             \ ( createdAt \
+                            \ , deletedAt \
                             \ , githubId \
                             \ , githubLogin \
                             \ , githubToken \
                             \ , updatedAt \
-                            \ ) values (?, ?, ?, ?, ?) \
+                            \ ) values (?, ?, ?, ?, ?, ?) \
                             \ on conflict (githubId) do update \
-                            \ set githubLogin = excluded.githubLogin \
+                            \ set deletedAt = excluded.deletedAt \
+                            \ , githubLogin = excluded.githubLogin \
                             \ , githubToken = excluded.githubToken \
                             \ , updatedAt = excluded.updatedAt")
                             user
@@ -246,6 +249,7 @@ instance Aeson.FromJSON GithubUser where
 
 data User = User
     { userCreatedAt :: Time.UTCTime
+    , userDeletedAt :: Maybe Time.UTCTime
     , userGithubId :: Int
     , userGithubLogin :: String
     , userGithubToken :: String
@@ -259,10 +263,12 @@ instance Sql.FromRow User where
         <*> Sql.field
         <*> Sql.field
         <*> Sql.field
+        <*> Sql.field
 
 instance Sql.ToRow User where
     toRow user =
         [ Sql.toField $ userCreatedAt user
+        , Sql.toField $ userDeletedAt user
         , Sql.toField $ userGithubId user
         , Sql.toField $ userGithubLogin user
         , Sql.toField $ userGithubToken user

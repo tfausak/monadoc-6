@@ -34,6 +34,7 @@ mainWith name arguments = do
         Sql.execute_ connection $ Convert.stringToQuery
             "create table if not exists user \
             \ ( createdAt text not null \
+            \ , deletedAt text \
             \ , githubId integer primary key \
             \ , githubLogin text not null \
             \ , githubToken text not null \
