@@ -16,6 +16,7 @@ data-files:
     bootstrap.css
     monadoc.svg
     monadoc.xsl
+    robots.txt
 
 source-repository head
     location: https://github.com/tfausak/monadoc

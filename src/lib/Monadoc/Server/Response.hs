@@ -7,6 +7,9 @@ import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Text.XML as Xml
 
+file :: Http.Status -> Http.ResponseHeaders -> FilePath -> IO Wai.Response
+file s h = fmap (lazyByteString s h) . LazyByteString.readFile
+
 lazyByteString :: Http.Status -> Http.ResponseHeaders -> LazyByteString.ByteString -> Wai.Response
 lazyByteString s h b = Wai.responseLBS
     s

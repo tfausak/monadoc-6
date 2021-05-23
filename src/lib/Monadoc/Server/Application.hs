@@ -73,8 +73,8 @@ application context request respond = do
                 ])
             []
         ("GET", ["bootstrap.css"]) -> do
-            contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "bootstrap.css"
-            respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/css; charset=UTF-8")] contents
+            response <- Response.file Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/css; charset=UTF-8")] $ FilePath.combine dataDirectory "bootstrap.css"
+            respond response
         ("GET", ["favicon.ico"]) -> respond $ Response.status Http.found302
             [ (Http.hLocation, Convert.stringToUtf8 $ baseUrl <> "/monadoc.svg")
             ]
@@ -143,12 +143,14 @@ application context request respond = do
                         ]
                 _ -> Exception.throwM $ MissingCode.MissingCode request
         ("GET", ["monadoc.svg"]) -> do
-            contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "monadoc.svg"
-            respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "image/svg+xml; charset=UTF-8")] contents
+            response <- Response.file Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "image/svg+xml; charset=UTF-8")] $ FilePath.combine dataDirectory "monadoc.svg"
+            respond response
         ("GET", ["monadoc.xsl"]) -> do
-            contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "monadoc.xsl"
-            respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/xsl; charset=UTF-8")] contents
-        ("GET", ["robots.txt"]) -> respond . Response.string Http.ok200 [] $ unlines ["User-Agent: *", "Allow: /"]
+            response <- Response.file Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/xsl; charset=UTF-8")] $ FilePath.combine dataDirectory "monadoc.xsl"
+            respond response
+        ("GET", ["robots.txt"]) -> do
+            response <- Response.file Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/plain; charset=UTF-8")] $ FilePath.combine dataDirectory "robots.txt"
+            respond response
         _ -> respond $ Response.status Http.notFound404 []
 
 uniformIO :: Random.Uniform a => IO a
