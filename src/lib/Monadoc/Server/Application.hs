@@ -167,83 +167,9 @@ application context request respond = do
         ("GET", ["monadoc.svg"]) -> do
             contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "monadoc.svg"
             respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "image/svg+xml; charset=UTF-8")] contents
-        ("GET", ["monadoc.xsl"]) -> respond . Response.xml Http.ok200 [] $ Xml.Document
-            (Xml.Prologue [] Nothing [])
-            -- https://www.w3.org/TR/1999/REC-xslt-19991116
-            (Xml.element "xsl:stylesheet" [("version", "1.0")]
-                [ Xml.node "xsl:output"
-                    [ ("method", "html")
-                    , ("media-type", "text/html")
-                    , ("encoding", "UTF-8")
-                    -- https://stackoverflow.com/a/3404922/1274282
-                    , ("doctype-system", "about:legacy-compat")
-                    ] []
-                , Xml.node "xsl:variable" [("name", "base-url"), ("select", "normalize-space(/monadoc/config/base-url)")] []
-                , Xml.node "xsl:variable" [("name", "client-id"), ("select", "normalize-space(/monadoc/config/client-id)")] []
-                , Xml.node "xsl:variable" [("name", "version"), ("select", "normalize-space(/monadoc/config/version)")] []
-                , Xml.node "xsl:template" [("match", "user")]
-                    [ Xml.node "xsl:choose" []
-                        [ Xml.node "xsl:when" [("test", "login")]
-                            [ Xml.content "@"
-                            , Xml.node "xsl:value-of" [("select", "login")] []
-                            ]
-                        , Xml.node "xsl:otherwise" []
-                            [ Xml.node "a"
-                                [ ("class", "nav-link")
-                                , ("href", "https://github.com/login/oauth/authorize?client_id={$client-id}&redirect_uri={$base-url}/github-callback")
-                                ] [Xml.content "Log in"]
-                            ]
-                        ]
-                    ]
-                , Xml.node "xsl:template" [("match", "/monadoc")]
-                    [ Xml.node "html" [("lang", "en-US")]
-                        [ Xml.node "head" []
-                            [ Xml.node "meta"
-                                [ ("name", "viewport")
-                                , ("content", "initial-scale = 1, width = device-width")
-                                ] []
-                            , Xml.node "title" [] [Xml.content "Monadoc"]
-                            , Xml.node "link"
-                                [ ("rel", "stylesheet")
-                                , ("href", "{$base-url}/bootstrap.css")
-                                ] []
-                            , Xml.node "link"
-                                [ ("rel", "icon")
-                                , ("type", "image/svg+xml")
-                                , ("href", "{$base-url}/monadoc.svg")
-                                ]
-                                []
-                            ]
-                        , Xml.node "body" []
-                            [ Xml.node "header" [("class", "mb-3")]
-                                [ Xml.node "nav" [("class", "navbar navbar-light bg-light")]
-                                    [ Xml.node "div" [("class", "container-fluid")]
-                                        [ Xml.node "a" [("class", "navbar-brand"), ("href", "{$base-url}/")] [Xml.content "Monadoc"]
-                                        , Xml.node "ul" [("class", "navbar-nav")]
-                                            [ Xml.node "li" [("class", "nav-item")]
-                                                [ Xml.node "xsl:apply-templates" [("select", "user")] []
-                                                ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            , Xml.node "main" [("class", "container-fluid mt-3 mb-3")]
-                                [ Xml.node "p" [] [Xml.content "\x1f516 Better Haskell documentation."]
-                                ]
-                            , Xml.node "footer" [("class", "container-fluid pt-3 mt-3 text-muted border-top")]
-                                [ Xml.node "p" []
-                                    [ Xml.content "Powered by "
-                                    , Xml.node "a" [("href", "https://github.com/tfausak/monadoc")] [Xml.content "Monadoc"]
-                                    , Xml.content " version "
-                                    , Xml.node "xsl:value-of" [("select", "$version")] []
-                                    , Xml.content "."
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ])
-            []
+        ("GET", ["monadoc.xsl"]) -> do
+            contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "monadoc.xsl"
+            respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/xsl; charset=UTF-8")] contents
         ("GET", ["robots.txt"]) -> respond . Response.string Http.ok200 [] $ unlines ["User-Agent: *", "Allow: /"]
         _ -> respond $ Response.status Http.notFound404 []
 

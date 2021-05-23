@@ -15,6 +15,7 @@ data-dir: data
 data-files:
     bootstrap.css
     monadoc.svg
+    monadoc.xsl
 
 source-repository head
     location: https://github.com/tfausak/monadoc
