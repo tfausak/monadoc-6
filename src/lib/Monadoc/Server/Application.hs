@@ -64,7 +64,10 @@ application context request respond = do
                 Nothing
                 [])
             (Xml.element "monadoc" []
-                [ Xml.node "base-url" [] [Xml.content baseUrl]
+                [ Xml.node "config" []
+                    [ Xml.node "base-url" [] [Xml.content baseUrl]
+                    , Xml.node "client-id" [] [Xml.content clientId]
+                    ]
                 , Xml.node "user" [] $ case maybeUser of
                     Nothing -> []
                     Just user ->  [Xml.node "login" [] [Xml.content $ userGithubLogin user]]
@@ -174,7 +177,8 @@ application context request respond = do
                     -- https://stackoverflow.com/a/3404922/1274282
                     , ("doctype-system", "about:legacy-compat")
                     ] []
-                , Xml.node "xsl:variable" [("name", "base-url"), ("select", "normalize-space(/monadoc/base-url)")] []
+                , Xml.node "xsl:variable" [("name", "base-url"), ("select", "normalize-space(/monadoc/config/base-url)")] []
+                , Xml.node "xsl:variable" [("name", "client-id"), ("select", "normalize-space(/monadoc/config/client-id)")] []
                 , Xml.node "xsl:template" [("match", "user")]
                     [ Xml.node "xsl:choose" []
                         [ Xml.node "xsl:when" [("test", "login")]
@@ -184,7 +188,7 @@ application context request respond = do
                         , Xml.node "xsl:otherwise" []
                             [ Xml.node "a"
                                 [ ("class", "nav-link")
-                                , ("href", "https://github.com/login/oauth/authorize?client_id=" <> clientId <> "&redirect_uri={$base-url}/github-callback")
+                                , ("href", "https://github.com/login/oauth/authorize?client_id={$client-id}&redirect_uri={$base-url}/github-callback")
                                 ] [Xml.content "Log in"]
                             ]
                         ]
