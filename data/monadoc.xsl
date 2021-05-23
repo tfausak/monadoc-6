@@ -11,17 +11,6 @@
     <xsl:variable name="user" select="normalize-space(/monadoc/user/login)"/>
     <xsl:variable name="version" select="normalize-space(/monadoc/config/version)"/>
 
-    <xsl:template match="user">
-        <xsl:choose>
-            <xsl:when test="$user">
-                @<xsl:value-of select="$user"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$client-id}&amp;redirect_uri={$base-url}/github-callback">Log in</a>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
     <xsl:template match="/monadoc">
         <html lang="en-US">
             <head>
@@ -42,7 +31,14 @@
                             <a class="navbar-brand" href="{$base-url}/">Monadoc</a>
                             <ul class="navbar-nav">
                                 <li class="nav-item">
-                                    <xsl:apply-templates select="user"/>
+                                    <xsl:choose>
+                                        <xsl:when test="$user">
+                                            @<xsl:value-of select="$user"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$client-id}&amp;redirect_uri={$base-url}/github-callback">Log in</a>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
                                 </li>
                             </ul>
                         </div>
