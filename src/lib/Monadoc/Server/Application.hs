@@ -2,8 +2,10 @@ module Monadoc.Server.Application where
 
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Aeson as Aeson
+import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Data.UUID as Uuid
@@ -17,6 +19,7 @@ import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Utility.Convert as Convert
+import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
@@ -39,6 +42,18 @@ application context request respond = do
         clientId = Config.clientId config
         clientSecret = Config.clientSecret config
         manager = Context.manager context
+        cookies = Cookie.parseCookies . Maybe.fromMaybe ByteString.empty . lookup Http.hCookie $ Wai.requestHeaders request
+    maybeUser <- case lookup (Convert.stringToUtf8 "guid") cookies of
+        Just byteString -> case fmap uuidToGuid $ Uuid.fromASCIIBytes byteString of
+            Just guid -> do
+                rows <- Pool.withResource (Context.pool context) $ \ connection ->
+                    Sql.query connection (Convert.stringToQuery "select createdAt, githubId, githubLogin, githubToken, guid, updatedAt from user where guid = ? limit 1") [guid]
+                case rows of
+                    user : _ -> pure $ Just user
+                    _ -> pure Nothing
+            _ -> pure Nothing
+        _ -> pure Nothing
+    Log.info . show $ fmap userGithubLogin maybeUser -- TODO
     case (method, path) of
         ("GET", []) -> respond . Response.xml Http.ok200 [] $ Xml.Document
             (Xml.Prologue
@@ -231,6 +246,15 @@ data User = User
     , userGuid :: Guid
     , userUpdatedAt :: Time.UTCTime
     } deriving (Eq, Show)
+
+instance Sql.FromRow User where
+    fromRow = User
+        <$> Sql.field
+        <*> Sql.field
+        <*> Sql.field
+        <*> Sql.field
+        <*> Sql.field
+        <*> Sql.field
 
 newtype Guid
     = Guid Uuid.UUID
