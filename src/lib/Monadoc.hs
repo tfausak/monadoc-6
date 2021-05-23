@@ -2,6 +2,7 @@ module Monadoc where
 
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
+import qualified Data.List as List
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
@@ -34,7 +35,7 @@ mainWith name arguments = do
     context <- getContext name arguments
     Pool.withResource (Context.pool context) $ \ connection -> do
         createMigrationTable connection
-        mapM_ (runMigration connection) migrations
+        mapM_ (runMigration connection) $ List.sortOn Migration.time migrations
     Warp.runSettings (Settings.fromConfig $ Context.config context)
         . Middleware.middleware $ Application.application context
 
