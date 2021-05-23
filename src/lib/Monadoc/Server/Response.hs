@@ -37,4 +37,4 @@ xml :: Http.Status -> Http.ResponseHeaders -> Xml.Document -> Wai.Response
 xml s h d = lazyByteString
     s
     ((Http.hContentType, Convert.stringToUtf8 "text/xml; charset=UTF-8") : h)
-    $ Xml.renderLBS Xml.def d
+    $ Xml.renderLBS Xml.def { Xml.rsPretty = True } d
