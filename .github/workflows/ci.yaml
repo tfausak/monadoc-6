@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false # TODO
       matrix:
         cabal:
           - 3.4.0.0

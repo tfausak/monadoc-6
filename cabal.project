@@ -1,8 +1,12 @@
 packages: .
 
 allow-newer:
+    , Cabal:bytestring
+    , Cabal:time
+    , Cabal:Win32
     , cryptohash-md5:bytestring
     , cryptohash-sha1:bytestring
+    , unix-compat:time
 
 -- https://github.com/bos/blaze-textual/pull/14
 source-repository-package
@@ -22,8 +26,20 @@ source-repository-package
     tag: 76eb372b3c593ade7d30541bc8d0cf8716474e55
     type: git
 
+-- https://github.com/haskell/directory/pull/116
+source-repository-package
+    location: https://github.com/bgamari/directory
+    tag: adb8b4d67356c4eca92f62fd1b7c1ac8add4241c
+    type: git
+
 -- https://github.com/TomMD/entropy/pull/60
 source-repository-package
     location: https://github.com/l29ah/entropy
     tag: 779594b9ff34164362c6549b7ebf61f4ed44fa66
+    type: git
+
+-- https://github.com/haskell/process/pull/203
+source-repository-package
+    location: https://github.com/bgamari/process
+    tag: a5804361e13d61408a96ad9273b295d8d43d1c8c
     type: git
