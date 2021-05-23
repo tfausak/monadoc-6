@@ -19,7 +19,6 @@ import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Utility.Convert as Convert
-import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
@@ -49,14 +48,13 @@ application context request respond = do
                     sessions <- Sql.query connection (Convert.stringToQuery "select createdAt, deletedAt, guid, userAgent, userGithubId from session where guid = ? and deletedAt is null limit 1") [guid]
                     case sessions of
                         session : _ -> do
-                            users <- Sql.query connection (Convert.stringToQuery "select createdAt, githubId, githubLogin, githubToken, updatedAt from user where githubId = ? and deletedAt is null limit 1") [sessionUserGithubId session]
+                            users <- Sql.query connection (Convert.stringToQuery "select createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt from user where githubId = ? and deletedAt is null limit 1") [sessionUserGithubId session]
                             case users of
                                 user : _ -> pure $ Just user
                                 _ -> pure Nothing
                         _ -> pure Nothing
             _ -> pure Nothing
         _ -> pure Nothing
-    Log.info . show $ fmap userGithubLogin maybeUser -- TODO
     case (method, path) of
         ("GET", []) -> respond . Response.xml Http.ok200 [] $ Xml.Document
             (Xml.Prologue
@@ -65,7 +63,11 @@ application context request respond = do
                     (Convert.stringToText $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape baseUrl <> "/monadoc.xsl\"")]
                 Nothing
                 [])
-            (Xml.element "monadoc" [] [])
+            (Xml.element "monadoc" []
+                [ Xml.node "user" [] $ case maybeUser of
+                    Nothing -> []
+                    Just user ->  [Xml.node "login" [] [Xml.content $ userGithubLogin user]]
+                ])
             []
         ("GET", ["bootstrap.css"]) -> do
             contents <- LazyByteString.readFile $ FilePath.combine dataDirectory "bootstrap.css"
@@ -162,6 +164,7 @@ application context request respond = do
             respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "image/svg+xml; charset=UTF-8")] contents
         ("GET", ["monadoc.xsl"]) -> respond . Response.xml Http.ok200 [] $ Xml.Document
             (Xml.Prologue [] Nothing [])
+            -- https://www.w3.org/TR/1999/REC-xslt-19991116
             (Xml.element "xsl:stylesheet" [("version", "1.0")]
                 [ Xml.node "xsl:output"
                     [ ("method", "html")
@@ -171,7 +174,21 @@ application context request respond = do
                     , ("doctype-system", "about:legacy-compat")
                     ] []
                 , Xml.node "xsl:variable" [("name", "base-url")] [Xml.content baseUrl]
-                , Xml.node "xsl:template" [("match", "/")]
+                , Xml.node "xsl:template" [("match", "user")]
+                    [ Xml.node "xsl:choose" []
+                        [ Xml.node "xsl:when" [("test", "login")]
+                            [ Xml.content "@"
+                            , Xml.node "xsl:value-of" [("select", "login")] []
+                            ]
+                        , Xml.node "xsl:otherwise" []
+                            [ Xml.node "a"
+                                [ ("class", "nav-link")
+                                , ("href", "https://github.com/login/oauth/authorize?client_id=" <> clientId <> "&redirect_uri={$base-url}/github-callback")
+                                ] [Xml.content "Log in"]
+                            ]
+                        ]
+                    ]
+                , Xml.node "xsl:template" [("match", "/monadoc")]
                     [ Xml.node "html" [("lang", "en-US")]
                         [ Xml.node "head" []
                             [ Xml.node "meta"
@@ -197,10 +214,7 @@ application context request respond = do
                                         [ Xml.node "a" [("class", "navbar-brand"), ("href", "{$base-url}/")] [Xml.content "Monadoc"]
                                         , Xml.node "ul" [("class", "navbar-nav")]
                                             [ Xml.node "li" [("class", "nav-item")]
-                                                [ Xml.node "a"
-                                                    [ ("class", "nav-link")
-                                                    , ("href", "https://github.com/login/oauth/authorize?client_id=" <> clientId <> "&redirect_uri={$base-url}/github-callback")
-                                                    ] [Xml.content "Log in"]
+                                                [ Xml.node "xsl:apply-templates" [("select", "user")] []
                                                 ]
                                             ]
                                         ]
