@@ -19,6 +19,7 @@ import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.GithubUser as GithubUser
 import qualified Monadoc.Type.Guid as Guid
+import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.OAuthResponse as OAuthResponse
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Xml as Xml
@@ -63,9 +64,7 @@ getUser context request = do
             _ -> pure Nothing
         _ -> pure Nothing
 
-type Handler = Context.Context -> Wai.Request -> IO Wai.Response
-
-indexHandler :: Handler
+indexHandler :: Handler.Handler
 indexHandler context request = do
     let
         config = Context.config context
@@ -91,7 +90,7 @@ indexHandler context request = do
             ])
         []
 
-fileHandler :: FilePath -> String -> Handler
+fileHandler :: FilePath -> String -> Handler.Handler
 fileHandler relative mime context _ = do
     let
         status = Http.ok200
@@ -101,7 +100,7 @@ fileHandler relative mime context _ = do
         absolute = FilePath.combine directory relative
     Response.file status headers absolute
 
-faviconHandler :: Handler
+faviconHandler :: Handler.Handler
 faviconHandler context _ = do
     let
         status = Http.found302
@@ -111,7 +110,7 @@ faviconHandler context _ = do
         headers = [(Http.hLocation, location)]
     pure $ Response.status status headers
 
-githubCallbackHandler :: Handler
+githubCallbackHandler :: Handler.Handler
 githubCallbackHandler context request = do
     let
         config = Context.config context
@@ -183,7 +182,7 @@ githubCallbackHandler context request = do
                 ]
         _ -> Exception.throwM $ MissingCode.MissingCode request
 
-notFoundHandler :: Handler
+notFoundHandler :: Handler.Handler
 notFoundHandler _ _ = pure $ Response.status Http.notFound404 []
 
 uniformIO :: Random.Uniform a => IO a
