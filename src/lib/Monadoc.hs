@@ -37,10 +37,15 @@ mainWith name arguments = do
             \ , githubId integer primary key \
             \ , githubLogin text not null \
             \ , githubToken text not null \
-            \ , guid text not null unique \
             \ , updatedAt text not null )"
-        rows <- Sql.query_ connection $ Convert.stringToQuery "select 1"
-        Monad.guard $ rows == [[1 :: Int]]
+        Sql.execute_ connection $ Convert.stringToQuery
+            "create table if not exists session \
+            \ ( createdAt text not null \
+            \ , deletedAt text \
+            \ , guid text not null primary key \
+            \ , userAgent text not null \
+            \ , userGithubId integer not null \
+            \ ) without rowid"
     Warp.runSettings (Settings.fromConfig $ Context.config context)
         . Middleware.middleware $ Application.application context
 

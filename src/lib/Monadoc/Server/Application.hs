@@ -45,12 +45,15 @@ application context request respond = do
         cookies = Cookie.parseCookies . Maybe.fromMaybe ByteString.empty . lookup Http.hCookie $ Wai.requestHeaders request
     maybeUser <- case lookup (Convert.stringToUtf8 "guid") cookies of
         Just byteString -> case fmap uuidToGuid $ Uuid.fromASCIIBytes byteString of
-            Just guid -> do
-                rows <- Pool.withResource (Context.pool context) $ \ connection ->
-                    Sql.query connection (Convert.stringToQuery "select createdAt, githubId, githubLogin, githubToken, guid, updatedAt from user where guid = ? limit 1") [guid]
-                case rows of
-                    user : _ -> pure $ Just user
-                    _ -> pure Nothing
+            Just guid -> Pool.withResource (Context.pool context) $ \ connection -> do
+                    sessions <- Sql.query connection (Convert.stringToQuery "select createdAt, deletedAt, guid, userAgent, userGithubId from session where guid = ? and deletedAt is null limit 1") [guid]
+                    case sessions of
+                        session : _ -> do
+                            users <- Sql.query connection (Convert.stringToQuery "select createdAt, githubId, githubLogin, githubToken, updatedAt from user where githubId = ? limit 1") [sessionUserGithubId session]
+                            case users of
+                                user : _ -> pure $ Just user
+                                _ -> pure Nothing
+                        _ -> pure Nothing
             _ -> pure Nothing
         _ -> pure Nothing
     Log.info . show $ fmap userGithubLogin maybeUser -- TODO
@@ -100,17 +103,23 @@ application context request respond = do
                             Left message -> Exception.throwM $ InvalidJson.InvalidJson message
                             Right githubUser -> pure githubUser
                     now <- Time.getCurrentTime
-                    newGuid <- uniformIO
+                    guid <- uniformIO
                     let
                         user = User
                             { userCreatedAt = now
                             , userGithubId = githubUserId githubUser
                             , userGithubLogin = githubUserLogin githubUser
                             , userGithubToken = accessToken
-                            , userGuid = newGuid
                             , userUpdatedAt = now
                             }
-                    [Sql.Only guid] <- Pool.withResource (Context.pool context) $ \ connection -> do
+                        session = Session
+                            { sessionCreatedAt = now
+                            , sessionDeletedAt = Nothing
+                            , sessionGuid = guid
+                            , sessionUserAgent = Convert.utf8ToString . Maybe.fromMaybe ByteString.empty $ Wai.requestHeaderUserAgent request
+                            , sessionUserGithubId = userGithubId user
+                            }
+                    Pool.withResource (Context.pool context) $ \ connection -> do
                         Sql.execute
                             connection
                             (Convert.stringToQuery "insert into user \
@@ -118,22 +127,19 @@ application context request respond = do
                             \ , githubId \
                             \ , githubLogin \
                             \ , githubToken \
-                            \ , guid \
                             \ , updatedAt \
-                            \ ) values (?, ?, ?, ?, ?, ?) \
+                            \ ) values (?, ?, ?, ?, ?) \
                             \ on conflict (githubId) do update \
-                            \ set githubId = excluded.githubId \
-                            \ , githubLogin = excluded.githubLogin \
+                            \ set githubLogin = excluded.githubLogin \
                             \ , githubToken = excluded.githubToken \
                             \ , updatedAt = excluded.updatedAt")
-                            [ Sql.toField $ userCreatedAt user
-                            , Sql.toField $ userGithubId user
-                            , Sql.toField $ userGithubLogin user
-                            , Sql.toField $ userGithubToken user
-                            , Sql.toField $ userGuid user
-                            , Sql.toField $ userUpdatedAt user
-                            ]
-                        Sql.query connection (Convert.stringToQuery "select guid from user where githubId = ?") [userGithubId user]
+                            user
+                        Sql.execute
+                            connection
+                            (Convert.stringToQuery "insert into session \
+                            \ ( createdAt, deletedAt, guid, userAgent, userGithubId )\
+                            \ values ( ?, ?, ?, ?, ? )")
+                            session
                     let
                         cookie = Cookie.defaultSetCookie
                             { Cookie.setCookieHttpOnly = True
@@ -243,7 +249,6 @@ data User = User
     , userGithubId :: Int
     , userGithubLogin :: String
     , userGithubToken :: String
-    , userGuid :: Guid
     , userUpdatedAt :: Time.UTCTime
     } deriving (Eq, Show)
 
@@ -254,7 +259,15 @@ instance Sql.FromRow User where
         <*> Sql.field
         <*> Sql.field
         <*> Sql.field
-        <*> Sql.field
+
+instance Sql.ToRow User where
+    toRow user =
+        [ Sql.toField $ userCreatedAt user
+        , Sql.toField $ userGithubId user
+        , Sql.toField $ userGithubLogin user
+        , Sql.toField $ userGithubToken user
+        , Sql.toField $ userUpdatedAt user
+        ]
 
 newtype Guid
     = Guid Uuid.UUID
@@ -281,3 +294,28 @@ guidToUuid (Guid x) = x
 
 uniformIO :: Random.Uniform a => IO a
 uniformIO = Random.getStdRandom Random.uniform
+
+data Session = Session
+    { sessionCreatedAt :: Time.UTCTime
+    , sessionDeletedAt :: Maybe Time.UTCTime
+    , sessionGuid :: Guid
+    , sessionUserAgent :: String
+    , sessionUserGithubId :: Int
+    } deriving (Eq, Show)
+
+instance Sql.FromRow Session where
+    fromRow = Session
+        <$> Sql.field
+        <*> Sql.field
+        <*> Sql.field
+        <*> Sql.field
+        <*> Sql.field
+
+instance Sql.ToRow Session where
+    toRow session =
+        [ Sql.toField $ sessionCreatedAt session
+        , Sql.toField $ sessionDeletedAt session
+        , Sql.toField $ sessionGuid session
+        , Sql.toField $ sessionUserAgent session
+        , Sql.toField $ sessionUserGithubId session
+        ]
