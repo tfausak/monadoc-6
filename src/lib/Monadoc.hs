@@ -3,6 +3,7 @@ module Monadoc where
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Pool as Pool
+import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
 import qualified Monadoc.Server.Application as Application
@@ -11,6 +12,7 @@ import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Flag as Flag
+import qualified Monadoc.Type.Migration as Migration
 import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Log as Log
@@ -31,22 +33,8 @@ mainWith name arguments = do
     setDefaultExceptionHandler
     context <- getContext name arguments
     Pool.withResource (Context.pool context) $ \ connection -> do
-        Sql.execute_ connection $ Convert.stringToQuery
-            "create table if not exists user \
-            \ ( createdAt text not null \
-            \ , deletedAt text \
-            \ , githubId integer primary key \
-            \ , githubLogin text not null \
-            \ , githubToken text not null \
-            \ , updatedAt text not null )"
-        Sql.execute_ connection $ Convert.stringToQuery
-            "create table if not exists session \
-            \ ( createdAt text not null \
-            \ , deletedAt text \
-            \ , guid text not null primary key \
-            \ , userAgent text not null \
-            \ , userGithubId integer not null \
-            \ ) without rowid"
+        createMigrationTable connection
+        mapM_ (runMigration connection) migrations
     Warp.runSettings (Settings.fromConfig $ Context.config context)
         . Middleware.middleware $ Application.application context
 
@@ -81,3 +69,45 @@ getContext name arguments = do
         Exit.exitSuccess
 
     Context.fromConfig config
+
+createMigrationTable :: Sql.Connection -> IO ()
+createMigrationTable c = Sql.execute_ c $ Convert.stringToQuery
+    "create table if not exists migration \
+    \(migratedAt text not null, \
+    \sql text not null, \
+    \time text not null primary key) \
+    \without rowid"
+
+runMigration :: Sql.Connection -> Migration.Migration -> IO ()
+runMigration c m = Sql.withTransaction c $ do
+    xs <- Sql.query c (Convert.stringToQuery "select count(*) from migration where time = ?") [Migration.time m]
+    Monad.when (xs /= [Sql.Only (1 :: Int)]) $ do
+        Sql.execute_ c $ Migration.sql m
+        now <- Time.getCurrentTime
+        Sql.execute
+            c
+            (Convert.stringToQuery "insert into migration (migratedAt, sql, time) values (?, ?, ?)")
+            ( now
+            , Convert.queryToString $ Migration.sql m
+            , Migration.time m
+            )
+
+migrations :: [Migration.Migration]
+migrations =
+    [ Migration.new 2021 5 23 18 21 0
+        "create table user \
+        \(createdAt text not null, \
+        \deletedAt text, \
+        \githubId integer primary key, \
+        \githubLogin text not null, \
+        \githubToken text not null, \
+        \updatedAt text not null)"
+    , Migration.new 2021 5 23 18 22 0
+        "create table session \
+        \(createdAt text not null, \
+        \deletedAt text, \
+        \guid text not null primary key, \
+        \userAgent text not null, \
+        \userGithubId integer not null) \
+        \without rowid"
+    ]

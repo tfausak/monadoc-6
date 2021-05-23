@@ -85,6 +85,7 @@ library
         Monadoc.Type.Flag
         Monadoc.Type.GithubUser
         Monadoc.Type.Guid
+        Monadoc.Type.Migration
         Monadoc.Type.OAuthResponse
         Monadoc.Type.Warning
         Monadoc.Utility.Convert

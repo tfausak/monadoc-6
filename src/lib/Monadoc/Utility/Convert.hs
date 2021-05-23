@@ -10,17 +10,26 @@ import qualified Data.Version as Version
 import qualified Database.SQLite.Simple as Sql
 import qualified Network.Wai.Handler.Warp as Warp
 
+queryToString :: Sql.Query -> String
+queryToString = textToString . queryToText
+
+queryToText :: Sql.Query -> Text.Text
+queryToText = Sql.fromQuery
+
 stringToHost :: String -> Warp.HostPreference
 stringToHost = String.fromString
 
 stringToQuery :: String -> Sql.Query
-stringToQuery = Sql.Query . stringToText
+stringToQuery = textToQuery . stringToText
 
 stringToText :: String -> Text.Text
 stringToText = Text.pack
 
 stringToUtf8 :: String -> ByteString.ByteString
 stringToUtf8 = textToUtf8 . stringToText
+
+textToQuery :: Text.Text -> Sql.Query
+textToQuery = Sql.Query
 
 textToString :: Text.Text -> String
 textToString = Text.unpack
