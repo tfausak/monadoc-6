@@ -74,6 +74,7 @@ library
         Monadoc.Exception.MissingCode
         Monadoc.Exception.OptionError
         Monadoc.Model.Session
+        Monadoc.Model.User
         Monadoc.Server.Application
         Monadoc.Server.Middleware
         Monadoc.Server.Response

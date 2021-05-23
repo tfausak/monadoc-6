@@ -10,10 +10,10 @@ import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Data.UUID as Uuid
 import qualified Database.SQLite.Simple as Sql
-import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Exception.InvalidJson as InvalidJson
 import qualified Monadoc.Exception.MissingCode as MissingCode
 import qualified Monadoc.Model.Session as Session
+import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
@@ -74,7 +74,7 @@ application context request respond = do
                     ]
                 , Xml.node "user" [] $ case maybeUser of
                     Nothing -> []
-                    Just user ->  [Xml.node "login" [] [Xml.content $ userGithubLogin user]]
+                    Just user ->  [Xml.node "login" [] [Xml.content $ User.githubLogin user]]
                 ])
             []
         ("GET", ["bootstrap.css"]) -> do
@@ -115,20 +115,20 @@ application context request respond = do
                     now <- Time.getCurrentTime
                     guid <- uniformIO
                     let
-                        user = User
-                            { userCreatedAt = now
-                            , userDeletedAt = Nothing
-                            , userGithubId = GithubUser.id_ githubUser
-                            , userGithubLogin = GithubUser.login githubUser
-                            , userGithubToken = accessToken
-                            , userUpdatedAt = now
+                        user = User.User
+                            { User.createdAt = now
+                            , User.deletedAt = Nothing
+                            , User.githubId = GithubUser.id_ githubUser
+                            , User.githubLogin = GithubUser.login githubUser
+                            , User.githubToken = accessToken
+                            , User.updatedAt = now
                             }
                         session = Session.Session
                             { Session.createdAt = now
                             , Session.deletedAt = Nothing
                             , Session.guid = guid
                             , Session.userAgent = Convert.utf8ToString . Maybe.fromMaybe ByteString.empty $ Wai.requestHeaderUserAgent request
-                            , Session.userGithubId = userGithubId user
+                            , Session.userGithubId = User.githubId user
                             }
                     Pool.withResource (Context.pool context) $ \ connection -> do
                         Sql.execute
@@ -175,34 +175,6 @@ application context request respond = do
             respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/xsl; charset=UTF-8")] contents
         ("GET", ["robots.txt"]) -> respond . Response.string Http.ok200 [] $ unlines ["User-Agent: *", "Allow: /"]
         _ -> respond $ Response.status Http.notFound404 []
-
-data User = User
-    { userCreatedAt :: Time.UTCTime
-    , userDeletedAt :: Maybe Time.UTCTime
-    , userGithubId :: Int
-    , userGithubLogin :: String
-    , userGithubToken :: String
-    , userUpdatedAt :: Time.UTCTime
-    } deriving (Eq, Show)
-
-instance Sql.FromRow User where
-    fromRow = User
-        <$> Sql.field
-        <*> Sql.field
-        <*> Sql.field
-        <*> Sql.field
-        <*> Sql.field
-        <*> Sql.field
-
-instance Sql.ToRow User where
-    toRow user =
-        [ Sql.toField $ userCreatedAt user
-        , Sql.toField $ userDeletedAt user
-        , Sql.toField $ userGithubId user
-        , Sql.toField $ userGithubLogin user
-        , Sql.toField $ userGithubToken user
-        , Sql.toField $ userUpdatedAt user
-        ]
 
 uniformIO :: Random.Uniform a => IO a
 uniformIO = Random.getStdRandom Random.uniform
