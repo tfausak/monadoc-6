@@ -38,7 +38,7 @@
             <body>
                 <header class="mb-3">
                     <nav class="navbar navbar-light bg-light">
-                        <div class="container-fluid">
+                        <div class="container">
                             <a class="navbar-brand" href="{$base-url}/">Monadoc</a>
                             <ul class="navbar-nav">
                                 <li class="nav-item">
@@ -48,12 +48,12 @@
                         </div>
                     </nav>
                 </header>
-                <main class="container-fluid mt-3 mb-3">
+                <main class="container mt-3 mb-3">
                     <p>
                         &#x1f516; Better Haskell documentation.
                     </p>
                 </main>
-                <footer class="container-fluid pt-3 mt-3 text-muted border-top">
+                <footer class="container pt-3 mt-3 text-muted border-top">
                     <p>
                         Powered by
                         <a href="https://github.com/tfausak/monadoc">Monadoc</a>
