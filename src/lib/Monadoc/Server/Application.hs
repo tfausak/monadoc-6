@@ -67,6 +67,7 @@ application context request respond = do
                 [ Xml.node "config" []
                     [ Xml.node "base-url" [] [Xml.content baseUrl]
                     , Xml.node "client-id" [] [Xml.content clientId]
+                    , Xml.node "version" [] [Xml.content $ Convert.versionToString Package.version]
                     ]
                 , Xml.node "user" [] $ case maybeUser of
                     Nothing -> []
@@ -179,6 +180,7 @@ application context request respond = do
                     ] []
                 , Xml.node "xsl:variable" [("name", "base-url"), ("select", "normalize-space(/monadoc/config/base-url)")] []
                 , Xml.node "xsl:variable" [("name", "client-id"), ("select", "normalize-space(/monadoc/config/client-id)")] []
+                , Xml.node "xsl:variable" [("name", "version"), ("select", "normalize-space(/monadoc/config/version)")] []
                 , Xml.node "xsl:template" [("match", "user")]
                     [ Xml.node "xsl:choose" []
                         [ Xml.node "xsl:when" [("test", "login")]
@@ -232,7 +234,9 @@ application context request respond = do
                                 [ Xml.node "p" []
                                     [ Xml.content "Powered by "
                                     , Xml.node "a" [("href", "https://github.com/tfausak/monadoc")] [Xml.content "Monadoc"]
-                                    , Xml.content $ " version " <> Convert.versionToString Package.version <> "."
+                                    , Xml.content " version "
+                                    , Xml.node "xsl:value-of" [("select", "$version")] []
+                                    , Xml.content "."
                                     ]
                                 ]
                             ]
