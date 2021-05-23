@@ -9,7 +9,6 @@ import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Data.UUID as Uuid
-import qualified Database.SQLite.Simple as Sql
 import qualified Monadoc.Exception.InvalidJson as InvalidJson
 import qualified Monadoc.Exception.MissingCode as MissingCode
 import qualified Monadoc.Model.Session as Session
@@ -48,14 +47,10 @@ application context request respond = do
     maybeUser <- case lookup (Convert.stringToUtf8 "guid") cookies of
         Just byteString -> case fmap Guid.fromUuid $ Uuid.fromASCIIBytes byteString of
             Just guid -> Pool.withResource (Context.pool context) $ \ connection -> do
-                    sessions <- Sql.query connection (Convert.stringToQuery "select createdAt, deletedAt, guid, userAgent, userGithubId from session where guid = ? and deletedAt is null limit 1") [guid]
-                    case sessions of
-                        session : _ -> do
-                            users <- Sql.query connection (Convert.stringToQuery "select createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt from user where githubId = ? and deletedAt is null limit 1") [Session.userGithubId session]
-                            case users of
-                                user : _ -> pure $ Just user
-                                _ -> pure Nothing
-                        _ -> pure Nothing
+                    maybeSession <- Session.selectByGuid connection guid
+                    case maybeSession of
+                        Just session -> User.selectByGithubId connection $ Session.userGithubId session
+                        Nothing -> pure Nothing
             _ -> pure Nothing
         _ -> pure Nothing
     case (method, path) of
@@ -131,28 +126,8 @@ application context request respond = do
                             , Session.userGithubId = User.githubId user
                             }
                     Pool.withResource (Context.pool context) $ \ connection -> do
-                        Sql.execute
-                            connection
-                            (Convert.stringToQuery "insert into user \
-                            \ ( createdAt \
-                            \ , deletedAt \
-                            \ , githubId \
-                            \ , githubLogin \
-                            \ , githubToken \
-                            \ , updatedAt \
-                            \ ) values (?, ?, ?, ?, ?, ?) \
-                            \ on conflict (githubId) do update \
-                            \ set deletedAt = excluded.deletedAt \
-                            \ , githubLogin = excluded.githubLogin \
-                            \ , githubToken = excluded.githubToken \
-                            \ , updatedAt = excluded.updatedAt")
-                            user
-                        Sql.execute
-                            connection
-                            (Convert.stringToQuery "insert into session \
-                            \ ( createdAt, deletedAt, guid, userAgent, userGithubId )\
-                            \ values ( ?, ?, ?, ?, ? )")
-                            session
+                        User.insertOrUpdate connection user
+                        Session.insert connection session
                     let
                         cookie = Cookie.defaultSetCookie
                             { Cookie.setCookieHttpOnly = True
