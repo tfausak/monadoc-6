@@ -75,6 +75,9 @@ library
         Monadoc.Exception.InvalidPort
         Monadoc.Exception.MissingCode
         Monadoc.Exception.OptionError
+        Monadoc.Handler.GetFavicon
+        Monadoc.Handler.GetGithubCallback
+        Monadoc.Handler.GetIndex
         Monadoc.Model.Session
         Monadoc.Model.User
         Monadoc.Server.Application
