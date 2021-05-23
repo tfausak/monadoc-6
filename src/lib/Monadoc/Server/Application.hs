@@ -18,6 +18,7 @@ import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
+import qualified Monadoc.Type.OAuthResponse as OAuthResponse
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Client as Client
@@ -96,7 +97,7 @@ application context request respond = do
                         res <- Client.httpLbs req manager
                         case Aeson.eitherDecode $ Client.responseBody res of
                             Left message -> Exception.throwM $ InvalidJson.InvalidJson message
-                            Right oAuthResponse -> pure $ oAuthResponseAccessToken oAuthResponse
+                            Right oAuthResponse -> pure $ OAuthResponse.accessToken oAuthResponse
                     githubUser <- do
                         initial <- Client.parseUrlThrow "https://api.github.com/user"
                         let
@@ -172,15 +173,6 @@ application context request respond = do
             respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/xsl; charset=UTF-8")] contents
         ("GET", ["robots.txt"]) -> respond . Response.string Http.ok200 [] $ unlines ["User-Agent: *", "Allow: /"]
         _ -> respond $ Response.status Http.notFound404 []
-
-newtype OAuthResponse = OAuthResponse
-    { oAuthResponseAccessToken :: String
-    } deriving (Eq, Show)
-
-instance Aeson.FromJSON OAuthResponse where
-    parseJSON = Aeson.withObject "OAuthResponse" $ \ object -> do
-        accessToken <- object Aeson..: Convert.stringToText "access_token"
-        pure $ OAuthResponse accessToken
 
 data GithubUser = GithubUser
     { githubUserId :: Int
