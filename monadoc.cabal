@@ -1,4 +1,4 @@
-cabal-version: 3.4
+cabal-version: 3.0
 
 name: monadoc
 version: 0.2021.5.16
@@ -24,6 +24,7 @@ source-repository head
 common basics
     build-depends:
         , base ^>= 4.15.0
+    default-language: Haskell2010
     ghc-options:
         -Weverything
         -Wno-all-missed-specialisations
