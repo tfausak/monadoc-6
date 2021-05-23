@@ -73,6 +73,7 @@ library
         Monadoc.Exception.InvalidPort
         Monadoc.Exception.MissingCode
         Monadoc.Exception.OptionError
+        Monadoc.Model.Session
         Monadoc.Server.Application
         Monadoc.Server.Middleware
         Monadoc.Server.Response

@@ -13,6 +13,7 @@ import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Exception.InvalidJson as InvalidJson
 import qualified Monadoc.Exception.MissingCode as MissingCode
+import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
@@ -50,7 +51,7 @@ application context request respond = do
                     sessions <- Sql.query connection (Convert.stringToQuery "select createdAt, deletedAt, guid, userAgent, userGithubId from session where guid = ? and deletedAt is null limit 1") [guid]
                     case sessions of
                         session : _ -> do
-                            users <- Sql.query connection (Convert.stringToQuery "select createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt from user where githubId = ? and deletedAt is null limit 1") [sessionUserGithubId session]
+                            users <- Sql.query connection (Convert.stringToQuery "select createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt from user where githubId = ? and deletedAt is null limit 1") [Session.userGithubId session]
                             case users of
                                 user : _ -> pure $ Just user
                                 _ -> pure Nothing
@@ -122,12 +123,12 @@ application context request respond = do
                             , userGithubToken = accessToken
                             , userUpdatedAt = now
                             }
-                        session = Session
-                            { sessionCreatedAt = now
-                            , sessionDeletedAt = Nothing
-                            , sessionGuid = guid
-                            , sessionUserAgent = Convert.utf8ToString . Maybe.fromMaybe ByteString.empty $ Wai.requestHeaderUserAgent request
-                            , sessionUserGithubId = userGithubId user
+                        session = Session.Session
+                            { Session.createdAt = now
+                            , Session.deletedAt = Nothing
+                            , Session.guid = guid
+                            , Session.userAgent = Convert.utf8ToString . Maybe.fromMaybe ByteString.empty $ Wai.requestHeaderUserAgent request
+                            , Session.userGithubId = userGithubId user
                             }
                     Pool.withResource (Context.pool context) $ \ connection -> do
                         Sql.execute
@@ -205,28 +206,3 @@ instance Sql.ToRow User where
 
 uniformIO :: Random.Uniform a => IO a
 uniformIO = Random.getStdRandom Random.uniform
-
-data Session = Session
-    { sessionCreatedAt :: Time.UTCTime
-    , sessionDeletedAt :: Maybe Time.UTCTime
-    , sessionGuid :: Guid.Guid
-    , sessionUserAgent :: String
-    , sessionUserGithubId :: Int
-    } deriving (Eq, Show)
-
-instance Sql.FromRow Session where
-    fromRow = Session
-        <$> Sql.field
-        <*> Sql.field
-        <*> Sql.field
-        <*> Sql.field
-        <*> Sql.field
-
-instance Sql.ToRow Session where
-    toRow session =
-        [ Sql.toField $ sessionCreatedAt session
-        , Sql.toField $ sessionDeletedAt session
-        , Sql.toField $ sessionGuid session
-        , Sql.toField $ sessionUserAgent session
-        , Sql.toField $ sessionUserGithubId session
-        ]
