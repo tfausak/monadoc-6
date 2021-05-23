@@ -6,8 +6,8 @@
         media-type="text/html"
         method="html"/>
 
-    <xsl:variable name="base-url" select="normalize-space(/monadoc/config/base-url)"/>
-    <xsl:variable name="client-id" select="normalize-space(/monadoc/config/client-id)"/>
+    <xsl:variable name="baseUrl" select="normalize-space(/monadoc/config/baseUrl)"/>
+    <xsl:variable name="clientId" select="normalize-space(/monadoc/config/clientId)"/>
     <xsl:variable name="user" select="normalize-space(/monadoc/user/login)"/>
     <xsl:variable name="version" select="normalize-space(/monadoc/config/version)"/>
 
@@ -18,9 +18,9 @@
                 <title>
                     Monadoc
                 </title>
-                <link href="{$base-url}/bootstrap.css" rel="stylesheet"/>
+                <link href="{$baseUrl}/bootstrap.css" rel="stylesheet"/>
                 <link
-                    href="{$base-url}/monadoc.svg"
+                    href="{$baseUrl}/monadoc.svg"
                     rel="icon"
                     type="image/svg+xml"/>
             </head>
@@ -28,7 +28,7 @@
                 <header class="mb-3">
                     <nav class="navbar navbar-light bg-light">
                         <div class="container">
-                            <a class="navbar-brand" href="{$base-url}/">Monadoc</a>
+                            <a class="navbar-brand" href="{$baseUrl}/">Monadoc</a>
                             <ul class="navbar-nav">
                                 <li class="nav-item">
                                     <xsl:choose>
@@ -36,7 +36,7 @@
                                             @<xsl:value-of select="$user"/>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$client-id}&amp;redirect_uri={$base-url}/github-callback">Log in</a>
+                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$clientId}&amp;redirect_uri={$baseUrl}/github-callback">Log in</a>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </li>

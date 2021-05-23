@@ -65,8 +65,8 @@ application context request respond = do
                 [])
             (Xml.element "monadoc" []
                 [ Xml.node "config" []
-                    [ Xml.node "base-url" [] [Xml.content baseUrl]
-                    , Xml.node "client-id" [] [Xml.content clientId]
+                    [ Xml.node "baseUrl" [] [Xml.content baseUrl]
+                    , Xml.node "clientId" [] [Xml.content clientId]
                     , Xml.node "version" [] [Xml.content $ Convert.versionToString Package.version]
                     ]
                 , Xml.node "user" [] $ case maybeUser of
