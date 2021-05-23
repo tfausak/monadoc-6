@@ -13,13 +13,10 @@
     <xsl:template match="user">
         <xsl:choose>
             <xsl:when test="login">
-                @
-                <xsl:value-of select="login"/>
+                @<xsl:value-of select="login"/>
             </xsl:when>
             <xsl:otherwise>
-                <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$client-id}&amp;redirect_uri={$base-url}/github-callback">
-                    Log in
-                </a>
+                <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$client-id}&amp;redirect_uri={$base-url}/github-callback">Log in</a>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -41,9 +38,7 @@
                 <header class="mb-3">
                     <nav class="navbar navbar-light bg-light">
                         <div class="container-fluid">
-                            <a class="navbar-brand" href="{$base-url}/">
-                                Monadoc
-                            </a>
+                            <a class="navbar-brand" href="{$base-url}/">Monadoc</a>
                             <ul class="navbar-nav">
                                 <li class="nav-item">
                                     <xsl:apply-templates select="user"/>
@@ -60,12 +55,9 @@
                 <footer class="container-fluid pt-3 mt-3 text-muted border-top">
                     <p>
                         Powered by
-                        <a href="https://github.com/tfausak/monadoc">
-                            Monadoc
-                        </a>
+                        <a href="https://github.com/tfausak/monadoc">Monadoc</a>
                         version
-                        <xsl:value-of select="$version"/>
-                        .
+                        <xsl:value-of select="$version"/>.
                     </p>
                 </footer>
             </body>
