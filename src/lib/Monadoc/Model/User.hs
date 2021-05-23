@@ -37,7 +37,7 @@ instance Sql.ToRow User where
 insertOrUpdate :: Sql.Connection -> User -> IO ()
 insertOrUpdate c = Sql.execute c $ Convert.stringToQuery
     "insert into user \
-    \(createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt \
+    \(createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt) \
     \values (?, ?, ?, ?, ?, ?) \
     \on conflict (githubId) do update \
     \set deletedAt = excluded.deletedAt, \
