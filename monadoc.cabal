@@ -80,6 +80,7 @@ library
         Monadoc.Type.Config
         Monadoc.Type.Context
         Monadoc.Type.Flag
+        Monadoc.Type.GithubUser
         Monadoc.Type.Guid
         Monadoc.Type.OAuthResponse
         Monadoc.Type.Warning

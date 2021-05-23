@@ -17,6 +17,7 @@ import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
+import qualified Monadoc.Type.GithubUser as GithubUser
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.OAuthResponse as OAuthResponse
 import qualified Monadoc.Utility.Convert as Convert
@@ -116,8 +117,8 @@ application context request respond = do
                         user = User
                             { userCreatedAt = now
                             , userDeletedAt = Nothing
-                            , userGithubId = githubUserId githubUser
-                            , userGithubLogin = githubUserLogin githubUser
+                            , userGithubId = GithubUser.id_ githubUser
+                            , userGithubLogin = GithubUser.login githubUser
                             , userGithubToken = accessToken
                             , userUpdatedAt = now
                             }
@@ -173,20 +174,6 @@ application context request respond = do
             respond $ Response.lazyByteString Http.ok200 [(Http.hContentType, Convert.stringToUtf8 "text/xsl; charset=UTF-8")] contents
         ("GET", ["robots.txt"]) -> respond . Response.string Http.ok200 [] $ unlines ["User-Agent: *", "Allow: /"]
         _ -> respond $ Response.status Http.notFound404 []
-
-data GithubUser = GithubUser
-    { githubUserId :: Int
-    , githubUserLogin :: String
-    } deriving (Eq, Show)
-
-instance Aeson.FromJSON GithubUser where
-    parseJSON = Aeson.withObject "GithubUser" $ \ object -> do
-        id_ <- object Aeson..: Convert.stringToText "id"
-        login <- object Aeson..: Convert.stringToText "login"
-        pure GithubUser
-            { githubUserId = id_
-            , githubUserLogin = login
-            }
 
 data User = User
     { userCreatedAt :: Time.UTCTime
