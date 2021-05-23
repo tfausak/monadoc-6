@@ -10,8 +10,10 @@ jobs:
   build:
     strategy:
       matrix:
-        cabal: 3.4.0.0
-        ghc: 9.0.1
+        cabal:
+          - 3.4.0.0
+        ghc:
+          - 9.0.1
         os:
           - macos-10.15
           - ubuntu-20.04
