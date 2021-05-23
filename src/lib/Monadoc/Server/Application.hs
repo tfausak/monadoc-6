@@ -10,7 +10,6 @@ import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Data.UUID as Uuid
 import qualified Database.SQLite.Simple as Sql
-import qualified Database.SQLite.Simple.FromField as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Exception.InvalidJson as InvalidJson
 import qualified Monadoc.Exception.MissingCode as MissingCode
@@ -18,6 +17,7 @@ import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
+import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Client as Client
@@ -43,7 +43,7 @@ application context request respond = do
         manager = Context.manager context
         cookies = Cookie.parseCookies . Maybe.fromMaybe ByteString.empty . lookup Http.hCookie $ Wai.requestHeaders request
     maybeUser <- case lookup (Convert.stringToUtf8 "guid") cookies of
-        Just byteString -> case fmap uuidToGuid $ Uuid.fromASCIIBytes byteString of
+        Just byteString -> case fmap Guid.fromUuid $ Uuid.fromASCIIBytes byteString of
             Just guid -> Pool.withResource (Context.pool context) $ \ connection -> do
                     sessions <- Sql.query connection (Convert.stringToQuery "select createdAt, deletedAt, guid, userAgent, userGithubId from session where guid = ? and deletedAt is null limit 1") [guid]
                     case sessions of
@@ -157,7 +157,7 @@ application context request respond = do
                             , Cookie.setCookiePath = Just $ Convert.stringToUtf8 "/"
                             , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
                             , Cookie.setCookieSecure = Config.isSecure config
-                            , Cookie.setCookieValue = Uuid.toASCIIBytes $ guidToUuid guid
+                            , Cookie.setCookieValue = Uuid.toASCIIBytes $ Guid.toUuid guid
                             }
                     respond $ Response.status Http.found302
                         [ (Http.hLocation, Convert.stringToUtf8 $ baseUrl <> "/")
@@ -224,36 +224,13 @@ instance Sql.ToRow User where
         , Sql.toField $ userUpdatedAt user
         ]
 
-newtype Guid
-    = Guid Uuid.UUID
-    deriving (Eq, Show)
-
-instance Sql.FromField Guid where
-    fromField field = do
-        text <- Sql.fromField field
-        case Uuid.fromText text of
-            Nothing -> Sql.returnError Sql.ConversionFailed field "invalid Guid"
-            Just uuid -> pure $ uuidToGuid uuid
-
-instance Sql.ToField Guid where
-    toField = Sql.toField . Uuid.toText . guidToUuid
-
-instance Random.Uniform Guid where
-    uniformM = fmap uuidToGuid . Random.uniformM
-
-uuidToGuid :: Uuid.UUID -> Guid
-uuidToGuid = Guid
-
-guidToUuid :: Guid -> Uuid.UUID
-guidToUuid (Guid x) = x
-
 uniformIO :: Random.Uniform a => IO a
 uniformIO = Random.getStdRandom Random.uniform
 
 data Session = Session
     { sessionCreatedAt :: Time.UTCTime
     , sessionDeletedAt :: Maybe Time.UTCTime
-    , sessionGuid :: Guid
+    , sessionGuid :: Guid.Guid
     , sessionUserAgent :: String
     , sessionUserGithubId :: Int
     } deriving (Eq, Show)

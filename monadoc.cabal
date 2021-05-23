@@ -80,6 +80,7 @@ library
         Monadoc.Type.Config
         Monadoc.Type.Context
         Monadoc.Type.Flag
+        Monadoc.Type.Guid
         Monadoc.Type.Warning
         Monadoc.Utility.Convert
         Monadoc.Utility.Log
