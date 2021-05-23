@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     strategy:
-      fail-fast: false # TODO
       matrix:
         cabal:
           - 3.4.0.0
@@ -18,7 +17,9 @@ jobs:
         os:
           - macos-10.15
           - ubuntu-20.04
-          - windows-2019
+          # Disabled until the directory package can be built.
+          # https://github.com/haskell/directory/pull/116#issuecomment-846628306
+          # - windows-2019
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
