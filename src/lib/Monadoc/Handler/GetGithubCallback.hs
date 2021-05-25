@@ -26,7 +26,6 @@ import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Types.Header as Http
 import qualified Network.Wai as Wai
-import qualified System.Random.Stateful as Random
 import qualified Web.Cookie as Cookie
 
 handler :: Handler.Handler
@@ -66,7 +65,7 @@ handler context request = do
                     Left message -> Exception.throwM $ InvalidJson.InvalidJson message
                     Right githubUser -> pure githubUser
             now <- Time.getCurrentTime
-            guid <- Random.getStdRandom Random.uniform
+            guid <- Guid.random
             let
                 user = User.User
                     { User.createdAt = now

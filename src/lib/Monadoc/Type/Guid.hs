@@ -28,3 +28,6 @@ fromUuid = Guid
 
 toUuid :: Guid -> Uuid.UUID
 toUuid (Guid x) = x
+
+random :: IO Guid
+random = Random.getStdRandom Random.uniform
