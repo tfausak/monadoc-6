@@ -36,6 +36,7 @@ addSecurityHeaders =
     in Wai.modifyResponse . Wai.mapResponseHeaders $ \ headers ->
         "Content-Security-Policy" =: "default-src 'self'"
         : "Referrer-Policy" =: "same-origin"
+        : "Strict-Transport-Security" =: "max-age=60; includeSubDomains"
         : "X-Content-Type-Options" =: "nosniff"
         : "X-Frame-Options" =: "SAMEORIGIN"
         : "X-Xss-Protection" =: "1; mode=block"
