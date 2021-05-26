@@ -81,6 +81,7 @@ library
         Monadoc.Model.Session
         Monadoc.Model.User
         Monadoc.Server.Application
+        Monadoc.Server.Main
         Monadoc.Server.Middleware
         Monadoc.Server.Response
         Monadoc.Server.Settings

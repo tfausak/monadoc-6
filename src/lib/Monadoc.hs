@@ -7,8 +7,7 @@ import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
-import qualified Monadoc.Server.Application as Application
-import qualified Monadoc.Server.Middleware as Middleware
+import qualified Monadoc.Server.Main as Server
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
@@ -17,7 +16,6 @@ import qualified Monadoc.Type.Migration as Migration
 import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Log as Log
-import qualified Network.Wai.Handler.Warp as Warp
 import qualified Paths_monadoc as Package
 import qualified System.Console.GetOpt as Console
 import qualified System.Environment as Environment
@@ -36,8 +34,7 @@ mainWith name arguments = do
     Pool.withResource (Context.pool context) $ \ connection -> do
         createMigrationTable connection
         mapM_ (runMigration connection) $ List.sortOn Migration.time migrations
-    Warp.runSettings (Settings.fromConfig $ Context.config context)
-        . Middleware.middleware $ Application.application context
+    Server.run context
 
 setDefaultExceptionHandler :: IO ()
 setDefaultExceptionHandler = do
