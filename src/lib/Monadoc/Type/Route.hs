@@ -19,7 +19,7 @@ fromStrings path = case path of
     [] -> Just Index
     ["bootstrap.css"] -> Just Bootstrap
     ["favicon.ico"] -> Just Favicon
-    ["github-callback"] -> Just Callback
+    ["oauth", "callback"] -> Just Callback
     ["monadoc.svg"] -> Just Logo
     ["monadoc.xsl"] -> Just Template
     ["robots.txt"] -> Just Robots
@@ -31,7 +31,7 @@ toString = (:) '/' . List.intercalate "/" . toStrings
 toStrings :: Route -> [String]
 toStrings route = case route of
     Bootstrap -> ["bootstrap.css"]
-    Callback -> ["github-callback"]
+    Callback -> ["oauth", "callback"]
     Favicon -> ["favicon.ico"]
     Index -> []
     Logo -> ["monadoc.svg"]

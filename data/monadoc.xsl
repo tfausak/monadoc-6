@@ -36,7 +36,7 @@
                                             @<xsl:value-of select="$user"/>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$clientId}&amp;redirect_uri={$baseUrl}/github-callback">Log in</a>
+                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$clientId}&amp;redirect_uri={$baseUrl}/oauth/callback">Log in</a>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </li>
