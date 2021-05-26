@@ -21,6 +21,7 @@ import qualified Monadoc.Type.GithubUser as GithubUser
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.OAuthResponse as OAuthResponse
+import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
@@ -89,13 +90,13 @@ handler context request = do
                 cookie = Cookie.defaultSetCookie
                     { Cookie.setCookieHttpOnly = True
                     , Cookie.setCookieName = Convert.stringToUtf8 "guid"
-                    , Cookie.setCookiePath = Just $ Convert.stringToUtf8 "/"
+                    , Cookie.setCookiePath = Just . Convert.stringToUtf8 $ Route.toString Route.Index
                     , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
                     , Cookie.setCookieSecure = Config.isSecure config
                     , Cookie.setCookieValue = Uuid.toASCIIBytes $ Guid.toUuid guid
                     }
             pure $ Response.status Http.found302
-                [ (Http.hLocation, Convert.stringToUtf8 $ baseUrl <> "/")
+                [ (Http.hLocation, Convert.stringToUtf8 $ baseUrl <> Route.toString Route.Index)
                 , (Http.hSetCookie, LazyByteString.toStrict . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
                 ]
         _ -> Exception.throwM $ MissingCode.MissingCode request

@@ -92,6 +92,7 @@ library
         Monadoc.Type.Handler
         Monadoc.Type.Migration
         Monadoc.Type.OAuthResponse
+        Monadoc.Type.Route
         Monadoc.Type.Warning
         Monadoc.Utility.Convert
         Monadoc.Utility.Log

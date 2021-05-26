@@ -11,6 +11,7 @@ import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Handler as Handler
+import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
@@ -44,7 +45,7 @@ handler context request = do
         (Xml.Prologue
             [Xml.MiscInstruction $ Xml.Instruction
                 (Convert.stringToText "xml-stylesheet")
-                (Convert.stringToText $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape baseUrl <> "/monadoc.xsl\"")]
+                (Convert.stringToText $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")]
             Nothing
             [])
         (Xml.element "monadoc" []
