@@ -1,5 +1,6 @@
 module Monadoc where
 
+import qualified Control.Concurrent.Async as Async
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
@@ -16,6 +17,7 @@ import qualified Monadoc.Type.Migration as Migration
 import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Log as Log
+import qualified Monadoc.Worker.Main as Worker
 import qualified Paths_monadoc as Package
 import qualified System.Console.GetOpt as Console
 import qualified System.Environment as Environment
@@ -34,7 +36,7 @@ mainWith name arguments = do
     Pool.withResource (Context.pool context) $ \ connection -> do
         createMigrationTable connection
         mapM_ (runMigration connection) $ List.sortOn Migration.time migrations
-    Server.run context
+    Async.race_ (Server.run context) (Worker.run context)
 
 setDefaultExceptionHandler :: IO ()
 setDefaultExceptionHandler = do
