@@ -53,9 +53,7 @@ handler context request = do
                 [ Xml.node "baseUrl" [] [Xml.content baseUrl]
                 , Xml.node "clientId" [] [Xml.content clientId]
                 , Xml.node "version" [] [Xml.content $ Convert.versionToString Package.version]
+                , Xml.node "user" [] [Xml.content $ maybe "" User.githubLogin maybeUser]
                 ]
-            , Xml.node "user" [] $ case maybeUser of
-                Nothing -> []
-                Just user ->  [Xml.node "login" [] [Xml.content $ User.githubLogin user]]
             ])
         []

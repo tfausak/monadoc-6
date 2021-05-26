@@ -8,7 +8,7 @@
 
     <xsl:variable name="baseUrl" select="normalize-space(/monadoc/config/baseUrl)"/>
     <xsl:variable name="clientId" select="normalize-space(/monadoc/config/clientId)"/>
-    <xsl:variable name="user" select="normalize-space(/monadoc/user/login)"/>
+    <xsl:variable name="user" select="normalize-space(/monadoc/config/user)"/>
     <xsl:variable name="version" select="normalize-space(/monadoc/config/version)"/>
 
     <xsl:template match="/monadoc">
