@@ -80,6 +80,7 @@ handler context request = do
                     { Session.createdAt = now
                     , Session.deletedAt = Nothing
                     , Session.guid = guid
+                    , Session.updatedAt = now
                     , Session.userAgent = Convert.utf8ToString . Maybe.fromMaybe ByteString.empty $ Wai.requestHeaderUserAgent request
                     , Session.userGithubId = User.githubId user
                     }
