@@ -3,11 +3,13 @@ module Monadoc.Type.OAuthResponse where
 import qualified Data.Aeson as Aeson
 import qualified Monadoc.Utility.Convert as Convert
 
-newtype OAuthResponse = OAuthResponse
+data OAuthResponse = OAuthResponse
     { accessToken :: String
+    , tokenType :: String
     } deriving (Eq, Show)
 
 instance Aeson.FromJSON OAuthResponse where
     parseJSON = Aeson.withObject "OAuthResponse" $ \ object -> do
-        t <- object Aeson..: Convert.stringToText "access_token"
-        pure $ OAuthResponse { accessToken = t }
+        at <- object Aeson..: Convert.stringToText "access_token"
+        tt <- object Aeson..: Convert.stringToText "token_type"
+        pure $ OAuthResponse { accessToken = at, tokenType = tt }
