@@ -4,6 +4,7 @@ import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Type.Migration as Migration
 import qualified Monadoc.Utility.Convert as Convert
 
 data User = User
@@ -33,6 +34,18 @@ instance Sql.ToRow User where
         , Sql.toField $ githubToken user
         , Sql.toField $ updatedAt user
         ]
+
+migrations :: [Migration.Migration]
+migrations =
+    [ Migration.new 2021 5 23 18 21 0
+        "create table user \
+        \(createdAt text not null, \
+        \deletedAt text, \
+        \githubId integer primary key, \
+        \githubLogin text not null, \
+        \githubToken text not null, \
+        \updatedAt text not null)"
+    ]
 
 insertOrUpdate :: Sql.Connection -> User -> IO ()
 insertOrUpdate c = Sql.execute c $ Convert.stringToQuery

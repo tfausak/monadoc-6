@@ -8,6 +8,8 @@ import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
+import qualified Monadoc.Model.Session as Session
+import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Main as Server
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
@@ -35,7 +37,7 @@ mainWith name arguments = do
     context <- getContext name arguments
     Pool.withResource (Context.pool context) $ \ connection -> do
         createMigrationTable connection
-        mapM_ (runMigration connection) $ List.sortOn Migration.time migrations
+        mapM_ (runMigration connection) migrations
     Async.race_ (Server.run context) (Worker.run context)
 
 setDefaultExceptionHandler :: IO ()
@@ -93,21 +95,7 @@ runMigration c m = Sql.withTransaction c $ do
             )
 
 migrations :: [Migration.Migration]
-migrations =
-    [ Migration.new 2021 5 23 18 21 0
-        "create table user \
-        \(createdAt text not null, \
-        \deletedAt text, \
-        \githubId integer primary key, \
-        \githubLogin text not null, \
-        \githubToken text not null, \
-        \updatedAt text not null)"
-    , Migration.new 2021 5 23 18 22 0
-        "create table session \
-        \(createdAt text not null, \
-        \deletedAt text, \
-        \guid text not null primary key, \
-        \userAgent text not null, \
-        \userGithubId integer not null) \
-        \without rowid"
+migrations = List.sortOn Migration.time $ concat
+    [ Session.migrations
+    , User.migrations
     ]
