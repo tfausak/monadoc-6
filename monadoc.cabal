@@ -61,8 +61,8 @@ library
         , http-client-tls ^>= 0.3.5
         , http-types ^>= 0.12.3
         , random ^>= 1.2.0
-        , resource-pool ^>= 0.2.3.2
-        , sqlite-simple ^>= 0.4.18.0
+        , resource-pool ^>= 0.2.3
+        , sqlite-simple ^>= 0.4.18
         , stm ^>= 2.5.0
         , text ^>= 1.2.4
         , time ^>= 1.11.1

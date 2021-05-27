@@ -16,6 +16,7 @@ data Config = Config
     , clientSecret :: String
     , database :: String
     , dataDirectory :: FilePath
+    , hackageUrl :: String
     , help :: Bool
     , host :: Warp.HostPreference
     , port :: Warp.Port
@@ -29,6 +30,7 @@ initial = Config
     , clientSecret = "48e202a2b3aa30ad2a4e844f77b7d10807ab1deb"
     , database = "monadoc.sqlite3"
     , dataDirectory = "./data"
+    , hackageUrl = "https://hackage.haskell.org"
     , help = False
     , host = Convert.stringToHost "127.0.0.1"
     , port = 3000
@@ -59,6 +61,7 @@ applyFlag flag config = case flag of
     Flag.ClientSecret x -> pure config { clientSecret = x }
     Flag.Database x -> pure config { database = x }
     Flag.DataDirectory x -> pure config { dataDirectory = x }
+    Flag.HackageUrl x -> pure config { hackageUrl = x }
     Flag.Help -> pure config { help = True }
     Flag.Host x -> pure config { host = Convert.stringToHost x }
     Flag.Port string -> case Read.readMaybe string of

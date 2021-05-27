@@ -12,6 +12,7 @@ data Flag
     | ClientSecret String
     | Database String
     | DataDirectory FilePath
+    | HackageUrl String
     | Help
     | Host String
     | Port String
@@ -45,6 +46,8 @@ options =
         "Sets the database file to use, or `:memory:` for in-memory."
     , Console.Option [] ["data-directory"] (Console.ReqArg DataDirectory "DATA_DIRECTORY")
         "Sets the directory to load data files from."
+    , Console.Option [] ["hackage-url"] (Console.ReqArg HackageUrl "HACKAGE_URL")
+        "Sets the Hackage URL to use."
     , Console.Option [] ["host"] (Console.ReqArg Host "HOST")
         "Sets the host interface to bind to."
     , Console.Option [] ["port"] (Console.ReqArg Port "PORT")
