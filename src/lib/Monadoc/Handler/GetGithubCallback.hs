@@ -96,8 +96,10 @@ handler context request = do
                     , Cookie.setCookieSecure = Config.isSecure config
                     , Cookie.setCookieValue = Uuid.toASCIIBytes $ Guid.toUuid guid
                     }
+                -- TODO: Redirect to where the user was originally.
+                location = Convert.stringToUtf8 $ baseUrl <> Route.toString Route.Index
             pure $ Response.status Http.found302
-                [ (Http.hLocation, Convert.stringToUtf8 $ baseUrl <> Route.toString Route.Index)
+                [ (Http.hLocation, location)
                 , (Http.hSetCookie, LazyByteString.toStrict . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
                 ]
         _ -> Exception.throwM $ MissingCode.MissingCode request
