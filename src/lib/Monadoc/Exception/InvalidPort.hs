@@ -9,7 +9,7 @@ newtype InvalidPort
     deriving (Eq, Show)
 
 instance Exception.Exception InvalidPort where
-    displayException = ("invalid port: " <>) <<< show <<< into @String
+    displayException = ("invalid port: " <>) <. show <. into @String
 
 instance From String InvalidPort
 

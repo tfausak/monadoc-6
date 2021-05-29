@@ -36,10 +36,10 @@ getHandler request = do
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod
-getMethod = either (\ _ -> Nothing) Just <<< Http.parseMethod <<< Wai.requestMethod
+getMethod = either (\ _ -> Nothing) Just <. Http.parseMethod <. Wai.requestMethod
 
 getRoute :: Wai.Request -> Maybe Route.Route
-getRoute = Route.fromStrings <<< fmap (into @String) <<< Wai.pathInfo
+getRoute = Route.fromStrings <. fmap (into @String) <. Wai.pathInfo
 
 fileHandler :: FilePath -> String -> Handler.Handler
 fileHandler relative mime context _ = do

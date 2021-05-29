@@ -23,6 +23,6 @@ new
 new year month day hour minute second q = Migration
     { sql = into @Sql.Query q
     , time = Time.UTCTime (Time.fromGregorian year month day)
-        <<< Time.timeOfDayToTime
+        <. Time.timeOfDayToTime
         $ Time.TimeOfDay hour minute second
     }

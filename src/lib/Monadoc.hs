@@ -47,7 +47,7 @@ setDefaultExceptionHandler = do
     originalExceptionHandler <- Ghc.getUncaughtExceptionHandler
     Ghc.setUncaughtExceptionHandler
         $ Exception.handle originalExceptionHandler
-        <<< defaultExceptionHandler
+        <. defaultExceptionHandler
 
 defaultExceptionHandler :: Exception.SomeException -> IO ()
 defaultExceptionHandler = Settings.onException Nothing

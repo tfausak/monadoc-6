@@ -40,7 +40,7 @@ initial = Config
     }
 
 isSecure :: Config -> Bool
-isSecure = List.isPrefixOf "https://" <<< baseUrl
+isSecure = List.isPrefixOf "https://" <. baseUrl
 
 fromArguments :: Exception.MonadThrow m => [String] -> m ([Warning.Warning], Config)
 fromArguments arguments = do

@@ -11,4 +11,4 @@ import qualified Network.Wai.Handler.Warp as Warp
 run :: Context.Context -> IO ()
 run context =
     Warp.runSettings (Settings.fromConfig $ Context.config context)
-        <<< Middleware.middleware $ Application.application context
+        <. Middleware.middleware $ Application.application context

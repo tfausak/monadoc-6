@@ -12,7 +12,7 @@ newtype OptionError
     deriving (Eq, Show)
 
 instance Exception.Exception OptionError where
-    displayException = List.dropWhileEnd Char.isSpace <<< mconcat <<< into @[String] <<< into @(NonEmpty.NonEmpty String)
+    displayException = List.dropWhileEnd Char.isSpace <. mconcat <. into @[String] <. into @(NonEmpty.NonEmpty String)
 
 instance From (NonEmpty.NonEmpty String) OptionError
 

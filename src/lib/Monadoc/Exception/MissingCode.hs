@@ -10,7 +10,7 @@ newtype MissingCode
     deriving Show
 
 instance Exception.Exception MissingCode where
-    displayException = ("missing OAuth code: " <>) <<< show <<< into @Wai.Request
+    displayException = ("missing OAuth code: " <>) <. show <. into @Wai.Request
 
 instance From Wai.Request MissingCode
 

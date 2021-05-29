@@ -89,7 +89,7 @@ handler context request = do
                 cookie = Cookie.defaultSetCookie
                     { Cookie.setCookieHttpOnly = True
                     , Cookie.setCookieName = into @ByteString "guid"
-                    , Cookie.setCookiePath = Just <<< into @ByteString $ Route.toString Route.Index
+                    , Cookie.setCookiePath = Just <. into @ByteString $ Route.toString Route.Index
                     , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
                     , Cookie.setCookieSecure = Config.isSecure config
                     , Cookie.setCookieValue = Uuid.toASCIIBytes $ into @Uuid.UUID guid
@@ -98,6 +98,6 @@ handler context request = do
                 location = into @ByteString $ baseUrl <> Route.toString Route.Index
             pure $ Response.status Http.found302
                 [ (Http.hLocation, location)
-                , (Http.hSetCookie, into @ByteString <<< Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
+                , (Http.hSetCookie, into @ByteString <. Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
                 ]
         _ -> Exception.throwM $ into @MissingCode.MissingCode request

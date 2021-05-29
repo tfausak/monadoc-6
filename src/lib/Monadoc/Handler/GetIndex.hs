@@ -23,7 +23,7 @@ import qualified Web.Cookie as Cookie
 getUser :: Context.Context -> Wai.Request -> IO (Maybe User.User)
 getUser context request = do
     let
-        cookies = Cookie.parseCookies <<< Maybe.fromMaybe mempty <<< lookup Http.hCookie $ Wai.requestHeaders request
+        cookies = Cookie.parseCookies <. Maybe.fromMaybe mempty <. lookup Http.hCookie $ Wai.requestHeaders request
     case lookup (into @ByteString "guid") cookies of
         Just byteString -> case fmap (from @Uuid.UUID) $ Uuid.fromASCIIBytes byteString of
             Just guid -> Pool.withResource (Context.pool context) $ \ connection -> do
@@ -41,7 +41,7 @@ handler context request = do
         baseUrl = Config.baseUrl config
         clientId = Config.clientId config
     maybeUser <- getUser context request
-    pure <<< Response.xml Http.ok200 [] $ Xml.Document
+    pure <. Response.xml Http.ok200 [] $ Xml.Document
         (Xml.Prologue
             [Xml.MiscInstruction $ Xml.Instruction
                 (into @Text "xml-stylesheet")

@@ -25,12 +25,12 @@ name s = case break (== ':') s of
     _ -> Xml.Name (into @Text s) Nothing Nothing
 
 node :: String -> [(String, String)] -> [Xml.Node] -> Xml.Node
-node n as = Xml.NodeElement <<< element n as
+node n as = Xml.NodeElement <. element n as
 
 element :: String -> [(String, String)] -> [Xml.Node] -> Xml.Element
 element n = Xml.Element (name n)
-    <<< Map.fromList
-    <<< fmap (Bifunctor.bimap name (into @Text))
+    <. Map.fromList
+    <. fmap (Bifunctor.bimap name (into @Text))
 
 content :: String -> Xml.Node
-content = Xml.NodeContent <<< into @Text
+content = Xml.NodeContent <. into @Text
