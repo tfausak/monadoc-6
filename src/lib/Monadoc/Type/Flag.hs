@@ -2,8 +2,6 @@ module Monadoc.Type.Flag where
 
 import Monadoc.Prelude
 
-import qualified Control.Monad.Catch as Exception
-import qualified Data.List.NonEmpty as NonEmpty
 import qualified Monadoc.Exception.OptionError as OptionError
 import qualified Monadoc.Type.Warning as Warning
 import qualified System.Console.GetOpt as Console
@@ -21,16 +19,16 @@ data Flag
     | Version
     deriving (Eq, Show)
 
-fromArguments :: Exception.MonadThrow m => [String] -> m ([Warning.Warning], [Flag])
+fromArguments :: MonadThrow m => [String] -> m ([Warning.Warning], [Flag])
 fromArguments arguments = do
     let
         (flags, unexpectedArguments, unrecognizedOptions, errorMessages) =
             Console.getOpt' Console.Permute options arguments
         warnings = fmap Warning.UnexpectedArgument unexpectedArguments
             <> fmap Warning.UnrecognizedOption unrecognizedOptions
-    case NonEmpty.nonEmpty errorMessages of
-        Just xs -> Exception.throwM <| into @OptionError.OptionError xs
-        Nothing -> pure (warnings, flags)
+    case tryInto @(NonEmpty String) errorMessages of
+        Right xs -> throwM <| into @OptionError.OptionError xs
+        Left _ -> pure (warnings, flags)
 
 options :: [Console.OptDescr Flag]
 options =

@@ -4,7 +4,6 @@ import Monadoc.Prelude
 
 import qualified Control.Concurrent.Async as Async
 import qualified Control.Monad as Monad
-import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
@@ -46,10 +45,10 @@ setDefaultExceptionHandler :: IO ()
 setDefaultExceptionHandler = do
     originalExceptionHandler <- Ghc.getUncaughtExceptionHandler
     Ghc.setUncaughtExceptionHandler
-        <| Exception.handle originalExceptionHandler
+        <| handle originalExceptionHandler
         <. defaultExceptionHandler
 
-defaultExceptionHandler :: Exception.SomeException -> IO ()
+defaultExceptionHandler :: SomeException -> IO ()
 defaultExceptionHandler = Settings.onException Nothing
 
 getContext :: String -> [String] -> IO Context.Context

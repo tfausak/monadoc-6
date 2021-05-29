@@ -2,7 +2,6 @@ module Monadoc.Server.Middleware where
 
 import Monadoc.Prelude
 
-import qualified Control.Monad.Catch as Exception
 import qualified Data.CaseInsensitive as CI
 import qualified GHC.Clock as Clock
 import qualified Monadoc.Server.Settings as Settings
@@ -19,9 +18,9 @@ middleware :: Wai.Middleware
 middleware = logRequests <. addSecurityHeaders <. handleExceptions
 
 logRequests :: Wai.Middleware
-logRequests handle request respond = do
+logRequests f request respond = do
     before <- Clock.getMonotonicTime
-    handle request <| \ response -> do
+    f request <| \ response -> do
         after <- Clock.getMonotonicTime
         Log.info <| Printf.printf "%s %s%s %d %.3f"
             (unsafeInto @Text <| Wai.requestMethod request)
@@ -46,7 +45,7 @@ addSecurityHeaders =
         : headers
 
 handleExceptions :: Wai.Middleware
-handleExceptions handle request respond =
-    Exception.catch (handle request respond) <| \ exception -> do
+handleExceptions f request respond =
+    catch (f request respond) <| \ exception -> do
         Settings.onException (Just request) exception
         respond <| Settings.onExceptionResponse exception

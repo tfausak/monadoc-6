@@ -1,5 +1,7 @@
 module Monadoc.Prelude (
     -- * Type classes
+    Control.Monad.Catch.Exception,
+    Control.Monad.Catch.MonadThrow,
     Prelude.Applicative,
     Prelude.Eq,
     Prelude.Foldable,
@@ -19,11 +21,13 @@ module Monadoc.Prelude (
     Witch.TryFrom,
 
     -- * Data types
+    Control.Monad.Catch.SomeException(SomeException),
     Data.ByteString.ByteString,
     Data.Int.Int16,
     Data.Int.Int32,
     Data.Int.Int64,
     Data.Int.Int8,
+    Data.List.NonEmpty.NonEmpty,
     Data.Map.Map,
     Data.Proxy.Proxy,
     Data.Ratio.Ratio,
@@ -55,6 +59,11 @@ module Monadoc.Prelude (
     Prelude.Word,
 
     -- * Functions
+    Control.Monad.Catch.bracket,
+    Control.Monad.Catch.catch,
+    Control.Monad.Catch.displayException,
+    Control.Monad.Catch.handle,
+    Control.Monad.Catch.throwM,
     Data.Foldable.foldl',
     Data.Foldable.foldr',
     Data.Foldable.sequenceA_,
@@ -126,6 +135,8 @@ module Monadoc.Prelude (
     Prelude.zipWith,
     Witch.from,
     Witch.into,
+    Witch.tryFrom,
+    Witch.tryInto,
     Witch.unsafeFrom,
     Witch.unsafeInto,
     Witch.via,
@@ -158,10 +169,12 @@ module Monadoc.Prelude (
 
 import Monadoc.Prelude.Orphanage ()
 
+import qualified Control.Monad.Catch
 import qualified Data.ByteString
 import qualified Data.Foldable
 import qualified Data.Functor
 import qualified Data.Int
+import qualified Data.List.NonEmpty
 import qualified Data.Map
 import qualified Data.Proxy
 import qualified Data.Ratio

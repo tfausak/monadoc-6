@@ -2,7 +2,6 @@ module Monadoc.Server.Settings where
 
 import Monadoc.Prelude
 
-import qualified Control.Monad.Catch as Exception
 import qualified Data.Typeable as Typeable
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
@@ -24,11 +23,11 @@ fromConfig config = Warp.setBeforeMainLoop (beforeMainLoop config)
 beforeMainLoop :: Config.Config -> IO ()
 beforeMainLoop config = Log.info <| "listening on port " <> show (Config.port config)
 
-onException :: Maybe Wai.Request -> Exception.SomeException -> IO ()
-onException _ (Exception.SomeException e) = Log.warn <|
-    "[" <> show (Typeable.typeOf e) <> "] " <> Exception.displayException e
+onException :: Maybe Wai.Request -> SomeException -> IO ()
+onException _ (SomeException e) = Log.warn <|
+    "[" <> show (Typeable.typeOf e) <> "] " <> displayException e
 
-onExceptionResponse :: Exception.SomeException -> Wai.Response
+onExceptionResponse :: SomeException -> Wai.Response
 onExceptionResponse _ = Response.status Http.internalServerError500 []
 
 serverName :: ByteString

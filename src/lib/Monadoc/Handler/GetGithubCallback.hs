@@ -2,7 +2,6 @@ module Monadoc.Handler.GetGithubCallback where
 
 import Monadoc.Prelude
 
-import qualified Control.Monad.Catch as Exception
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.Pool as Pool
@@ -49,7 +48,7 @@ handler context request = do
                     req = Client.urlEncodedBody body initial { Client.requestHeaders = headers }
                 res <- Client.httpLbs req manager
                 case Aeson.eitherDecode <| Client.responseBody res of
-                    Left message -> Exception.throwM <| into @InvalidJson.InvalidJson message
+                    Left message -> throwM <| into @InvalidJson.InvalidJson message
                     Right oAuthResponse -> pure <| OAuthResponse.accessToken oAuthResponse
             githubUser <- do
                 initial <- Client.parseUrlThrow "https://api.github.com/user"
@@ -61,7 +60,7 @@ handler context request = do
                     req = initial { Client.requestHeaders = headers }
                 res <- Client.httpLbs req manager
                 case Aeson.eitherDecode <| Client.responseBody res of
-                    Left message -> Exception.throwM <| into @InvalidJson.InvalidJson message
+                    Left message -> throwM <| into @InvalidJson.InvalidJson message
                     Right githubUser -> pure githubUser
             now <- Time.getCurrentTime
             guid <- Guid.random
@@ -100,4 +99,4 @@ handler context request = do
                 [ (Http.hLocation, location)
                 , (Http.hSetCookie, into @ByteString <. Builder.toLazyByteString <| Cookie.renderSetCookie cookie)
                 ]
-        _ -> Exception.throwM <| into @MissingCode.MissingCode request
+        _ -> throwM <| into @MissingCode.MissingCode request
