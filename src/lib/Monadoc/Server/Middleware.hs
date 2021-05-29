@@ -1,5 +1,7 @@
 module Monadoc.Server.Middleware where
 
+import Monadoc.Prelude
+
 import qualified Control.Monad.Catch as Exception
 import qualified Data.CaseInsensitive as CI
 import qualified GHC.Clock as Clock

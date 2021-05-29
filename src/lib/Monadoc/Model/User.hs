@@ -1,5 +1,7 @@
 module Monadoc.Model.User where
 
+import Monadoc.Prelude
+
 import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql

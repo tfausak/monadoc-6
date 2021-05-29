@@ -1,5 +1,7 @@
 module Monadoc.Utility.Convert where
 
+import Monadoc.Prelude
+
 import qualified Data.ByteString as ByteString
 import qualified Data.String as String
 import qualified Data.Text as Text

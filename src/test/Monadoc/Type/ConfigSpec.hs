@@ -1,5 +1,7 @@
 module Monadoc.Type.ConfigSpec where
 
+import Monadoc.Prelude
+
 import qualified Data.String as String
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Warning as Warning

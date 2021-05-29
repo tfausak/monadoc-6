@@ -1,5 +1,7 @@
 module Monadoc.Exception.OptionError where
 
+import Monadoc.Prelude
+
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Char as Char
 import qualified Data.List as List

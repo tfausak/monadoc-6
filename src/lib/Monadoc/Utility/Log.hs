@@ -1,5 +1,7 @@
 module Monadoc.Utility.Log where
 
+import Monadoc.Prelude
+
 import qualified Control.Concurrent.STM as Stm
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Time as Time

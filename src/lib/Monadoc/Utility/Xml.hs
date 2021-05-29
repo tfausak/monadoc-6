@@ -1,12 +1,14 @@
 module Monadoc.Utility.Xml where
 
+import Monadoc.Prelude
+
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Map as Map
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Text.XML as Xml
 
 escape :: String -> String
-escape = concatMap $ \ c -> case c of
+escape = foldMap $ \ c -> case c of
     '"' -> "&quot;"
     '\'' -> "&apos;"
     '&' -> "&amp;"

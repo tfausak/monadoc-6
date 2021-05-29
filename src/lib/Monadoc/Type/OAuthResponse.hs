@@ -1,5 +1,7 @@
 module Monadoc.Type.OAuthResponse where
 
+import Monadoc.Prelude
+
 import qualified Data.Aeson as Aeson
 import qualified Monadoc.Utility.Convert as Convert
 

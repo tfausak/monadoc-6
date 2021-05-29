@@ -25,6 +25,8 @@ source-repository head
 common basics
     build-depends:
         , base ^>= 4.15.0
+    default-extensions:
+        NoImplicitPrelude
     default-language: Haskell2010
     ghc-options:
         -Weverything
@@ -33,6 +35,7 @@ common basics
         -Wno-missing-deriving-strategies
         -Wno-missing-export-lists
         -Wno-missing-exported-signatures
+        -Wno-missing-import-lists
         -Wno-missing-safe-haskell-mode
         -Wno-prepositive-qualified-module
         -Wno-safe
@@ -81,6 +84,7 @@ library
         Monadoc.Handler.GetIndex
         Monadoc.Model.Session
         Monadoc.Model.User
+        Monadoc.Prelude
         Monadoc.Server.Application
         Monadoc.Server.Main
         Monadoc.Server.Middleware

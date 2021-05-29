@@ -1,5 +1,7 @@
 module Monadoc.Server.Response where
 
+import Monadoc.Prelude
+
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Xml as Xml

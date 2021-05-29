@@ -1,5 +1,7 @@
 module Monadoc.Worker.Main where
 
+import Monadoc.Prelude
+
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Monad as Monad
 import qualified Data.CaseInsensitive as CI

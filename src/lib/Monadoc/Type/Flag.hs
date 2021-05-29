@@ -1,5 +1,7 @@
 module Monadoc.Type.Flag where
 
+import Monadoc.Prelude
+
 import qualified Control.Monad.Catch as Exception
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Monadoc.Exception.OptionError as OptionError

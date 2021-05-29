@@ -1,5 +1,7 @@
 module Monadoc.Type.Migration where
 
+import Monadoc.Prelude
+
 import qualified Data.Fixed as Fixed
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql

@@ -1,5 +1,7 @@
 module Monadoc where
 
+import Monadoc.Prelude
+
 import qualified Control.Concurrent.Async as Async
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
@@ -37,7 +39,7 @@ mainWith name arguments = do
     context <- getContext name arguments
     Pool.withResource (Context.pool context) $ \ connection -> do
         createMigrationTable connection
-        mapM_ (runMigration connection) migrations
+        traverse_ (runMigration connection) migrations
     Async.race_ (Server.run context) (Worker.run context)
 
 setDefaultExceptionHandler :: IO ()
@@ -95,7 +97,7 @@ runMigration c m = Sql.withTransaction c $ do
             )
 
 migrations :: [Migration.Migration]
-migrations = List.sortOn Migration.time $ concat
+migrations = List.sortOn Migration.time $ mconcat
     [ Session.migrations
     , User.migrations
     ]

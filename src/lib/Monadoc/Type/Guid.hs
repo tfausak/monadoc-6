@@ -1,5 +1,7 @@
 module Monadoc.Type.Guid where
 
+import Monadoc.Prelude
+
 import qualified Data.UUID as Uuid
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.FromField as Sql

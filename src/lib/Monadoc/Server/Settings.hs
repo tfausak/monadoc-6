@@ -1,5 +1,7 @@
 module Monadoc.Server.Settings where
 
+import Monadoc.Prelude
+
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
 import qualified Data.Typeable as Typeable

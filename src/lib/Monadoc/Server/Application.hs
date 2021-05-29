@@ -1,5 +1,7 @@
 module Monadoc.Server.Application where
 
+import Monadoc.Prelude
+
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Handler.GetFavicon as GetFavicon
 import qualified Monadoc.Handler.GetGithubCallback as GetGithubCallback
@@ -35,7 +37,7 @@ getHandler request = do
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod
-getMethod = either (const Nothing) Just . Http.parseMethod . Wai.requestMethod
+getMethod = either (\ _ -> Nothing) Just . Http.parseMethod . Wai.requestMethod
 
 getRoute :: Wai.Request -> Maybe Route.Route
 getRoute = Route.fromStrings . fmap Convert.textToString . Wai.pathInfo

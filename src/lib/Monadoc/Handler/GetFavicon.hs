@@ -1,5 +1,7 @@
 module Monadoc.Handler.GetFavicon (handler) where
 
+import Monadoc.Prelude
+
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context

@@ -1,5 +1,7 @@
 module Monadoc.Handler.GetIndex where
 
+import Monadoc.Prelude
+
 import qualified Data.ByteString as ByteString
 import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool

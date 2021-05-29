@@ -1,5 +1,7 @@
 module Monadoc.Server.Main where
 
+import Monadoc.Prelude
+
 import qualified Monadoc.Server.Application as Application
 import qualified Monadoc.Server.Middleware as Middleware
 import qualified Monadoc.Server.Settings as Settings

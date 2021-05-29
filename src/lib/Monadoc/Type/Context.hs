@@ -1,5 +1,7 @@
 module Monadoc.Type.Context where
 
+import Monadoc.Prelude
+
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql

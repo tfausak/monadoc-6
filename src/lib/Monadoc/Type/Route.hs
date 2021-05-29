@@ -1,5 +1,7 @@
 module Monadoc.Type.Route where
 
+import Monadoc.Prelude
+
 import qualified Data.List as List
 
 -- | Be careful making changes to this type! Everything on the Haskell side
