@@ -5,7 +5,6 @@ import Monadoc.Prelude
 import qualified Data.Fixed as Fixed
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
-import qualified Witch
 
 data Migration = Migration
     { sql :: Sql.Query
@@ -22,7 +21,7 @@ new
     -> String
     -> Migration
 new year month day hour minute second q = Migration
-    { sql = Witch.into @Sql.Query q
+    { sql = into @Sql.Query q
     , time = Time.UTCTime (Time.fromGregorian year month day)
         . Time.timeOfDayToTime
         $ Time.TimeOfDay hour minute second

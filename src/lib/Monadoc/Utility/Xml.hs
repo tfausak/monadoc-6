@@ -5,7 +5,6 @@ import Monadoc.Prelude
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Map as Map
 import qualified Text.XML as Xml
-import qualified Witch
 
 escape :: String -> String
 escape = foldMap $ \ c -> case c of
@@ -20,10 +19,10 @@ name :: String -> Xml.Name
 name s = case break (== ':') s of
     (prefix, ':' : local)
         | prefix == "xsl" -> Xml.Name
-            (Witch.into @Text local)
-            (Just $ Witch.into @Text "http://www.w3.org/1999/XSL/Transform")
-            (Just $ Witch.into @Text prefix)
-    _ -> Xml.Name (Witch.into @Text s) Nothing Nothing
+            (into @Text local)
+            (Just $ into @Text "http://www.w3.org/1999/XSL/Transform")
+            (Just $ into @Text prefix)
+    _ -> Xml.Name (into @Text s) Nothing Nothing
 
 node :: String -> [(String, String)] -> [Xml.Node] -> Xml.Node
 node n as = Xml.NodeElement . element n as
@@ -31,7 +30,7 @@ node n as = Xml.NodeElement . element n as
 element :: String -> [(String, String)] -> [Xml.Node] -> Xml.Element
 element n = Xml.Element (name n)
     . Map.fromList
-    . fmap (Bifunctor.bimap name (Witch.into @Text))
+    . fmap (Bifunctor.bimap name (into @Text))
 
 content :: String -> Xml.Node
-content = Xml.NodeContent . Witch.into @Text
+content = Xml.NodeContent . into @Text

@@ -26,7 +26,6 @@ import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Types.Header as Http
 import qualified Network.Wai as Wai
 import qualified Web.Cookie as Cookie
-import qualified Witch
 
 handler :: Handler.Handler
 handler context request = do
@@ -36,33 +35,33 @@ handler context request = do
         clientId = Config.clientId config
         clientSecret = Config.clientSecret config
         manager = Context.manager context
-    case lookup (Witch.into @ByteString "code") $ Wai.queryString request of
+    case lookup (into @ByteString "code") $ Wai.queryString request of
         Just (Just code) -> do
             accessToken <- do
                 initial <- Client.parseUrlThrow "https://github.com/login/oauth/access_token"
                 let
                     body =
-                        [ (Witch.into @ByteString "client_id", Witch.into @ByteString clientId)
-                        , (Witch.into @ByteString "client_secret", Witch.into @ByteString clientSecret)
-                        , (Witch.into @ByteString "code", code)
+                        [ (into @ByteString "client_id", into @ByteString clientId)
+                        , (into @ByteString "client_secret", into @ByteString clientSecret)
+                        , (into @ByteString "code", code)
                         ]
-                    headers = (Http.hAccept, Witch.into @ByteString "application/json") : Client.requestHeaders initial
+                    headers = (Http.hAccept, into @ByteString "application/json") : Client.requestHeaders initial
                     req = Client.urlEncodedBody body initial { Client.requestHeaders = headers }
                 res <- Client.httpLbs req manager
                 case Aeson.eitherDecode $ Client.responseBody res of
-                    Left message -> Exception.throwM $ Witch.into @InvalidJson.InvalidJson message
+                    Left message -> Exception.throwM $ into @InvalidJson.InvalidJson message
                     Right oAuthResponse -> pure $ OAuthResponse.accessToken oAuthResponse
             githubUser <- do
                 initial <- Client.parseUrlThrow "https://api.github.com/user"
                 let
                     headers
-                        = (Http.hAuthorization, Witch.into @ByteString $ "Bearer " <> accessToken)
+                        = (Http.hAuthorization, into @ByteString $ "Bearer " <> accessToken)
                         : (Http.hUserAgent, Settings.serverName)
                         : Client.requestHeaders initial
                     req = initial { Client.requestHeaders = headers }
                 res <- Client.httpLbs req manager
                 case Aeson.eitherDecode $ Client.responseBody res of
-                    Left message -> Exception.throwM $ Witch.into @InvalidJson.InvalidJson message
+                    Left message -> Exception.throwM $ into @InvalidJson.InvalidJson message
                     Right githubUser -> pure githubUser
             now <- Time.getCurrentTime
             guid <- Guid.random
@@ -80,7 +79,7 @@ handler context request = do
                     , Session.deletedAt = Nothing
                     , Session.guid = guid
                     , Session.updatedAt = now
-                    , Session.userAgent = maybe "" (Witch.unsafeInto @String) $ Wai.requestHeaderUserAgent request
+                    , Session.userAgent = maybe "" (unsafeInto @String) $ Wai.requestHeaderUserAgent request
                     , Session.userGithubId = User.githubId user
                     }
             Pool.withResource (Context.pool context) $ \ connection -> do
@@ -89,16 +88,16 @@ handler context request = do
             let
                 cookie = Cookie.defaultSetCookie
                     { Cookie.setCookieHttpOnly = True
-                    , Cookie.setCookieName = Witch.into @ByteString "guid"
-                    , Cookie.setCookiePath = Just . Witch.into @ByteString $ Route.toString Route.Index
+                    , Cookie.setCookieName = into @ByteString "guid"
+                    , Cookie.setCookiePath = Just . into @ByteString $ Route.toString Route.Index
                     , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
                     , Cookie.setCookieSecure = Config.isSecure config
-                    , Cookie.setCookieValue = Uuid.toASCIIBytes $ Witch.into @Uuid.UUID guid
+                    , Cookie.setCookieValue = Uuid.toASCIIBytes $ into @Uuid.UUID guid
                     }
                 -- TODO: Redirect to where the user was originally.
-                location = Witch.into @ByteString $ baseUrl <> Route.toString Route.Index
+                location = into @ByteString $ baseUrl <> Route.toString Route.Index
             pure $ Response.status Http.found302
                 [ (Http.hLocation, location)
-                , (Http.hSetCookie, Witch.into @ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
+                , (Http.hSetCookie, into @ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
                 ]
-        _ -> Exception.throwM $ Witch.into @MissingCode.MissingCode request
+        _ -> Exception.throwM $ into @MissingCode.MissingCode request

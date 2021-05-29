@@ -4,15 +4,14 @@ import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
 import qualified Network.Wai as Wai
-import qualified Witch
 
 newtype MissingCode
     = MissingCode Wai.Request
     deriving Show
 
 instance Exception.Exception MissingCode where
-    displayException = ("missing OAuth code: " <>) . show . Witch.into @Wai.Request
+    displayException = ("missing OAuth code: " <>) . show . into @Wai.Request
 
-instance Witch.From Wai.Request MissingCode
+instance From Wai.Request MissingCode
 
-instance Witch.From MissingCode Wai.Request
+instance From MissingCode Wai.Request

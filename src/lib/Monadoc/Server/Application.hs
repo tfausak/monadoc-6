@@ -14,7 +14,6 @@ import qualified Monadoc.Type.Route as Route
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified System.FilePath as FilePath
-import qualified Witch
 
 application :: Context.Context -> Wai.Application
 application context request respond = do
@@ -40,13 +39,13 @@ getMethod :: Wai.Request -> Maybe Http.StdMethod
 getMethod = either (\ _ -> Nothing) Just . Http.parseMethod . Wai.requestMethod
 
 getRoute :: Wai.Request -> Maybe Route.Route
-getRoute = Route.fromStrings . fmap (Witch.into @String) . Wai.pathInfo
+getRoute = Route.fromStrings . fmap (into @String) . Wai.pathInfo
 
 fileHandler :: FilePath -> String -> Handler.Handler
 fileHandler relative mime context _ = do
     let
         status = Http.ok200
-        headers = [(Http.hContentType, Witch.into @ByteString mime)]
+        headers = [(Http.hContentType, into @ByteString mime)]
         config = Context.config context
         directory = Config.dataDirectory config
         absolute = FilePath.combine directory relative

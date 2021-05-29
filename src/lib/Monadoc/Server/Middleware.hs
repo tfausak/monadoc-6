@@ -10,7 +10,6 @@ import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Text.Printf as Printf
-import qualified Witch
 
 -- If the middleware is defined as @middleware = a . b@, then @a@ will be
 -- "outside" and @b@ will be "inside". In other words @a@ will get the request
@@ -25,9 +24,9 @@ logRequests handle request respond = do
     handle request $ \ response -> do
         after <- Clock.getMonotonicTime
         Log.info $ Printf.printf "%s %s%s %d %.3f"
-            (Witch.unsafeInto @Text $ Wai.requestMethod request)
-            (Witch.unsafeInto @Text $ Wai.rawPathInfo request)
-            (Witch.unsafeInto @Text $ Wai.rawQueryString request)
+            (unsafeInto @Text $ Wai.requestMethod request)
+            (unsafeInto @Text $ Wai.rawPathInfo request)
+            (unsafeInto @Text $ Wai.rawQueryString request)
             (Http.statusCode $ Wai.responseStatus response)
             (after - before)
         respond response
@@ -36,7 +35,7 @@ addSecurityHeaders :: Wai.Middleware
 addSecurityHeaders =
     let
         (=:) :: String -> String -> Http.Header
-        k =: v = (CI.mk $ Witch.into @ByteString k, Witch.into @ByteString v)
+        k =: v = (CI.mk $ into @ByteString k, into @ByteString v)
     in Wai.modifyResponse . Wai.mapResponseHeaders $ \ headers ->
         "Content-Security-Policy" =: "default-src 'self'"
         : "Referrer-Policy" =: "same-origin"

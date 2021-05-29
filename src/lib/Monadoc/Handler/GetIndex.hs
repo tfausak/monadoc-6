@@ -19,14 +19,13 @@ import qualified Network.Wai as Wai
 import qualified Paths_monadoc as Package
 import qualified Text.XML as Xml
 import qualified Web.Cookie as Cookie
-import qualified Witch
 
 getUser :: Context.Context -> Wai.Request -> IO (Maybe User.User)
 getUser context request = do
     let
         cookies = Cookie.parseCookies . Maybe.fromMaybe mempty . lookup Http.hCookie $ Wai.requestHeaders request
-    case lookup (Witch.into @ByteString "guid") cookies of
-        Just byteString -> case fmap (Witch.from @Uuid.UUID) $ Uuid.fromASCIIBytes byteString of
+    case lookup (into @ByteString "guid") cookies of
+        Just byteString -> case fmap (from @Uuid.UUID) $ Uuid.fromASCIIBytes byteString of
             Just guid -> Pool.withResource (Context.pool context) $ \ connection -> do
                     maybeSession <- Session.selectByGuid connection guid
                     case maybeSession of
@@ -45,8 +44,8 @@ handler context request = do
     pure . Response.xml Http.ok200 [] $ Xml.Document
         (Xml.Prologue
             [Xml.MiscInstruction $ Xml.Instruction
-                (Witch.into @Text "xml-stylesheet")
-                (Witch.into @Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")]
+                (into @Text "xml-stylesheet")
+                (into @Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")]
             Nothing
             [])
         (Xml.element "monadoc" []

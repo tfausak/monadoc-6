@@ -3,7 +3,6 @@ module Monadoc.Type.GithubUser where
 import Monadoc.Prelude
 
 import qualified Data.Aeson as Aeson
-import qualified Witch
 
 data GithubUser = GithubUser
     { id :: Int
@@ -12,8 +11,8 @@ data GithubUser = GithubUser
 
 instance Aeson.FromJSON GithubUser where
     parseJSON = Aeson.withObject "GithubUser" $ \ object -> do
-        id <- object Aeson..: Witch.into @Text "id"
-        login <- object Aeson..: Witch.into @Text "login"
+        id <- object Aeson..: into @Text "id"
+        login <- object Aeson..: into @Text "login"
         pure GithubUser
             { id
             , login

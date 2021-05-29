@@ -8,7 +8,6 @@ import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Migration as Migration
-import qualified Witch
 
 data Session = Session
     { createdAt :: Time.UTCTime
@@ -52,13 +51,13 @@ migrations =
     ]
 
 insert :: Sql.Connection -> Session -> IO ()
-insert c = Sql.execute c $ Witch.into @Sql.Query
+insert c = Sql.execute c $ into @Sql.Query
     "insert into session \
     \(createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId) \
     \values (?, ?, ?, ?, ?, ?)"
 
 selectByGuid :: Sql.Connection -> Guid.Guid -> IO (Maybe Session)
-selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query c (Witch.into @Sql.Query
+selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
     "select createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
     \from session \
     \where deletedAt is null \

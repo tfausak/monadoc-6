@@ -6,6 +6,7 @@ module Monadoc.Prelude
     , Prelude.Eq
     , Prelude.FilePath
     , Prelude.Foldable
+    , Witch.From
     , Prelude.Functor
     , Prelude.Int
     , Prelude.IO
@@ -17,12 +18,15 @@ module Monadoc.Prelude
     , Prelude.Show
     , Prelude.String
     , Data.Text.Text
+    , Witch.TryFrom
     , Prelude.break
     , Prelude.either
     , Prelude.flip
     , Prelude.fmap
     , Prelude.foldMap
+    , Witch.from
     , Prelude.fst
+    , Witch.into
     , Prelude.lookup
     , Prelude.maybe
     , Prelude.mempty
@@ -34,7 +38,10 @@ module Monadoc.Prelude
     , Prelude.snd
     , Data.Foldable.traverse_
     , Prelude.unlines
+    , Witch.unsafeFrom
+    , Witch.unsafeInto
     , Prelude.unwords
+    , Witch.via
     , (Prelude.-)
     , (Prelude..)
     , (Prelude./=)
@@ -51,5 +58,6 @@ import qualified Data.Foldable
 import qualified Data.Text
 import Monadoc.Prelude.Orphanage ()
 import qualified Prelude
+import qualified Witch
 
 type LazyByteString = Data.ByteString.Lazy.ByteString

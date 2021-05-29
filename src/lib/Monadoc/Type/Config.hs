@@ -11,7 +11,6 @@ import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Text.Read as Read
-import qualified Witch
 
 data Config = Config
     { baseUrl :: String
@@ -68,6 +67,6 @@ applyFlag flag config = case flag of
     Flag.Help -> pure config { help = True }
     Flag.Host x -> pure config { host = Convert.stringToHost x }
     Flag.Port string -> case Read.readMaybe string of
-        Nothing -> Exception.throwM $ Witch.into @InvalidPort.InvalidPort string
+        Nothing -> Exception.throwM $ into @InvalidPort.InvalidPort string
         Just port -> pure config { port }
     Flag.Version -> pure config { version = True }
