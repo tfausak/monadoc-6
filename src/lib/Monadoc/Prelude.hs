@@ -15,6 +15,7 @@ module Monadoc.Prelude
     , Prelude.Semigroup
     , Prelude.Show
     , Prelude.String
+    , Data.Text.Text
     , Prelude.break
     , Prelude.either
     , Prelude.flip
@@ -45,5 +46,6 @@ module Monadoc.Prelude
 
 import qualified Data.ByteString
 import qualified Data.Foldable
+import qualified Data.Text
 import Monadoc.Prelude.Orphanage ()
 import qualified Prelude

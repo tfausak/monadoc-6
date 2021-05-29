@@ -4,7 +4,6 @@ import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
 import qualified Data.CaseInsensitive as CI
-import qualified Data.Text as Text
 import qualified GHC.Clock as Clock
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Utility.Log as Log
@@ -26,9 +25,9 @@ logRequests handle request respond = do
     handle request $ \ response -> do
         after <- Clock.getMonotonicTime
         Log.info $ Printf.printf "%s %s%s %d %.3f"
-            (Witch.unsafeInto @Text.Text $ Wai.requestMethod request)
-            (Witch.unsafeInto @Text.Text $ Wai.rawPathInfo request)
-            (Witch.unsafeInto @Text.Text $ Wai.rawQueryString request)
+            (Witch.unsafeInto @Text $ Wai.requestMethod request)
+            (Witch.unsafeInto @Text $ Wai.rawPathInfo request)
+            (Witch.unsafeInto @Text $ Wai.rawQueryString request)
             (Http.statusCode $ Wai.responseStatus response)
             (after - before)
         respond response

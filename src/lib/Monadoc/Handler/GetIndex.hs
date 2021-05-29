@@ -4,7 +4,6 @@ import Monadoc.Prelude
 
 import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
-import qualified Data.Text as Text
 import qualified Data.UUID as Uuid
 import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
@@ -47,8 +46,8 @@ handler context request = do
     pure . Response.xml Http.ok200 [] $ Xml.Document
         (Xml.Prologue
             [Xml.MiscInstruction $ Xml.Instruction
-                (Witch.into @Text.Text "xml-stylesheet")
-                (Witch.into @Text.Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")]
+                (Witch.into @Text "xml-stylesheet")
+                (Witch.into @Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")]
             Nothing
             [])
         (Xml.element "monadoc" []
