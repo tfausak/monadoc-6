@@ -12,7 +12,7 @@ import qualified Witch
 file :: Http.Status -> Http.ResponseHeaders -> FilePath -> IO Wai.Response
 file s h = fmap (lazyByteString s h) . LazyByteString.readFile
 
-lazyByteString :: Http.Status -> Http.ResponseHeaders -> LazyByteString.ByteString -> Wai.Response
+lazyByteString :: Http.Status -> Http.ResponseHeaders -> LazyByteString -> Wai.Response
 lazyByteString s h b = Wai.responseLBS
     s
     ((Http.hContentLength, Witch.into @ByteString . show $ LazyByteString.length b) : h)
@@ -35,7 +35,7 @@ status s h = xml
 string :: Http.Status -> Http.ResponseHeaders -> String -> Wai.Response
 string s h =
     lazyByteString s ((Http.hContentType, Witch.into @ByteString "text/plain; charset=UTF-8") : h)
-    . LazyByteString.fromStrict
+    . Witch.into @LazyByteString
     . Witch.into @ByteString
 
 xml :: Http.Status -> Http.ResponseHeaders -> Xml.Document -> Wai.Response
