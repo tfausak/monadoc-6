@@ -1,67 +1,176 @@
-module Monadoc.Prelude
-    ( Prelude.Applicative
-    , Prelude.Bool(False, True)
-    , Data.ByteString.ByteString
-    , Prelude.Either(Left, Right)
-    , Prelude.Eq
-    , Prelude.FilePath
-    , Prelude.Foldable
-    , Witch.From
-    , Prelude.Functor
-    , Prelude.Int
-    , Prelude.IO
-    , Monadoc.Prelude.Extra.LazyByteString
-    , Monadoc.Prelude.Extra.LazyText
-    , Prelude.Maybe(Nothing, Just)
-    , Prelude.Monad
-    , Prelude.Monoid
-    , Prelude.Semigroup
-    , Prelude.Show
-    , Prelude.String
-    , Data.Text.Text
-    , Witch.TryFrom
-    , Prelude.break
-    , Monadoc.Prelude.Extra.cons
-    , Prelude.either
-    , Prelude.flip
-    , Prelude.fmap
-    , Prelude.foldMap
-    , Witch.from
-    , Prelude.fst
-    , Witch.into
-    , Prelude.lookup
-    , Prelude.maybe
-    , Prelude.mempty
-    , Prelude.mconcat
-    , Prelude.pure
-    , Prelude.putStr
-    , Prelude.putStrLn
-    , Monadoc.Prelude.Extra.sappend
-    , Prelude.show
-    , Prelude.snd
-    , Data.Foldable.traverse_
-    , Prelude.unlines
-    , Witch.unsafeFrom
-    , Witch.unsafeInto
-    , Prelude.unwords
-    , Witch.via
-    , (Prelude.-)
-    , (Flow.<.)
-    , (Flow..>)
-    , (Prelude./=)
-    , (Prelude.<*>)
-    , (Prelude.<>)
-    , (Prelude.<$>)
-    , (Prelude.==)
-    , (Flow.<|)
-    , (Flow.|>)
-    ) where
+module Monadoc.Prelude (
+    -- * Type classes
+    Prelude.Applicative,
+    Prelude.Eq,
+    Prelude.Foldable,
+    Prelude.Fractional,
+    Prelude.Functor,
+    Prelude.Integral,
+    Prelude.Monad,
+    Prelude.MonadFail,
+    Prelude.Monoid,
+    Prelude.Num,
+    Prelude.Ord,
+    Prelude.Real,
+    Prelude.RealFrac,
+    Prelude.Semigroup,
+    Prelude.Show,
+    Witch.From,
+    Witch.TryFrom,
+
+    -- * Data types
+    Data.ByteString.ByteString,
+    Data.Int.Int16,
+    Data.Int.Int32,
+    Data.Int.Int64,
+    Data.Int.Int8,
+    Data.Map.Map,
+    Data.Proxy.Proxy,
+    Data.Ratio.Ratio,
+    Data.Set.Set,
+    Data.Text.Text,
+    Data.Void.Void,
+    Data.Word.Word16,
+    Data.Word.Word32,
+    Data.Word.Word64,
+    Data.Word.Word8,
+    Monadoc.Prelude.Extra.LazyByteString,
+    Monadoc.Prelude.Extra.LazyText,
+    Monadoc.Prelude.Extra.List,
+    Monadoc.Prelude.Extra.Tuple,
+    Numeric.Natural.Natural,
+    Prelude.Bool(False, True),
+    Prelude.Char,
+    Prelude.Double,
+    Prelude.Either(Left, Right),
+    Prelude.FilePath,
+    Prelude.Float,
+    Prelude.Int,
+    Prelude.Integer,
+    Prelude.IO,
+    Prelude.Maybe(Nothing, Just),
+    Prelude.Ordering(LT, EQ, GT),
+    Prelude.Rational,
+    Prelude.String,
+    Prelude.Word,
+
+    -- * Functions
+    Data.Foldable.foldl',
+    Data.Foldable.foldr',
+    Data.Foldable.sequenceA_,
+    Data.Foldable.traverse_,
+    Monadoc.Prelude.Extra.always,
+    Monadoc.Prelude.Extra.cons,
+    Monadoc.Prelude.Extra.identity,
+    Monadoc.Prelude.Extra.sappend,
+    Prelude.abs,
+    Prelude.all,
+    Prelude.any,
+    Prelude.break,
+    Prelude.ceiling,
+    Prelude.compare,
+    Prelude.curry,
+    Prelude.div,
+    Prelude.divMod,
+    Prelude.drop,
+    Prelude.dropWhile,
+    Prelude.either,
+    Prelude.elem,
+    Prelude.error,
+    Prelude.even,
+    Prelude.fail,
+    Prelude.filter,
+    Prelude.flip,
+    Prelude.floor,
+    Prelude.fmap,
+    Prelude.foldl,
+    Prelude.foldMap,
+    Prelude.foldr,
+    Prelude.fst,
+    Prelude.length,
+    Prelude.lookup,
+    Prelude.max,
+    Prelude.maybe,
+    Prelude.mconcat,
+    Prelude.mempty,
+    Prelude.min,
+    Prelude.mod,
+    Prelude.negate,
+    Prelude.not,
+    Prelude.null,
+    Prelude.odd,
+    Prelude.otherwise,
+    Prelude.pure,
+    Prelude.putStr,
+    Prelude.putStrLn,
+    Prelude.quot,
+    Prelude.quotRem,
+    Prelude.rem,
+    Prelude.repeat,
+    Prelude.replicate,
+    Prelude.round,
+    Prelude.sequenceA,
+    Prelude.show,
+    Prelude.snd,
+    Prelude.span,
+    Prelude.take,
+    Prelude.takeWhile,
+    Prelude.traverse,
+    Prelude.truncate,
+    Prelude.uncurry,
+    Prelude.undefined,
+    Prelude.unlines,
+    Prelude.unwords,
+    Prelude.unzip,
+    Prelude.zip,
+    Prelude.zipWith,
+    Witch.from,
+    Witch.into,
+    Witch.unsafeFrom,
+    Witch.unsafeInto,
+    Witch.via,
+
+    -- * Operators
+    (Flow.<|),
+    (Flow.|>),
+    (Flow.<.),
+    (Flow..>),
+    (Prelude.&&),
+    (Prelude.||),
+    (Prelude.==),
+    (Prelude./=),
+    (Prelude.<),
+    (Prelude.<=),
+    (Prelude.>),
+    (Prelude.>=),
+    (Prelude.+),
+    (Prelude.-),
+    (Prelude.*),
+    (Prelude./),
+    (Prelude.<$>),
+    (Prelude.<$),
+    (Data.Functor.$>),
+    (Prelude.<*>),
+    (Prelude.<*),
+    (Prelude.*>),
+    (Prelude.<>),
+) where
+
+import Monadoc.Prelude.Orphanage ()
 
 import qualified Data.ByteString
 import qualified Data.Foldable
+import qualified Data.Functor
+import qualified Data.Int
+import qualified Data.Map
+import qualified Data.Proxy
+import qualified Data.Ratio
+import qualified Data.Set
 import qualified Data.Text
+import qualified Data.Void
+import qualified Data.Word
 import qualified Flow
 import qualified Monadoc.Prelude.Extra
-import Monadoc.Prelude.Orphanage ()
+import qualified Numeric.Natural
 import qualified Prelude
 import qualified Witch
