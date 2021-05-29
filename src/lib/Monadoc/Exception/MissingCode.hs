@@ -7,7 +7,7 @@ import qualified Network.Wai as Wai
 import qualified Witch
 
 newtype MissingCode
-    = MissingCode_ Wai.Request
+    = MissingCode Wai.Request
     deriving Show
 
 instance Exception.Exception MissingCode where

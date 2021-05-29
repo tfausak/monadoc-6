@@ -9,7 +9,7 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Witch
 
 newtype OptionError
-    = OptionError_ (NonEmpty.NonEmpty String)
+    = OptionError (NonEmpty.NonEmpty String)
     deriving (Eq, Show)
 
 instance Exception.Exception OptionError where
