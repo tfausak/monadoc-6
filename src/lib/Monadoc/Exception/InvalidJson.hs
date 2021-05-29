@@ -9,7 +9,7 @@ newtype InvalidJson
     deriving (Eq, Show)
 
 instance Exception.Exception InvalidJson where
-    displayException = ("invalid JSON: " <>) <. show <. into @String
+    displayException = sappend "invalid JSON: " <. show <. into @String
 
 instance From String InvalidJson
 

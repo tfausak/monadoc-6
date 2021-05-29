@@ -11,6 +11,7 @@ module Monadoc.Prelude
     , Prelude.Int
     , Prelude.IO
     , Monadoc.Prelude.Extra.LazyByteString
+    , Monadoc.Prelude.Extra.LazyText
     , Prelude.Maybe(Nothing, Just)
     , Prelude.Monad
     , Prelude.Monoid
@@ -20,6 +21,7 @@ module Monadoc.Prelude
     , Data.Text.Text
     , Witch.TryFrom
     , Prelude.break
+    , Monadoc.Prelude.Extra.cons
     , Prelude.either
     , Prelude.flip
     , Prelude.fmap
@@ -34,6 +36,7 @@ module Monadoc.Prelude
     , Prelude.pure
     , Prelude.putStr
     , Prelude.putStrLn
+    , Monadoc.Prelude.Extra.sappend
     , Prelude.show
     , Prelude.snd
     , Data.Foldable.traverse_
