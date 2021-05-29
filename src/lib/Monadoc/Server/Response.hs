@@ -14,20 +14,20 @@ file s h = fmap (lazyByteString s h) <. LazyByteString.readFile
 lazyByteString :: Http.Status -> Http.ResponseHeaders -> LazyByteString -> Wai.Response
 lazyByteString s h b = Wai.responseLBS
     s
-    ((Http.hContentLength, into @ByteString <. show $ LazyByteString.length b) : h)
+    ((Http.hContentLength, into @ByteString <. show <| LazyByteString.length b) : h)
     b
 
 status :: Http.Status -> Http.ResponseHeaders -> Wai.Response
 status s h = xml
     s
     h
-    $ Xml.Document
+    <| Xml.Document
         (Xml.Prologue [] Nothing [])
         (Xml.element "status" []
             [ Xml.node "code" []
-                [Xml.content <. show $ Http.statusCode s]
+                [Xml.content <. show <| Http.statusCode s]
             , Xml.node "message" []
-                [Xml.content <. unsafeInto @String $ Http.statusMessage s]
+                [Xml.content <. unsafeInto @String <| Http.statusMessage s]
             ])
         []
 
@@ -41,4 +41,4 @@ xml :: Http.Status -> Http.ResponseHeaders -> Xml.Document -> Wai.Response
 xml s h d = lazyByteString
     s
     ((Http.hContentType, into @ByteString "text/xml; charset=UTF-8") : h)
-    $ Xml.renderLBS Xml.def { Xml.rsPretty = True } d
+    <| Xml.renderLBS Xml.def { Xml.rsPretty = True } d

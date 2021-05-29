@@ -28,12 +28,12 @@ instance Sql.FromRow User where
 
 instance Sql.ToRow User where
     toRow user =
-        [ Sql.toField $ createdAt user
-        , Sql.toField $ deletedAt user
-        , Sql.toField $ githubId user
-        , Sql.toField $ githubLogin user
-        , Sql.toField $ githubToken user
-        , Sql.toField $ updatedAt user
+        [ Sql.toField <| createdAt user
+        , Sql.toField <| deletedAt user
+        , Sql.toField <| githubId user
+        , Sql.toField <| githubLogin user
+        , Sql.toField <| githubToken user
+        , Sql.toField <| updatedAt user
         ]
 
 migrations :: [Migration.Migration]
@@ -49,7 +49,7 @@ migrations =
     ]
 
 insertOrUpdate :: Sql.Connection -> User -> IO ()
-insertOrUpdate c = Sql.execute c $ into @Sql.Query
+insertOrUpdate c = Sql.execute c <| into @Sql.Query
     "insert into user \
     \(createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt) \
     \values (?, ?, ?, ?, ?, ?) \
@@ -60,7 +60,7 @@ insertOrUpdate c = Sql.execute c $ into @Sql.Query
     \updatedAt = excluded.updatedAt"
 
 selectByGithubId :: Sql.Connection -> Int -> IO (Maybe User)
-selectByGithubId c i = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
+selectByGithubId c i = fmap Maybe.listToMaybe <| Sql.query c (into @Sql.Query
     "select createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt \
     \from user \
     \where deletedAt is null \

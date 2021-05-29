@@ -29,7 +29,7 @@ fromArguments arguments = do
         warnings = fmap Warning.UnexpectedArgument unexpectedArguments
             <> fmap Warning.UnrecognizedOption unrecognizedOptions
     case NonEmpty.nonEmpty errorMessages of
-        Just xs -> Exception.throwM $ into @OptionError.OptionError xs
+        Just xs -> Exception.throwM <| into @OptionError.OptionError xs
         Nothing -> pure (warnings, flags)
 
 options :: [Console.OptDescr Flag]

@@ -19,13 +19,13 @@ fromConfig config = Warp.setBeforeMainLoop (beforeMainLoop config)
     <. Warp.setOnException onException
     <. Warp.setOnExceptionResponse onExceptionResponse
     <. Warp.setPort (Config.port config)
-    $ Warp.setServerName serverName Warp.defaultSettings
+    <| Warp.setServerName serverName Warp.defaultSettings
 
 beforeMainLoop :: Config.Config -> IO ()
-beforeMainLoop config = Log.info $ "listening on port " <> show (Config.port config)
+beforeMainLoop config = Log.info <| "listening on port " <> show (Config.port config)
 
 onException :: Maybe Wai.Request -> Exception.SomeException -> IO ()
-onException _ (Exception.SomeException e) = Log.warn $
+onException _ (Exception.SomeException e) = Log.warn <|
     "[" <> show (Typeable.typeOf e) <> "] " <> Exception.displayException e
 
 onExceptionResponse :: Exception.SomeException -> Wai.Response
@@ -33,4 +33,4 @@ onExceptionResponse _ = Response.status Http.internalServerError500 []
 
 serverName :: ByteString
 serverName = into @ByteString
-    $ "monadoc/" <> Convert.versionToString Package.version
+    <| "monadoc/" <> Convert.versionToString Package.version

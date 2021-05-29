@@ -19,7 +19,7 @@ fromConfig :: Config.Config -> IO Context
 fromConfig config = do
     manager <- Tls.newTlsManager
     pool <- Pool.createPool
-        (Sql.open $ Config.database config)
+        (Sql.open <| Config.database config)
         Sql.close
         stripeCount
         idleTime

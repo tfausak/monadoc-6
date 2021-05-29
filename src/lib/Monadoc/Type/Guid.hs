@@ -17,7 +17,7 @@ instance Sql.FromField Guid where
         text <- Sql.fromField field
         case Uuid.fromText text of
             Nothing -> Sql.returnError Sql.ConversionFailed field "invalid Guid"
-            Just uuid -> pure $ from @Uuid.UUID uuid
+            Just uuid -> pure <| from @Uuid.UUID uuid
 
 instance Sql.ToField Guid where
     toField = Sql.toField <. Uuid.toText <. into @Uuid.UUID

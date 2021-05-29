@@ -11,11 +11,11 @@ import qualified Monadoc.Type.Context as Context
 import qualified Network.HTTP.Client as Client
 
 run :: Context.Context -> IO ()
-run context = Monad.forever $ do
+run context = Monad.forever <| do
     let
-        hackageUrl = Config.hackageUrl $ Context.config context
+        hackageUrl = Config.hackageUrl <| Context.config context
         manager = Context.manager context
-    request <- Client.parseUrlThrow $ hackageUrl <> "/01-index.tar.gz"
+    request <- Client.parseUrlThrow <| hackageUrl <> "/01-index.tar.gz"
     response <- Client.httpNoBody
         request { Client.method = into @ByteString "HEAD" }
         manager
@@ -23,7 +23,7 @@ run context = Monad.forever $ do
     -- re-downloading the whole thing every time?
     putStr
         <. unlines
-        <. fmap (\ (k, v) -> unsafeInto @String $ CI.foldedCase k <> into @ByteString ": " <> v)
+        <. fmap (\ (k, v) -> unsafeInto @String <| CI.foldedCase k <> into @ByteString ": " <> v)
         <. List.sort
-        $ Client.responseHeaders response
+        <| Client.responseHeaders response
     Concurrent.threadDelay 60000000

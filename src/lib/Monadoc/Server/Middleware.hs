@@ -21,13 +21,13 @@ middleware = logRequests <. addSecurityHeaders <. handleExceptions
 logRequests :: Wai.Middleware
 logRequests handle request respond = do
     before <- Clock.getMonotonicTime
-    handle request $ \ response -> do
+    handle request <| \ response -> do
         after <- Clock.getMonotonicTime
-        Log.info $ Printf.printf "%s %s%s %d %.3f"
-            (unsafeInto @Text $ Wai.requestMethod request)
-            (unsafeInto @Text $ Wai.rawPathInfo request)
-            (unsafeInto @Text $ Wai.rawQueryString request)
-            (Http.statusCode $ Wai.responseStatus response)
+        Log.info <| Printf.printf "%s %s%s %d %.3f"
+            (unsafeInto @Text <| Wai.requestMethod request)
+            (unsafeInto @Text <| Wai.rawPathInfo request)
+            (unsafeInto @Text <| Wai.rawQueryString request)
+            (Http.statusCode <| Wai.responseStatus response)
             (after - before)
         respond response
 
@@ -35,8 +35,8 @@ addSecurityHeaders :: Wai.Middleware
 addSecurityHeaders =
     let
         (=:) :: String -> String -> Http.Header
-        k =: v = (CI.mk $ into @ByteString k, into @ByteString v)
-    in Wai.modifyResponse <. Wai.mapResponseHeaders $ \ headers ->
+        k =: v = (CI.mk <| into @ByteString k, into @ByteString v)
+    in Wai.modifyResponse <. Wai.mapResponseHeaders <| \ headers ->
         "Content-Security-Policy" =: "default-src 'self'"
         : "Referrer-Policy" =: "same-origin"
         : "Strict-Transport-Security" =: "max-age=60; includeSubDomains"
@@ -47,6 +47,6 @@ addSecurityHeaders =
 
 handleExceptions :: Wai.Middleware
 handleExceptions handle request respond =
-    Exception.catch (handle request respond) $ \ exception -> do
+    Exception.catch (handle request respond) <| \ exception -> do
         Settings.onException (Just request) exception
-        respond $ Settings.onExceptionResponse exception
+        respond <| Settings.onExceptionResponse exception

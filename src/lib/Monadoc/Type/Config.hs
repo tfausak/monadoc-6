@@ -67,6 +67,6 @@ applyFlag flag config = case flag of
     Flag.Help -> pure config { help = True }
     Flag.Host x -> pure config { host = Convert.stringToHost x }
     Flag.Port string -> case Read.readMaybe string of
-        Nothing -> Exception.throwM $ into @InvalidPort.InvalidPort string
+        Nothing -> Exception.throwM <| into @InvalidPort.InvalidPort string
         Just port -> pure config { port }
     Flag.Version -> pure config { version = True }

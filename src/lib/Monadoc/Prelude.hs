@@ -50,7 +50,8 @@ module Monadoc.Prelude
     , (Prelude.<>)
     , (Prelude.<$>)
     , (Prelude.==)
-    , (Prelude.$)
+    , (Flow.<|)
+    , (Flow.|>)
     ) where
 
 import qualified Data.ByteString
