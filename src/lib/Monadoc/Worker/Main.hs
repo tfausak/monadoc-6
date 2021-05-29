@@ -22,8 +22,8 @@ run context = Monad.forever $ do
     -- TODO: How do you efficiently update the Hackage index without
     -- re-downloading the whole thing every time?
     putStr
-        . unlines
-        . fmap (\ (k, v) -> unsafeInto @String $ CI.foldedCase k <> into @ByteString ": " <> v)
-        . List.sort
+        <<< unlines
+        <<< fmap (\ (k, v) -> unsafeInto @String $ CI.foldedCase k <> into @ByteString ": " <> v)
+        <<< List.sort
         $ Client.responseHeaders response
     Concurrent.threadDelay 60000000

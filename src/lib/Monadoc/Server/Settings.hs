@@ -15,10 +15,10 @@ import qualified Paths_monadoc as Package
 
 fromConfig :: Config.Config -> Warp.Settings
 fromConfig config = Warp.setBeforeMainLoop (beforeMainLoop config)
-    . Warp.setHost (Config.host config)
-    . Warp.setOnException onException
-    . Warp.setOnExceptionResponse onExceptionResponse
-    . Warp.setPort (Config.port config)
+    <<< Warp.setHost (Config.host config)
+    <<< Warp.setOnException onException
+    <<< Warp.setOnExceptionResponse onExceptionResponse
+    <<< Warp.setPort (Config.port config)
     $ Warp.setServerName serverName Warp.defaultSettings
 
 beforeMainLoop :: Config.Config -> IO ()

@@ -43,7 +43,8 @@ module Monadoc.Prelude
     , Prelude.unwords
     , Witch.via
     , (Prelude.-)
-    , (Prelude..)
+    , (Control.Category.<<<)
+    , (Control.Category.>>>)
     , (Prelude./=)
     , (Prelude.<*>)
     , (Prelude.<>)
@@ -52,6 +53,7 @@ module Monadoc.Prelude
     , (Prelude.$)
     ) where
 
+import qualified Control.Category
 import qualified Data.ByteString
 import qualified Data.Foldable
 import qualified Data.Text

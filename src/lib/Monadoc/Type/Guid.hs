@@ -20,10 +20,10 @@ instance Sql.FromField Guid where
             Just uuid -> pure $ from @Uuid.UUID uuid
 
 instance Sql.ToField Guid where
-    toField = Sql.toField . Uuid.toText . into @Uuid.UUID
+    toField = Sql.toField <<< Uuid.toText <<< into @Uuid.UUID
 
 instance Random.Uniform Guid where
-    uniformM = fmap (from @Uuid.UUID) . Random.uniformM
+    uniformM = fmap (from @Uuid.UUID) <<< Random.uniformM
 
 instance From Uuid.UUID Guid
 
