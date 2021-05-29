@@ -1,4 +1,4 @@
-import Monadoc.Prelude
+import Prelude
 
 import qualified Monadoc
 
