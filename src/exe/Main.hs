@@ -1,3 +1,5 @@
+import Monadoc.Prelude
+
 import qualified Monadoc
 
 main :: IO ()
