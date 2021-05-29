@@ -3,7 +3,6 @@ module Monadoc.Server.Middleware where
 import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
-import qualified Data.ByteString as ByteString
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text as Text
 import qualified GHC.Clock as Clock
@@ -38,7 +37,7 @@ addSecurityHeaders :: Wai.Middleware
 addSecurityHeaders =
     let
         (=:) :: String -> String -> Http.Header
-        k =: v = (CI.mk $ Witch.into @ByteString.ByteString k, Witch.into @ByteString.ByteString v)
+        k =: v = (CI.mk $ Witch.into @ByteString k, Witch.into @ByteString v)
     in Wai.modifyResponse . Wai.mapResponseHeaders $ \ headers ->
         "Content-Security-Policy" =: "default-src 'self'"
         : "Referrer-Policy" =: "same-origin"

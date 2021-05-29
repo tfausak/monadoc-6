@@ -2,7 +2,6 @@ module Monadoc.Handler.GetIndex where
 
 import Monadoc.Prelude
 
-import qualified Data.ByteString as ByteString
 import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
 import qualified Data.Text as Text
@@ -27,8 +26,8 @@ import qualified Witch
 getUser :: Context.Context -> Wai.Request -> IO (Maybe User.User)
 getUser context request = do
     let
-        cookies = Cookie.parseCookies . Maybe.fromMaybe ByteString.empty . lookup Http.hCookie $ Wai.requestHeaders request
-    case lookup (Witch.into @ByteString.ByteString "guid") cookies of
+        cookies = Cookie.parseCookies . Maybe.fromMaybe mempty . lookup Http.hCookie $ Wai.requestHeaders request
+    case lookup (Witch.into @ByteString "guid") cookies of
         Just byteString -> case fmap Guid.fromUuid $ Uuid.fromASCIIBytes byteString of
             Just guid -> Pool.withResource (Context.pool context) $ \ connection -> do
                     maybeSession <- Session.selectByGuid connection guid

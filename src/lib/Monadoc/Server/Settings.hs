@@ -3,7 +3,6 @@ module Monadoc.Server.Settings where
 import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
-import qualified Data.ByteString as ByteString
 import qualified Data.Typeable as Typeable
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
@@ -33,6 +32,6 @@ onException _ (Exception.SomeException e) = Log.warn $
 onExceptionResponse :: Exception.SomeException -> Wai.Response
 onExceptionResponse _ = Response.status Http.internalServerError500 []
 
-serverName :: ByteString.ByteString
-serverName = Witch.into @ByteString.ByteString
+serverName :: ByteString
+serverName = Witch.into @ByteString
     $ "monadoc/" <> Convert.versionToString Package.version

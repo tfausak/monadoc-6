@@ -1,6 +1,7 @@
 module Monadoc.Prelude
     ( Prelude.Applicative
     , Prelude.Bool(False, True)
+    , Data.ByteString.ByteString
     , Prelude.Either(Left, Right)
     , Prelude.Eq
     , Prelude.FilePath
@@ -22,6 +23,7 @@ module Monadoc.Prelude
     , Prelude.fst
     , Prelude.lookup
     , Prelude.maybe
+    , Prelude.mempty
     , Prelude.mconcat
     , Prelude.pure
     , Prelude.putStr
@@ -41,6 +43,7 @@ module Monadoc.Prelude
     , (Prelude.$)
     ) where
 
+import qualified Data.ByteString
 import qualified Data.Foldable
 import Monadoc.Prelude.Orphanage ()
 import qualified Prelude
