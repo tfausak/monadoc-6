@@ -93,7 +93,7 @@ handler context request = do
                     , Cookie.setCookiePath = Just . Witch.into @ByteString $ Route.toString Route.Index
                     , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
                     , Cookie.setCookieSecure = Config.isSecure config
-                    , Cookie.setCookieValue = Uuid.toASCIIBytes $ Guid.toUuid guid
+                    , Cookie.setCookieValue = Uuid.toASCIIBytes $ Witch.into @Uuid.UUID guid
                     }
                 -- TODO: Redirect to where the user was originally.
                 location = Witch.into @ByteString $ baseUrl <> Route.toString Route.Index

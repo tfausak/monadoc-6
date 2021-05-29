@@ -10,7 +10,6 @@ import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
-import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Convert as Convert
@@ -27,7 +26,7 @@ getUser context request = do
     let
         cookies = Cookie.parseCookies . Maybe.fromMaybe mempty . lookup Http.hCookie $ Wai.requestHeaders request
     case lookup (Witch.into @ByteString "guid") cookies of
-        Just byteString -> case fmap Guid.fromUuid $ Uuid.fromASCIIBytes byteString of
+        Just byteString -> case fmap (Witch.from @Uuid.UUID) $ Uuid.fromASCIIBytes byteString of
             Just guid -> Pool.withResource (Context.pool context) $ \ connection -> do
                     maybeSession <- Session.selectByGuid connection guid
                     case maybeSession of

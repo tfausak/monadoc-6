@@ -7,6 +7,7 @@ import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.FromField as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified System.Random.Stateful as Random
+import qualified Witch
 
 newtype Guid
     = Guid Uuid.UUID
@@ -17,19 +18,17 @@ instance Sql.FromField Guid where
         text <- Sql.fromField field
         case Uuid.fromText text of
             Nothing -> Sql.returnError Sql.ConversionFailed field "invalid Guid"
-            Just uuid -> pure $ fromUuid uuid
+            Just uuid -> pure $ Witch.from @Uuid.UUID uuid
 
 instance Sql.ToField Guid where
-    toField = Sql.toField . Uuid.toText . toUuid
+    toField = Sql.toField . Uuid.toText . Witch.into @Uuid.UUID
 
 instance Random.Uniform Guid where
-    uniformM = fmap fromUuid . Random.uniformM
+    uniformM = fmap (Witch.from @Uuid.UUID) . Random.uniformM
 
-fromUuid :: Uuid.UUID -> Guid
-fromUuid = Guid
+instance Witch.From Uuid.UUID Guid
 
-toUuid :: Guid -> Uuid.UUID
-toUuid (Guid x) = x
+instance Witch.From Guid Uuid.UUID
 
 random :: IO Guid
 random = Random.getStdRandom Random.uniform

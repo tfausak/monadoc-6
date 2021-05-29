@@ -2,10 +2,10 @@
 
 module Monadoc.Prelude.Orphanage where
 
-import qualified Prelude
 import qualified Data.ByteString
 import qualified Data.Text
 import qualified Database.SQLite.Simple
+import qualified Prelude
 import qualified Witch
 
 instance Witch.TryFrom Data.ByteString.ByteString Prelude.String where
