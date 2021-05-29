@@ -16,15 +16,15 @@ data Context = Context
     }
 
 fromConfig :: Config.Config -> IO Context
-fromConfig c = do
-    m <- Tls.newTlsManager
-    p <- Pool.createPool
-        (Sql.open $ Config.database c)
+fromConfig config = do
+    manager <- Tls.newTlsManager
+    pool <- Pool.createPool
+        (Sql.open $ Config.database config)
         Sql.close
         stripeCount
         idleTime
         resourceCount
-    pure Context { config = c, manager = m, pool = p }
+    pure Context { config, manager, pool }
 
 stripeCount :: Int
 stripeCount = 1

@@ -27,6 +27,7 @@ common basics
         , base ^>= 4.15.0
     default-extensions:
         FlexibleInstances
+        NamedFieldPuns
         NoImplicitPrelude
         MultiParamTypeClasses
         TypeApplications

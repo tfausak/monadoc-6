@@ -12,6 +12,6 @@ data OAuthResponse = OAuthResponse
 
 instance Aeson.FromJSON OAuthResponse where
     parseJSON = Aeson.withObject "OAuthResponse" $ \ object -> do
-        at <- object Aeson..: Witch.into @Text "access_token"
-        tt <- object Aeson..: Witch.into @Text "token_type"
-        pure $ OAuthResponse { accessToken = at, tokenType = tt }
+        accessToken <- object Aeson..: Witch.into @Text "access_token"
+        tokenType <- object Aeson..: Witch.into @Text "token_type"
+        pure $ OAuthResponse { accessToken, tokenType }

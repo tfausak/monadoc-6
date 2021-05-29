@@ -59,15 +59,15 @@ applyFlags flags config = Monad.foldM (flip applyFlag) config flags
 
 applyFlag :: Exception.MonadThrow m => Flag.Flag -> Config -> m Config
 applyFlag flag config = case flag of
-    Flag.BaseUrl x -> pure config { baseUrl = x }
-    Flag.ClientId x -> pure config { clientId = x }
-    Flag.ClientSecret x -> pure config { clientSecret = x }
-    Flag.Database x -> pure config { database = x }
-    Flag.DataDirectory x -> pure config { dataDirectory = x }
-    Flag.HackageUrl x -> pure config { hackageUrl = x }
+    Flag.BaseUrl baseUrl -> pure config { baseUrl }
+    Flag.ClientId clientId -> pure config { clientId }
+    Flag.ClientSecret clientSecret -> pure config { clientSecret }
+    Flag.Database database -> pure config { database }
+    Flag.DataDirectory dataDirectory -> pure config { dataDirectory }
+    Flag.HackageUrl hackageUrl -> pure config { hackageUrl }
     Flag.Help -> pure config { help = True }
     Flag.Host x -> pure config { host = Convert.stringToHost x }
     Flag.Port string -> case Read.readMaybe string of
         Nothing -> Exception.throwM $ Witch.into @InvalidPort.InvalidPort string
-        Just x -> pure config { port = x }
+        Just port -> pure config { port }
     Flag.Version -> pure config { version = True }
