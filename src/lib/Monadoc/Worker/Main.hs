@@ -4,12 +4,13 @@ import Monadoc.Prelude
 
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Monad as Monad
+import qualified Data.ByteString as ByteString
 import qualified Data.CaseInsensitive as CI
 import qualified Data.List as List
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
-import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.HTTP.Client as Client
+import qualified Witch
 
 run :: Context.Context -> IO ()
 run context = Monad.forever $ do
@@ -18,13 +19,13 @@ run context = Monad.forever $ do
         manager = Context.manager context
     request <- Client.parseUrlThrow $ hackageUrl <> "/01-index.tar.gz"
     response <- Client.httpNoBody
-        request { Client.method = Convert.stringToUtf8 "HEAD" }
+        request { Client.method = Witch.into @ByteString.ByteString "HEAD" }
         manager
     -- TODO: How do you efficiently update the Hackage index without
     -- re-downloading the whole thing every time?
     putStr
         . unlines
-        . fmap (\ (k, v) -> Convert.utf8ToString $ CI.foldedCase k <> Convert.stringToUtf8 ": " <> v)
+        . fmap (\ (k, v) -> Witch.unsafeInto @String $ CI.foldedCase k <> Witch.into @ByteString.ByteString ": " <> v)
         . List.sort
         $ Client.responseHeaders response
     Concurrent.threadDelay 60000000

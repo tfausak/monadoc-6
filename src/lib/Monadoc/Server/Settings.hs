@@ -13,6 +13,7 @@ import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Paths_monadoc as Package
+import qualified Witch
 
 fromConfig :: Config.Config -> Warp.Settings
 fromConfig config = Warp.setBeforeMainLoop (beforeMainLoop config)
@@ -33,5 +34,5 @@ onExceptionResponse :: Exception.SomeException -> Wai.Response
 onExceptionResponse _ = Response.status Http.internalServerError500 []
 
 serverName :: ByteString.ByteString
-serverName = Convert.stringToUtf8
+serverName = Witch.into @ByteString.ByteString
     $ "monadoc/" <> Convert.versionToString Package.version

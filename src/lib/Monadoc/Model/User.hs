@@ -7,7 +7,7 @@ import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Type.Migration as Migration
-import qualified Monadoc.Utility.Convert as Convert
+import qualified Witch
 
 data User = User
     { createdAt :: Time.UTCTime
@@ -50,7 +50,7 @@ migrations =
     ]
 
 insertOrUpdate :: Sql.Connection -> User -> IO ()
-insertOrUpdate c = Sql.execute c $ Convert.stringToQuery
+insertOrUpdate c = Sql.execute c $ Witch.into @Sql.Query
     "insert into user \
     \(createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt) \
     \values (?, ?, ?, ?, ?, ?) \
@@ -61,7 +61,7 @@ insertOrUpdate c = Sql.execute c $ Convert.stringToQuery
     \updatedAt = excluded.updatedAt"
 
 selectByGithubId :: Sql.Connection -> Int -> IO (Maybe User)
-selectByGithubId c i = fmap Maybe.listToMaybe $ Sql.query c (Convert.stringToQuery
+selectByGithubId c i = fmap Maybe.listToMaybe $ Sql.query c (Witch.into @Sql.Query
     "select createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt \
     \from user \
     \where deletedAt is null \

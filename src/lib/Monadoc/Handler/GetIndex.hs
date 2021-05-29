@@ -5,6 +5,7 @@ import Monadoc.Prelude
 import qualified Data.ByteString as ByteString
 import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
+import qualified Data.Text as Text
 import qualified Data.UUID as Uuid
 import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
@@ -21,12 +22,13 @@ import qualified Network.Wai as Wai
 import qualified Paths_monadoc as Package
 import qualified Text.XML as Xml
 import qualified Web.Cookie as Cookie
+import qualified Witch
 
 getUser :: Context.Context -> Wai.Request -> IO (Maybe User.User)
 getUser context request = do
     let
         cookies = Cookie.parseCookies . Maybe.fromMaybe ByteString.empty . lookup Http.hCookie $ Wai.requestHeaders request
-    case lookup (Convert.stringToUtf8 "guid") cookies of
+    case lookup (Witch.into @ByteString.ByteString "guid") cookies of
         Just byteString -> case fmap Guid.fromUuid $ Uuid.fromASCIIBytes byteString of
             Just guid -> Pool.withResource (Context.pool context) $ \ connection -> do
                     maybeSession <- Session.selectByGuid connection guid
@@ -46,8 +48,8 @@ handler context request = do
     pure . Response.xml Http.ok200 [] $ Xml.Document
         (Xml.Prologue
             [Xml.MiscInstruction $ Xml.Instruction
-                (Convert.stringToText "xml-stylesheet")
-                (Convert.stringToText $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")]
+                (Witch.into @Text.Text "xml-stylesheet")
+                (Witch.into @Text.Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")]
             Nothing
             [])
         (Xml.element "monadoc" []

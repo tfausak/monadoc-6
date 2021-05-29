@@ -41,5 +41,6 @@ module Monadoc.Prelude
     , (Prelude.$)
     ) where
 
-import qualified Prelude
 import qualified Data.Foldable
+import Monadoc.Prelude.Orphanage ()
+import qualified Prelude

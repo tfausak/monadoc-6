@@ -26,6 +26,7 @@ import qualified Paths_monadoc as Package
 import qualified System.Console.GetOpt as Console
 import qualified System.Environment as Environment
 import qualified System.Exit as Exit
+import qualified Witch
 
 main :: IO ()
 main = do
@@ -75,7 +76,7 @@ getContext name arguments = do
     Context.fromConfig config
 
 createMigrationTable :: Sql.Connection -> IO ()
-createMigrationTable c = Sql.execute_ c $ Convert.stringToQuery
+createMigrationTable c = Sql.execute_ c $ Witch.into @Sql.Query
     "create table if not exists migration \
     \(migratedAt text not null, \
     \sql text not null, \
@@ -84,15 +85,15 @@ createMigrationTable c = Sql.execute_ c $ Convert.stringToQuery
 
 runMigration :: Sql.Connection -> Migration.Migration -> IO ()
 runMigration c m = Sql.withTransaction c $ do
-    xs <- Sql.query c (Convert.stringToQuery "select count(*) from migration where time = ?") [Migration.time m]
+    xs <- Sql.query c (Witch.into @Sql.Query "select count(*) from migration where time = ?") [Migration.time m]
     Monad.when (xs /= [Sql.Only (1 :: Int)]) $ do
         Sql.execute_ c $ Migration.sql m
         now <- Time.getCurrentTime
         Sql.execute
             c
-            (Convert.stringToQuery "insert into migration (migratedAt, sql, time) values (?, ?, ?)")
+            (Witch.into @Sql.Query "insert into migration (migratedAt, sql, time) values (?, ?, ?)")
             ( now
-            , Convert.queryToString $ Migration.sql m
+            , Witch.into @String $ Migration.sql m
             , Migration.time m
             )
 

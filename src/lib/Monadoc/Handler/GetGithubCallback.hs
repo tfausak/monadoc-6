@@ -6,8 +6,6 @@ import qualified Control.Monad.Catch as Exception
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
-import qualified Data.ByteString.Lazy as LazyByteString
-import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Data.UUID as Uuid
@@ -24,12 +22,12 @@ import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.OAuthResponse as OAuthResponse
 import qualified Monadoc.Type.Route as Route
-import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Types.Header as Http
 import qualified Network.Wai as Wai
 import qualified Web.Cookie as Cookie
+import qualified Witch
 
 handler :: Handler.Handler
 handler context request = do
@@ -39,33 +37,33 @@ handler context request = do
         clientId = Config.clientId config
         clientSecret = Config.clientSecret config
         manager = Context.manager context
-    case lookup (Convert.stringToUtf8 "code") $ Wai.queryString request of
+    case lookup (Witch.into @ByteString.ByteString "code") $ Wai.queryString request of
         Just (Just code) -> do
             accessToken <- do
                 initial <- Client.parseUrlThrow "https://github.com/login/oauth/access_token"
                 let
                     body =
-                        [ (Convert.stringToUtf8 "client_id", Convert.stringToUtf8 clientId)
-                        , (Convert.stringToUtf8 "client_secret", Convert.stringToUtf8 clientSecret)
-                        , (Convert.stringToUtf8 "code", code)
+                        [ (Witch.into @ByteString.ByteString "client_id", Witch.into @ByteString.ByteString clientId)
+                        , (Witch.into @ByteString.ByteString "client_secret", Witch.into @ByteString.ByteString clientSecret)
+                        , (Witch.into @ByteString.ByteString "code", code)
                         ]
-                    headers = (Http.hAccept, Convert.stringToUtf8 "application/json") : Client.requestHeaders initial
+                    headers = (Http.hAccept, Witch.into @ByteString.ByteString "application/json") : Client.requestHeaders initial
                     req = Client.urlEncodedBody body initial { Client.requestHeaders = headers }
                 res <- Client.httpLbs req manager
                 case Aeson.eitherDecode $ Client.responseBody res of
-                    Left message -> Exception.throwM $ InvalidJson.InvalidJson message
+                    Left message -> Exception.throwM $ Witch.into @InvalidJson.InvalidJson message
                     Right oAuthResponse -> pure $ OAuthResponse.accessToken oAuthResponse
             githubUser <- do
                 initial <- Client.parseUrlThrow "https://api.github.com/user"
                 let
                     headers
-                        = (Http.hAuthorization, Convert.stringToUtf8 $ "Bearer " <> accessToken)
+                        = (Http.hAuthorization, Witch.into @ByteString.ByteString $ "Bearer " <> accessToken)
                         : (Http.hUserAgent, Settings.serverName)
                         : Client.requestHeaders initial
                     req = initial { Client.requestHeaders = headers }
                 res <- Client.httpLbs req manager
                 case Aeson.eitherDecode $ Client.responseBody res of
-                    Left message -> Exception.throwM $ InvalidJson.InvalidJson message
+                    Left message -> Exception.throwM $ Witch.into @InvalidJson.InvalidJson message
                     Right githubUser -> pure githubUser
             now <- Time.getCurrentTime
             guid <- Guid.random
@@ -83,7 +81,7 @@ handler context request = do
                     , Session.deletedAt = Nothing
                     , Session.guid = guid
                     , Session.updatedAt = now
-                    , Session.userAgent = Convert.utf8ToString . Maybe.fromMaybe ByteString.empty $ Wai.requestHeaderUserAgent request
+                    , Session.userAgent = maybe "" (Witch.unsafeInto @String) $ Wai.requestHeaderUserAgent request
                     , Session.userGithubId = User.githubId user
                     }
             Pool.withResource (Context.pool context) $ \ connection -> do
@@ -92,16 +90,16 @@ handler context request = do
             let
                 cookie = Cookie.defaultSetCookie
                     { Cookie.setCookieHttpOnly = True
-                    , Cookie.setCookieName = Convert.stringToUtf8 "guid"
-                    , Cookie.setCookiePath = Just . Convert.stringToUtf8 $ Route.toString Route.Index
+                    , Cookie.setCookieName = Witch.into @ByteString.ByteString "guid"
+                    , Cookie.setCookiePath = Just . Witch.into @ByteString.ByteString $ Route.toString Route.Index
                     , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
                     , Cookie.setCookieSecure = Config.isSecure config
                     , Cookie.setCookieValue = Uuid.toASCIIBytes $ Guid.toUuid guid
                     }
                 -- TODO: Redirect to where the user was originally.
-                location = Convert.stringToUtf8 $ baseUrl <> Route.toString Route.Index
+                location = Witch.into @ByteString.ByteString $ baseUrl <> Route.toString Route.Index
             pure $ Response.status Http.found302
                 [ (Http.hLocation, location)
-                , (Http.hSetCookie, LazyByteString.toStrict . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
+                , (Http.hSetCookie, Witch.into @ByteString.ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
                 ]
-        _ -> Exception.throwM $ MissingCode.MissingCode request
+        _ -> Exception.throwM $ Witch.into @MissingCode.MissingCode request

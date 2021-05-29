@@ -2,6 +2,7 @@ module Monadoc.Server.Application where
 
 import Monadoc.Prelude
 
+import qualified Data.ByteString as ByteString
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Handler.GetFavicon as GetFavicon
 import qualified Monadoc.Handler.GetGithubCallback as GetGithubCallback
@@ -11,10 +12,10 @@ import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Route as Route
-import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified System.FilePath as FilePath
+import qualified Witch
 
 application :: Context.Context -> Wai.Application
 application context request respond = do
@@ -40,13 +41,13 @@ getMethod :: Wai.Request -> Maybe Http.StdMethod
 getMethod = either (\ _ -> Nothing) Just . Http.parseMethod . Wai.requestMethod
 
 getRoute :: Wai.Request -> Maybe Route.Route
-getRoute = Route.fromStrings . fmap Convert.textToString . Wai.pathInfo
+getRoute = Route.fromStrings . fmap (Witch.into @String) . Wai.pathInfo
 
 fileHandler :: FilePath -> String -> Handler.Handler
 fileHandler relative mime context _ = do
     let
         status = Http.ok200
-        headers = [(Http.hContentType, Convert.stringToUtf8 mime)]
+        headers = [(Http.hContentType, Witch.into @ByteString.ByteString mime)]
         config = Context.config context
         directory = Config.dataDirectory config
         absolute = FilePath.combine directory relative
