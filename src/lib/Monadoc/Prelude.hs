@@ -10,7 +10,7 @@ module Monadoc.Prelude
     , Prelude.Functor
     , Prelude.Int
     , Prelude.IO
-    , LazyByteString
+    , Monadoc.Prelude.Extra.LazyByteString
     , Prelude.Maybe(Nothing, Just)
     , Prelude.Monad
     , Prelude.Monoid
@@ -53,11 +53,9 @@ module Monadoc.Prelude
     ) where
 
 import qualified Data.ByteString
-import qualified Data.ByteString.Lazy
 import qualified Data.Foldable
 import qualified Data.Text
+import qualified Monadoc.Prelude.Extra
 import Monadoc.Prelude.Orphanage ()
 import qualified Prelude
 import qualified Witch
-
-type LazyByteString = Data.ByteString.Lazy.ByteString

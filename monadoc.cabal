@@ -90,6 +90,7 @@ library
         Monadoc.Model.Session
         Monadoc.Model.User
         Monadoc.Prelude
+        Monadoc.Prelude.Extra
         Monadoc.Prelude.Orphanage
         Monadoc.Server.Application
         Monadoc.Server.Main
