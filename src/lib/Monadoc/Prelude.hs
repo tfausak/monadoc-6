@@ -71,6 +71,8 @@ module Monadoc.Prelude (
     Monadoc.Prelude.Extra.always,
     Monadoc.Prelude.Extra.cons,
     Monadoc.Prelude.Extra.identity,
+    Monadoc.Prelude.Extra.hush,
+    Monadoc.Prelude.Extra.note,
     Monadoc.Prelude.Extra.sappend,
     Prelude.abs,
     Prelude.all,

@@ -22,5 +22,11 @@ cons = (:)
 identity :: a -> a
 identity = Prelude.id
 
+hush :: Prelude.Either x a -> Prelude.Maybe a
+hush = Prelude.either (Prelude.const Prelude.Nothing) Prelude.Just
+
+note :: a -> Prelude.Maybe b -> Prelude.Either a b
+note x = Prelude.maybe (Prelude.Left x) Prelude.Right
+
 sappend :: Data.Semigroup.Semigroup a => a -> a -> a
 sappend = (Data.Semigroup.<>)

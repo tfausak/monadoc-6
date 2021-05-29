@@ -9,6 +9,7 @@ import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
+import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Main as Server
@@ -97,6 +98,7 @@ runMigration c m = Sql.withTransaction c <| do
 
 migrations :: [Migration.Migration]
 migrations = List.sortOn Migration.time <| mconcat
-    [ Session.migrations
+    [ HackageIndex.migrations
+    , Session.migrations
     , User.migrations
     ]
