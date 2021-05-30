@@ -8,9 +8,7 @@ newtype MissingCode
     = MissingCode Wai.Request
     deriving Show
 
-instance Exception MissingCode where
-    displayException = sappend "missing OAuth code: " <. show <. into @Wai.Request
+instance Exception MissingCode
 
-instance From Wai.Request MissingCode
-
-instance From MissingCode Wai.Request
+new :: Wai.Request -> MissingCode
+new = MissingCode

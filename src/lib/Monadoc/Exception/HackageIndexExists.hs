@@ -7,3 +7,6 @@ data HackageIndexExists
     deriving (Eq, Show)
 
 instance Exception HackageIndexExists
+
+new :: HackageIndexExists
+new = HackageIndexExists

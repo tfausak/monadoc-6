@@ -7,3 +7,6 @@ data BadHackageIndexSize
     deriving (Eq, Show)
 
 instance Exception BadHackageIndexSize
+
+new :: Int -> Maybe Int -> BadHackageIndexSize
+new = BadHackageIndexSize

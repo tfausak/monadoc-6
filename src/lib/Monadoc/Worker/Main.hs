@@ -3,18 +3,23 @@ module Monadoc.Worker.Main where
 import Monadoc.Prelude
 
 import qualified Codec.Archive.Tar as Tar
+import qualified Codec.Archive.Tar.Entry as Tar
 import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
 import qualified Data.Pool as Pool
+import qualified Distribution.PackageDescription.Parsec as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
+import qualified Monadoc.Exception.InvalidPackageDescription as InvalidPackageDescription
+import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
+import qualified System.FilePath as FilePath
 import qualified System.IO.Unsafe as Unsafe
 import qualified Text.Read as Read
 
@@ -65,9 +70,9 @@ updateHackageIndex context oldHackageIndex = do
             y <- hush <| tryInto @String x
             Read.readMaybe @Int y
     case maybeNewSize of
-        Nothing -> throwM <| BadHackageIndexSize.BadHackageIndexSize oldSize maybeNewSize
+        Nothing -> throwM <| BadHackageIndexSize.new oldSize maybeNewSize
         Just newSize
-            | newSize < oldSize -> throwM <| BadHackageIndexSize.BadHackageIndexSize oldSize maybeNewSize
+            | newSize < oldSize -> throwM <| BadHackageIndexSize.new oldSize maybeNewSize
             | newSize == oldSize -> Log.info "Hackage index has not changed"
             | otherwise -> do
                 Log.info <| "got new Hackage index size: " <> pluralize "byte" newSize
@@ -100,9 +105,27 @@ processHackageIndex context = do
             |> into @LazyByteString
             |> Tar.read
             |> Tar.foldEntries (:) [] (Unsafe.unsafePerformIO <. throwM)
-            |> length
-            |> show
-            |> Log.info
+            |> traverse_ (processTarEntry context)
+
+processTarEntry :: Context.Context -> Tar.Entry -> IO ()
+processTarEntry _context entry = case Tar.entryContent entry of
+    Tar.NormalFile contents _ | isValidTarEntry entry ->
+        case FilePath.takeExtension <| Tar.entryPath entry of
+            "" -> pure () -- TODO: parse preferred versions
+            ".cabal" ->
+                -- TODO: don't re-parse unchanged package descriptions
+                case Cabal.parseGenericPackageDescriptionMaybe <| into @ByteString contents of
+                    Nothing -> throwM <| InvalidPackageDescription.new contents
+                    Just _ -> pure () -- TODO: do something with the parsed package description
+            ".json" -> pure ()
+            _ -> throwM <| UnexpectedTarEntry.new entry
+    _ -> throwM <| UnexpectedTarEntry.new entry
+
+isValidTarEntry :: Tar.Entry -> Bool
+isValidTarEntry entry = Tar.entryPermissions entry == 420
+    && Tar.groupName (Tar.entryOwnership entry) == "Hackage"
+    && Tar.groupId (Tar.entryOwnership entry) == 0
+    && Tar.entryFormat entry == Tar.UstarFormat
 
 pluralize :: String -> Int -> String
 pluralize word count = show count <> " " <> word <> if count == 1 then "" else "s"

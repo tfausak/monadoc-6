@@ -40,7 +40,7 @@ select c = fmap Maybe.listToMaybe <| Sql.query_ c <| into @Sql.Query
 insert :: Sql.Connection -> HackageIndex -> IO ()
 insert connection hackageIndex = do
     rows <- Sql.query_ connection <| into @Sql.Query "select count(*) from hackageIndex"
-    when (rows /= [[0 :: Int]]) <| throwM HackageIndexExists.HackageIndexExists
+    when (rows /= [[0 :: Int]]) <| throwM HackageIndexExists.new
     Sql.execute
         connection
         (into @Sql.Query "insert into hackageIndex (contents, size) values (?, ?)")

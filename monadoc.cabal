@@ -60,6 +60,7 @@ library
         , async ^>= 2.2.3
         , base ^>= 4.15.0
         , bytestring ^>= 0.11.1
+        , Cabal ^>= 3.4.0
         , case-insensitive ^>= 1.2.1
         , containers ^>= 0.6.4
         , cookie ^>= 0.4.5
@@ -87,9 +88,11 @@ library
         Monadoc.Exception.BadHackageIndexSize
         Monadoc.Exception.HackageIndexExists
         Monadoc.Exception.InvalidJson
+        Monadoc.Exception.InvalidPackageDescription
         Monadoc.Exception.InvalidPort
         Monadoc.Exception.MissingCode
         Monadoc.Exception.OptionError
+        Monadoc.Exception.UnexpectedTarEntry
         Monadoc.Handler.GetFavicon
         Monadoc.Handler.GetGithubCallback
         Monadoc.Handler.GetIndex

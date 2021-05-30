@@ -2,13 +2,11 @@ module Monadoc.Exception.InvalidJson where
 
 import Monadoc.Prelude
 
-newtype InvalidJson
-    = InvalidJson String
+data InvalidJson
+    = InvalidJson LazyByteString String
     deriving (Eq, Show)
 
-instance Exception InvalidJson where
-    displayException = sappend "invalid JSON: " <. show <. into @String
+instance Exception InvalidJson
 
-instance From String InvalidJson
-
-instance From InvalidJson String
+new :: LazyByteString -> String -> InvalidJson
+new = InvalidJson
