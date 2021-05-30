@@ -7,8 +7,8 @@ import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
-import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
+import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
@@ -19,69 +19,90 @@ import qualified System.IO.Unsafe as Unsafe
 import qualified Text.Read as Read
 
 run :: Context.Context -> IO ()
-run context = Monad.forever <| do
-    Log.info "starting"
-    let
-        hackageUrl = Config.hackageUrl <| Context.config context
-        manager = Context.manager context
-    maybeOldHackageIndex <- Pool.withResource (Context.pool context) HackageIndex.select
-    case maybeOldHackageIndex of
-        Nothing -> do
-            Log.info "hackage index does not exist yet"
-            request <- Client.parseUrlThrow <| hackageUrl <> "/01-index.tar.gz"
-            response <- Client.httpLbs request manager
-            let
-                contents = Client.responseBody response
-                    |> Gzip.decompress
-                    |> into @ByteString
-                size = ByteString.length contents
-                newHackageIndex = HackageIndex.HackageIndex { HackageIndex.contents, HackageIndex.size }
-            Log.info <| "got hackage index: " <> show size
-            Pool.withResource (Context.pool context) <| \ connection -> do
-                HackageIndex.insert connection newHackageIndex
-        Just oldHackageIndex -> do
-            let oldSize = HackageIndex.size oldHackageIndex
-            Log.info <| "hackage index already exists: " <> show oldSize
-            request <- Client.parseUrlThrow <| hackageUrl <> "/01-index.tar"
-            headResponse <- Client.httpNoBody
-                request { Client.method = into @ByteString "HEAD" }
-                manager
-            let
-                newSize = Maybe.fromMaybe 0 <| do
-                    x <- lookup Http.hContentLength <| Client.responseHeaders headResponse
-                    y <- hush <| tryInto @String x
-                    Read.readMaybe @Int y
-            Log.info <| "hackage index old size: " <> show oldSize <> ", new size: " <> show newSize
-            if newSize == oldSize
-                then Log.info "nothing to do"
-                else do
-                    let
-                        index = oldSize - HackageIndex.offset
-                        range = "bytes=" <> show index <> "-" <> show (newSize - 1)
-                    Log.info <| "updating hackage index: " <> show range
-                    rangeResponse <- Client.httpLbs
-                        request { Client.requestHeaders = (Http.hRange, into @ByteString range) : Client.requestHeaders request }
-                        manager
-                    let
-                        before = ByteString.take index <| HackageIndex.contents oldHackageIndex
-                        after = into @ByteString <| Client.responseBody rangeResponse
-                        contents = before <> after
-                        newHackageIndex = HackageIndex.fromByteString contents
-                    Pool.withResource (Context.pool context) <| \ connection -> do
-                        HackageIndex.update connection newHackageIndex
-    Log.info "counting entries in the hackage index"
+run context = do
+    Log.info "starting worker"
+    Monad.forever <| do
+        Log.info "beginning worker loop"
+        upsertHackageIndex context
+        processHackageIndex context
+        Log.info "finished worker loop"
+        Concurrent.threadDelay 60000000
+
+upsertHackageIndex :: Context.Context -> IO ()
+upsertHackageIndex context = do
+    Log.info "refreshing Hackage index"
     maybeHackageIndex <- Pool.withResource (Context.pool context) HackageIndex.select
     case maybeHackageIndex of
-        Nothing -> pure ()
-        Just hackageIndex -> do
-            hackageIndex
-                |> HackageIndex.contents
-                |> into @LazyByteString
-                |> Tar.read
-                |> Tar.foldEntries (:) [] (Unsafe.unsafePerformIO <. throwM)
-                |> length
-                |> show
-                |> Log.info
-            pure ()
-    Log.info "done. waiting a minute"
-    Concurrent.threadDelay 60000000
+        Nothing -> insertHackageIndex context
+        Just hackageIndex -> updateHackageIndex context hackageIndex
+
+insertHackageIndex :: Context.Context -> IO ()
+insertHackageIndex context = do
+    Log.info "requesting initial Hackage index"
+    request <- Client.parseUrlThrow <| Config.hackageUrl (Context.config context) <> "/01-index.tar.gz"
+    response <- Client.httpLbs request <| Context.manager context
+    let
+        contents = Client.responseBody response
+            |> Gzip.decompress
+            |> into @ByteString
+        size = ByteString.length contents
+        hackageIndex = HackageIndex.HackageIndex { HackageIndex.contents, HackageIndex.size }
+    Log.info <| "got initial Hackage index (size: " <> pluralize "byte" size <> ")"
+    Pool.withResource (Context.pool context) <| \ connection ->
+        HackageIndex.insert connection hackageIndex
+
+updateHackageIndex :: Context.Context -> HackageIndex.HackageIndex -> IO ()
+updateHackageIndex context oldHackageIndex = do
+    let oldSize = HackageIndex.size oldHackageIndex
+    Log.info <| "requesting new Hackage index size (old size: " <> pluralize "byte" oldSize <> ")"
+    request <- Client.parseUrlThrow <| Config.hackageUrl (Context.config context) <> "/01-index.tar"
+    headResponse <- Client.httpNoBody
+        request { Client.method = into @ByteString "HEAD" }
+        <| Context.manager context
+    let
+        maybeNewSize = do
+            x <- lookup Http.hContentLength <| Client.responseHeaders headResponse
+            y <- hush <| tryInto @String x
+            Read.readMaybe @Int y
+    case maybeNewSize of
+        Nothing -> throwM <| BadHackageIndexSize.BadHackageIndexSize oldSize maybeNewSize
+        Just newSize
+            | newSize < oldSize -> throwM <| BadHackageIndexSize.BadHackageIndexSize oldSize maybeNewSize
+            | newSize == oldSize -> Log.info "Hackage index has not changed"
+            | otherwise -> do
+                Log.info <| "got new Hackage index size: " <> pluralize "byte" newSize
+                let
+                    delta = newSize - oldSize
+                    start = oldSize - HackageIndex.offset
+                    end = newSize - 1
+                    range = into @ByteString <| "bytes=" <> show start <> "-" <> show end
+                Log.info <| "requesting " <> pluralize "byte" delta <> " of new Hackage index"
+                rangeResponse <- Client.httpLbs
+                    request { Client.requestHeaders = (Http.hRange, range) : Client.requestHeaders request }
+                    <| Context.manager context
+                Log.info "got new Hackage index"
+                let
+                    before = ByteString.take start <| HackageIndex.contents oldHackageIndex
+                    after = into @ByteString <| Client.responseBody rangeResponse
+                    contents = before <> after
+                    newHackageIndex = HackageIndex.fromByteString contents
+                Pool.withResource (Context.pool context) <| \ connection ->
+                    HackageIndex.update connection newHackageIndex
+
+processHackageIndex :: Context.Context -> IO ()
+processHackageIndex context = do
+    Log.info "processing Hackage index"
+    maybeHackageIndex <- Pool.withResource (Context.pool context) HackageIndex.select
+    case maybeHackageIndex of
+        Nothing -> Log.warn "missing Hackage index"
+        Just hackageIndex -> hackageIndex
+            |> HackageIndex.contents
+            |> into @LazyByteString
+            |> Tar.read
+            |> Tar.foldEntries (:) [] (Unsafe.unsafePerformIO <. throwM)
+            |> length
+            |> show
+            |> Log.info
+
+pluralize :: String -> Int -> String
+pluralize word count = show count <> " " <> word <> if count == 1 then "" else "s"
