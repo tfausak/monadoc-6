@@ -117,6 +117,11 @@ processHackageIndex context = do
 -- - PKG_NAME/PKG_VERSION/PKG_NAME.cabal
 -- - PKG_NAME/preferred-versions
 -- - PKG_NAME/PKD_VERSION/package.json
+--
+-- Note that on Windows, tar entries have Windows-style paths:
+--
+-- - Windows: base\4.15.0.0\base.cabal
+-- - Unix: base/4.15.0.0/base.cabal
 processTarEntry :: Context.Context -> Tar.Entry -> IO ()
 processTarEntry _context entry = case Tar.entryContent entry of
     Tar.NormalFile contents _ | isValidTarEntry entry -> do
