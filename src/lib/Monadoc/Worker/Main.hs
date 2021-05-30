@@ -8,10 +8,14 @@ import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Pool as Pool
 import qualified Distribution.PackageDescription.Parsec as Cabal
+import qualified Distribution.Parsec as Cabal
+import qualified Distribution.Types.PackageVersionConstraint as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.InvalidPackageDescription as InvalidPackageDescription
+import qualified Monadoc.Exception.InvalidPackageVersionConstraint as InvalidPackageVersionConstraint
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Type.Config as Config
@@ -20,6 +24,7 @@ import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified System.FilePath as FilePath
+import qualified System.IO as IO
 import qualified System.IO.Unsafe as Unsafe
 import qualified Text.Read as Read
 
@@ -107,11 +112,22 @@ processHackageIndex context = do
             |> Tar.foldEntries (:) [] (Unsafe.unsafePerformIO <. throwM)
             |> traverse_ (processTarEntry context)
 
+-- Possible Hackage index tar entry paths:
+--
+-- - PKG_NAME/PKG_VERSION/PKG_NAME.cabal
+-- - PKG_NAME/preferred-versions
+-- - PKG_NAME/PKD_VERSION/package.json
 processTarEntry :: Context.Context -> Tar.Entry -> IO ()
 processTarEntry _context entry = case Tar.entryContent entry of
-    Tar.NormalFile contents _ | isValidTarEntry entry ->
+    Tar.NormalFile contents _ | isValidTarEntry entry -> do
+        IO.appendFile "tar-entries.txt" <| Tar.entryPath entry <> "\n"
         case FilePath.takeExtension <| Tar.entryPath entry of
-            "" -> pure () -- TODO: parse preferred versions
+            "" ->
+                if LazyByteString.null contents
+                    then pure () -- TODO: any version
+                    else case Cabal.simpleParsecBS <| into @ByteString contents of
+                        Nothing -> throwM <| InvalidPackageVersionConstraint.new contents
+                        Just (Cabal.PackageVersionConstraint _ _) -> pure () -- TODO: do something with parsed version constraint
             ".cabal" ->
                 -- TODO: don't re-parse unchanged package descriptions
                 case Cabal.parseGenericPackageDescriptionMaybe <| into @ByteString contents of
