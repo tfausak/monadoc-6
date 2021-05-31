@@ -89,11 +89,15 @@ library
         Monadoc.Exception.HackageIndexExists
         Monadoc.Exception.InvalidJson
         Monadoc.Exception.InvalidPackageDescription
+        Monadoc.Exception.InvalidPackageName
         Monadoc.Exception.InvalidPackageVersionConstraint
         Monadoc.Exception.InvalidPort
+        Monadoc.Exception.InvalidVersion
         Monadoc.Exception.MissingCode
         Monadoc.Exception.OptionError
+        Monadoc.Exception.PackageNameMismatch
         Monadoc.Exception.UnexpectedTarEntry
+        Monadoc.Exception.VersionMismatch
         Monadoc.Handler.GetFavicon
         Monadoc.Handler.GetGithubCallback
         Monadoc.Handler.GetIndex

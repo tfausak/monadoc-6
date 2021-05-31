@@ -12,11 +12,21 @@ import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Pool as Pool
 import qualified Distribution.PackageDescription.Parsec as Cabal
 import qualified Distribution.Parsec as Cabal
+import qualified Distribution.Types.GenericPackageDescription as Cabal
+import qualified Distribution.Types.PackageDescription as Cabal
+import qualified Distribution.Types.PackageId as Cabal
+import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.PackageVersionConstraint as Cabal
+import qualified Distribution.Types.Version as Cabal
+import qualified Distribution.Types.VersionRange as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.InvalidPackageDescription as InvalidPackageDescription
+import qualified Monadoc.Exception.InvalidPackageName as InvalidPackageName
 import qualified Monadoc.Exception.InvalidPackageVersionConstraint as InvalidPackageVersionConstraint
+import qualified Monadoc.Exception.InvalidVersion as InvalidVersion
+import qualified Monadoc.Exception.PackageNameMismatch as PackageNameMismatch
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
+import qualified Monadoc.Exception.VersionMismatch as VersionMismatch
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
@@ -129,17 +139,35 @@ processTarEntry _context entry = do
         Tar.NormalFile x _ -> pure x
         _ -> throwM <| UnexpectedTarEntry.new entry
     case getTarEntryPath entry of
-        ([_, "preferred-versions"], "") ->
-            if LazyByteString.null contents
-                then pure () -- TODO: any version
+        ([rawPackageName, "preferred-versions"], "") -> do
+            packageName <- case Cabal.simpleParsec rawPackageName of
+                Nothing -> throwM <| InvalidPackageName.new rawPackageName
+                Just packageName -> pure packageName
+            constraint <- if LazyByteString.null contents
+                then pure <| Cabal.PackageVersionConstraint packageName Cabal.anyVersion
                 else case Cabal.simpleParsecBS <| into @ByteString contents of
                     Nothing -> throwM <| InvalidPackageVersionConstraint.new contents
-                    Just (Cabal.PackageVersionConstraint _ _) -> pure () -- TODO: do something with parsed version constraint
-        ([_, _, _], ".cabal") ->
+                    Just constraint@(Cabal.PackageVersionConstraint otherPackageName _) -> do
+                        when (otherPackageName /= packageName) <| throwM <| PackageNameMismatch.new packageName otherPackageName
+                        pure constraint
+            void <| pure constraint -- TODO: do something with version constraint
+        ([rawPackageName, rawVersion, _], ".cabal") -> do
+            packageName <- case Cabal.simpleParsec @Cabal.PackageName rawPackageName of
+                Nothing -> throwM <| InvalidPackageName.new rawPackageName
+                Just packageName -> pure packageName
+            version <- case Cabal.simpleParsec @Cabal.Version rawVersion of
+                Nothing -> throwM <| InvalidVersion.new rawVersion
+                Just version -> pure version
             -- TODO: don't re-parse unchanged package descriptions
             case Cabal.parseGenericPackageDescriptionMaybe <| into @ByteString contents of
                 Nothing -> throwM <| InvalidPackageDescription.new contents
-                Just _ -> pure () -- TODO: do something with the parsed package description
+                Just gpd -> do
+                    let
+                        otherPackageName = gpd |> Cabal.packageDescription |> Cabal.package |> Cabal.pkgName
+                        otherVersion = gpd |> Cabal.packageDescription |> Cabal.package |> Cabal.pkgVersion
+                    when (otherPackageName /= packageName) <| throwM <| PackageNameMismatch.new packageName otherPackageName
+                    when (otherVersion /= version) <| throwM <| VersionMismatch.new version otherVersion
+                    pure () -- TODO: do something with the parsed package description
         ([_, _, "package"], ".json") -> pure ()
         _ -> throwM <| UnexpectedTarEntry.new entry
 
