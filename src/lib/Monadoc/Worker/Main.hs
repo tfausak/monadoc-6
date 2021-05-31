@@ -24,7 +24,7 @@ import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified System.FilePath as FilePath
-import qualified System.IO as IO
+import qualified System.FilePath.Windows as Windows
 import qualified System.IO.Unsafe as Unsafe
 import qualified Text.Read as Read
 
@@ -123,24 +123,25 @@ processHackageIndex context = do
 -- - Windows: base\4.15.0.0\base.cabal
 -- - Unix: base/4.15.0.0/base.cabal
 processTarEntry :: Context.Context -> Tar.Entry -> IO ()
-processTarEntry _context entry = case Tar.entryContent entry of
-    Tar.NormalFile contents _ | isValidTarEntry entry -> do
-        IO.appendFile "tar-entries.txt" <| Tar.entryPath entry <> "\n"
-        case FilePath.takeExtension <| Tar.entryPath entry of
-            "" ->
-                if LazyByteString.null contents
-                    then pure () -- TODO: any version
-                    else case Cabal.simpleParsecBS <| into @ByteString contents of
-                        Nothing -> throwM <| InvalidPackageVersionConstraint.new contents
-                        Just (Cabal.PackageVersionConstraint _ _) -> pure () -- TODO: do something with parsed version constraint
-            ".cabal" ->
-                -- TODO: don't re-parse unchanged package descriptions
-                case Cabal.parseGenericPackageDescriptionMaybe <| into @ByteString contents of
-                    Nothing -> throwM <| InvalidPackageDescription.new contents
-                    Just _ -> pure () -- TODO: do something with the parsed package description
-            ".json" -> pure ()
-            _ -> throwM <| UnexpectedTarEntry.new entry
-    _ -> throwM <| UnexpectedTarEntry.new entry
+processTarEntry _context entry = do
+    when (not <| isValidTarEntry entry) <| throwM <| UnexpectedTarEntry.new entry
+    contents <- case Tar.entryContent entry of
+        Tar.NormalFile x _ -> pure x
+        _ -> throwM <| UnexpectedTarEntry.new entry
+    case getTarEntryPath entry of
+        ([_, "preferred-versions"], "") ->
+            if LazyByteString.null contents
+                then pure () -- TODO: any version
+                else case Cabal.simpleParsecBS <| into @ByteString contents of
+                    Nothing -> throwM <| InvalidPackageVersionConstraint.new contents
+                    Just (Cabal.PackageVersionConstraint _ _) -> pure () -- TODO: do something with parsed version constraint
+        ([_, _, _], ".cabal") ->
+            -- TODO: don't re-parse unchanged package descriptions
+            case Cabal.parseGenericPackageDescriptionMaybe <| into @ByteString contents of
+                Nothing -> throwM <| InvalidPackageDescription.new contents
+                Just _ -> pure () -- TODO: do something with the parsed package description
+        ([_, _, "package"], ".json") -> pure ()
+        _ -> throwM <| UnexpectedTarEntry.new entry
 
 isValidTarEntry :: Tar.Entry -> Bool
 isValidTarEntry entry = Tar.entryPermissions entry == 420
@@ -150,3 +151,8 @@ isValidTarEntry entry = Tar.entryPermissions entry == 420
 
 pluralize :: String -> Int -> String
 pluralize word count = show count <> " " <> word <> if count == 1 then "" else "s"
+
+getTarEntryPath :: Tar.Entry -> ([FilePath], String)
+getTarEntryPath entry =
+    let (prefix, suffix) = FilePath.splitExtensions <| Tar.entryPath entry
+    in (Windows.splitDirectories prefix, suffix)
