@@ -6,9 +6,11 @@ import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Archive.Tar.Entry as Tar
 import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent
+import qualified Control.Concurrent.STM as Stm
 import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.Map as Map
 import qualified Data.Pool as Pool
 import qualified Distribution.PackageDescription.Parsec as Cabal
 import qualified Distribution.Parsec as Cabal
@@ -115,12 +117,15 @@ processHackageIndex context = do
     maybeHackageIndex <- Pool.withResource (Context.pool context) HackageIndex.select
     case maybeHackageIndex of
         Nothing -> Log.warn "missing Hackage index"
-        Just hackageIndex -> hackageIndex
-            |> HackageIndex.contents
-            |> into @LazyByteString
-            |> Tar.read
-            |> Tar.foldEntries (:) [] (Unsafe.unsafePerformIO <. throwM)
-            |> traverse_ (processTarEntry context)
+        Just hackageIndex -> do
+            preferredVersionsVar <- Stm.newTVarIO Map.empty
+            hackageIndex
+                |> HackageIndex.contents
+                |> into @LazyByteString
+                |> Tar.read
+                |> Tar.foldEntries (:) [] (Unsafe.unsafePerformIO <. throwM)
+                |> traverse_ (processTarEntry context preferredVersionsVar)
+            -- TODO: store preferred versions
 
 -- Possible Hackage index tar entry paths:
 --
@@ -132,8 +137,8 @@ processHackageIndex context = do
 --
 -- - Windows: base\4.15.0.0\base.cabal
 -- - Unix: base/4.15.0.0/base.cabal
-processTarEntry :: Context.Context -> Tar.Entry -> IO ()
-processTarEntry _context entry = do
+processTarEntry :: Context.Context -> Stm.TVar (Map Cabal.PackageName Cabal.VersionRange) -> Tar.Entry -> IO ()
+processTarEntry _context preferredVersionsVar entry = do
     when (not <| isValidTarEntry entry) <| throwM <| UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
         Tar.NormalFile x _ -> pure x
@@ -143,14 +148,14 @@ processTarEntry _context entry = do
             packageName <- case Cabal.simpleParsec rawPackageName of
                 Nothing -> throwM <| InvalidPackageName.new rawPackageName
                 Just packageName -> pure packageName
-            constraint <- if LazyByteString.null contents
-                then pure <| Cabal.PackageVersionConstraint packageName Cabal.anyVersion
+            versionRange <- if LazyByteString.null contents
+                then pure Cabal.anyVersion
                 else case Cabal.simpleParsecBS <| into @ByteString contents of
                     Nothing -> throwM <| InvalidPackageVersionConstraint.new contents
-                    Just constraint@(Cabal.PackageVersionConstraint otherPackageName _) -> do
+                    Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
                         when (otherPackageName /= packageName) <| throwM <| PackageNameMismatch.new packageName otherPackageName
-                        pure constraint
-            void <| pure constraint -- TODO: do something with version constraint
+                        pure versionRange
+            Stm.atomically <| Stm.modifyTVar preferredVersionsVar <| Map.insert packageName versionRange
         ([rawPackageName, rawVersion, _], ".cabal") -> do
             packageName <- case Cabal.simpleParsec @Cabal.PackageName rawPackageName of
                 Nothing -> throwM <| InvalidPackageName.new rawPackageName
