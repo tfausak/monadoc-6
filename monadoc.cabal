@@ -120,6 +120,7 @@ library
         Monadoc.Type.Handler
         Monadoc.Type.Migration
         Monadoc.Type.OAuthResponse
+        Monadoc.Type.PackageName
         Monadoc.Type.Route
         Monadoc.Type.Warning
         Monadoc.Utility.Convert

@@ -32,11 +32,11 @@ import qualified Monadoc.Exception.VersionMismatch as VersionMismatch
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
+import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified System.FilePath as FilePath
-import qualified System.FilePath.Windows as Windows
 import qualified System.IO.Unsafe as Unsafe
 import qualified Text.Read as Read
 
@@ -137,7 +137,7 @@ processHackageIndex context = do
 --
 -- - Windows: base\4.15.0.0\base.cabal
 -- - Unix: base/4.15.0.0/base.cabal
-processTarEntry :: Context.Context -> Stm.TVar (Map Cabal.PackageName Cabal.VersionRange) -> Tar.Entry -> IO ()
+processTarEntry :: Context.Context -> Stm.TVar (Map PackageName.PackageName Cabal.VersionRange) -> Tar.Entry -> IO ()
 processTarEntry _context preferredVersionsVar entry = do
     when (not <| isValidTarEntry entry) <| throwM <| UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
@@ -145,21 +145,26 @@ processTarEntry _context preferredVersionsVar entry = do
         _ -> throwM <| UnexpectedTarEntry.new entry
     case getTarEntryPath entry of
         ([rawPackageName, "preferred-versions"], "") -> do
-            packageName <- case Cabal.simpleParsec rawPackageName of
-                Nothing -> throwM <| InvalidPackageName.new rawPackageName
-                Just packageName -> pure packageName
+            packageName <- case tryInto @PackageName.PackageName rawPackageName of
+                Left _ -> throwM <| InvalidPackageName.new rawPackageName
+                Right packageName -> pure packageName
             versionRange <- if LazyByteString.null contents
                 then pure Cabal.anyVersion
                 else case Cabal.simpleParsecBS <| into @ByteString contents of
                     Nothing -> throwM <| InvalidPackageVersionConstraint.new contents
                     Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
-                        when (otherPackageName /= packageName) <| throwM <| PackageNameMismatch.new packageName otherPackageName
+                        when (otherPackageName /= into @Cabal.PackageName packageName)
+                            <| throwM
+                            <| PackageNameMismatch.new packageName
+                            <| into @PackageName.PackageName otherPackageName
                         pure versionRange
-            Stm.atomically <| Stm.modifyTVar preferredVersionsVar <| Map.insert packageName versionRange
+            Stm.atomically
+                <| Stm.modifyTVar preferredVersionsVar
+                <| Map.insert packageName versionRange
         ([rawPackageName, rawVersion, _], ".cabal") -> do
-            packageName <- case Cabal.simpleParsec @Cabal.PackageName rawPackageName of
-                Nothing -> throwM <| InvalidPackageName.new rawPackageName
-                Just packageName -> pure packageName
+            packageName <- case tryInto @PackageName.PackageName rawPackageName of
+                Left _ -> throwM <| InvalidPackageName.new rawPackageName
+                Right packageName -> pure packageName
             version <- case Cabal.simpleParsec @Cabal.Version rawVersion of
                 Nothing -> throwM <| InvalidVersion.new rawVersion
                 Just version -> pure version
@@ -170,7 +175,10 @@ processTarEntry _context preferredVersionsVar entry = do
                     let
                         otherPackageName = gpd |> Cabal.packageDescription |> Cabal.package |> Cabal.pkgName
                         otherVersion = gpd |> Cabal.packageDescription |> Cabal.package |> Cabal.pkgVersion
-                    when (otherPackageName /= packageName) <| throwM <| PackageNameMismatch.new packageName otherPackageName
+                    when (otherPackageName /= into @Cabal.PackageName packageName)
+                        <| throwM
+                        <| PackageNameMismatch.new packageName
+                        <| into @PackageName.PackageName otherPackageName
                     when (otherVersion /= version) <| throwM <| VersionMismatch.new version otherVersion
                     pure () -- TODO: do something with the parsed package description
         ([_, _, "package"], ".json") -> pure ()
@@ -188,4 +196,4 @@ pluralize word count = show count <> " " <> word <> if count == 1 then "" else "
 getTarEntryPath :: Tar.Entry -> ([FilePath], String)
 getTarEntryPath entry =
     let (prefix, suffix) = FilePath.splitExtensions <| Tar.entryPath entry
-    in (Windows.splitDirectories prefix, suffix)
+    in (FilePath.splitDirectories prefix, suffix)

@@ -2,13 +2,13 @@ module Monadoc.Exception.PackageNameMismatch where
 
 import Monadoc.Prelude
 
-import qualified Distribution.Types.PackageName as Cabal
+import qualified Monadoc.Type.PackageName as PackageName
 
 data PackageNameMismatch
-    = PackageNameMismatch Cabal.PackageName Cabal.PackageName
+    = PackageNameMismatch PackageName.PackageName PackageName.PackageName
     deriving (Eq, Show)
 
 instance Exception PackageNameMismatch
 
-new :: Cabal.PackageName -> Cabal.PackageName -> PackageNameMismatch
+new :: PackageName.PackageName -> PackageName.PackageName -> PackageNameMismatch
 new = PackageNameMismatch
