@@ -38,7 +38,7 @@ initial = Config
     }
 
 isSecure :: Config -> Bool
-isSecure = List.isPrefixOf "https://" <. baseUrl
+isSecure = List.isPrefixOf "https://" . baseUrl
 
 fromArguments :: MonadThrow m => [String] -> m ([Warning.Warning], Config)
 fromArguments arguments = do
@@ -65,6 +65,6 @@ applyFlag flag config = case flag of
     Flag.Help -> pure config { help = True }
     Flag.Host x -> pure config { host = Convert.stringToHost x }
     Flag.Port string -> do
-        port <- either throwM pure <| tryFrom string
+        port <- either throwM pure $ tryFrom string
         pure config { port }
     Flag.Version -> pure config { version = True }

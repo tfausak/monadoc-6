@@ -17,13 +17,13 @@ instance Sql.FromField Guid where
         text <- Sql.fromField field
         case Uuid.fromText text of
             Nothing -> Sql.returnError Sql.ConversionFailed field "invalid Guid"
-            Just uuid -> pure <| from @Uuid.UUID uuid
+            Just uuid -> pure $ from @Uuid.UUID uuid
 
 instance Sql.ToField Guid where
-    toField = Sql.toField <. Uuid.toText <. into @Uuid.UUID
+    toField = Sql.toField . Uuid.toText . into @Uuid.UUID
 
 instance Random.Uniform Guid where
-    uniformM = fmap (from @Uuid.UUID) <. Random.uniformM
+    uniformM = fmap (from @Uuid.UUID) . Random.uniformM
 
 instance From Uuid.UUID Guid
 

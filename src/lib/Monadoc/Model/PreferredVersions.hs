@@ -20,8 +20,8 @@ instance Sql.FromRow PreferredVersions where
 
 instance Sql.ToRow PreferredVersions where
     toRow preferredVersions =
-        [ Sql.toField <| packageName preferredVersions
-        , Sql.toField <| versionRange preferredVersions
+        [ Sql.toField $ packageName preferredVersions
+        , Sql.toField $ versionRange preferredVersions
         ]
 
 migrations :: [Migration.Migration]
@@ -37,7 +37,7 @@ new :: PackageName.PackageName -> VersionRange.VersionRange -> PreferredVersions
 new = PreferredVersions
 
 upsert :: Sql.Connection -> PreferredVersions -> IO ()
-upsert c = Sql.execute c <| into @Sql.Query
+upsert c = Sql.execute c $ into @Sql.Query
     "insert into preferredVersions (packageName, versionRange) \
     \values (?, ?) \
     \on conflict (packageName) \

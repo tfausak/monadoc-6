@@ -150,12 +150,10 @@ module Monadoc.Prelude (
     Witch.via,
 
     -- * Operators
+    (Data.Function.&),
     (Data.Functor.$>),
-    (Flow..>),
-    (Flow.<.),
-    (Flow.<|),
-    (Flow.|>),
     (Prelude.-),
+    (Prelude..),
     (Prelude.*),
     (Prelude.*>),
     (Prelude./),
@@ -173,6 +171,7 @@ module Monadoc.Prelude (
     (Prelude.>),
     (Prelude.>=),
     (Prelude.||),
+    (Prelude.$),
 ) where
 
 import Monadoc.Prelude.Orphanage ()
@@ -181,6 +180,7 @@ import qualified Control.Monad
 import qualified Control.Monad.Catch
 import qualified Data.ByteString
 import qualified Data.Foldable
+import qualified Data.Function
 import qualified Data.Functor
 import qualified Data.Int
 import qualified Data.List.NonEmpty
@@ -191,7 +191,6 @@ import qualified Data.Set
 import qualified Data.Text
 import qualified Data.Void
 import qualified Data.Word
-import qualified Flow
 import qualified Monadoc.Prelude.Extra
 import qualified Numeric.Natural
 import qualified Prelude

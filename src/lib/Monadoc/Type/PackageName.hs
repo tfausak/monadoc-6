@@ -12,12 +12,12 @@ newtype PackageName
     deriving (Eq, Ord, Show)
 
 instance TryFrom String PackageName where
-    tryFrom = maybeTryFrom <| \ s -> case Cabal.simpleParsec s of
+    tryFrom = maybeTryFrom $ \ s -> case Cabal.simpleParsec s of
         Nothing -> Nothing
-        Just n -> Just <| from @Cabal.PackageName n
+        Just n -> Just $ from @Cabal.PackageName n
 
 instance From PackageName String where
-    from = into @Cabal.PackageName .> Cabal.unPackageName
+    from = Cabal.unPackageName . into @Cabal.PackageName
 
 instance From Cabal.PackageName PackageName where
     from = PackageName
@@ -33,4 +33,4 @@ instance Sql.FromField PackageName where
             Right packageName -> pure packageName
 
 instance Sql.ToField PackageName where
-    toField = into @String .> Sql.toField
+    toField = Sql.toField . into @String

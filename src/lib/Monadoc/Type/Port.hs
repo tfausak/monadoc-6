@@ -14,4 +14,4 @@ instance From Warp.Port Port
 instance From Port Warp.Port
 
 instance TryFrom String Port where
-    tryFrom = maybeTryFrom <| Read.readMaybe .> fmap (from @Warp.Port)
+    tryFrom = maybeTryFrom $ fmap (from @Warp.Port) . Read.readMaybe

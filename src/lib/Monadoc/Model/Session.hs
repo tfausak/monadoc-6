@@ -29,12 +29,12 @@ instance Sql.FromRow Session where
 
 instance Sql.ToRow Session where
     toRow session =
-        [ Sql.toField <| createdAt session
-        , Sql.toField <| deletedAt session
-        , Sql.toField <| guid session
-        , Sql.toField <| updatedAt session
-        , Sql.toField <| userAgent session
-        , Sql.toField <| userGithubId session
+        [ Sql.toField $ createdAt session
+        , Sql.toField $ deletedAt session
+        , Sql.toField $ guid session
+        , Sql.toField $ updatedAt session
+        , Sql.toField $ userAgent session
+        , Sql.toField $ userGithubId session
         ]
 
 migrations :: [Migration.Migration]
@@ -51,13 +51,13 @@ migrations =
     ]
 
 insert :: Sql.Connection -> Session -> IO ()
-insert c = Sql.execute c <| into @Sql.Query
+insert c = Sql.execute c $ into @Sql.Query
     "insert into session \
     \(createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId) \
     \values (?, ?, ?, ?, ?, ?)"
 
 selectByGuid :: Sql.Connection -> Guid.Guid -> IO (Maybe Session)
-selectByGuid c g = fmap Maybe.listToMaybe <| Sql.query c (into @Sql.Query
+selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
     "select createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
     \from session \
     \where deletedAt is null \

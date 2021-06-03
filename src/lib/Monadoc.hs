@@ -38,7 +38,7 @@ mainWith :: String -> [String] -> IO ()
 mainWith name arguments = do
     setDefaultExceptionHandler
     context <- getContext name arguments
-    Pool.withResource (Context.pool context) <| \ connection -> do
+    Pool.withResource (Context.pool context) $ \ connection -> do
         enableWriteAheadLog connection
         createMigrationTable connection
         traverse_ (runMigration connection) migrations
@@ -48,8 +48,8 @@ setDefaultExceptionHandler :: IO ()
 setDefaultExceptionHandler = do
     originalExceptionHandler <- Ghc.getUncaughtExceptionHandler
     Ghc.setUncaughtExceptionHandler
-        <| handle originalExceptionHandler
-        <. defaultExceptionHandler
+        $ handle originalExceptionHandler
+        . defaultExceptionHandler
 
 defaultExceptionHandler :: SomeException -> IO ()
 defaultExceptionHandler = Settings.onException Nothing
@@ -58,30 +58,30 @@ getContext :: String -> [String] -> IO Context.Context
 getContext name arguments = do
     (warnings, config) <- Config.fromArguments arguments
 
-    Monad.forM_ warnings <| \ warning -> do
-        Log.warn <| case warning of
+    Monad.forM_ warnings $ \ warning -> do
+        Log.warn $ case warning of
             Warning.UnexpectedArgument argument ->
                 "unexpected argument " <> show argument
             Warning.UnrecognizedOption option ->
                 "unrecognized option " <> show option
 
     let version = Convert.versionToString Package.version
-    Monad.when (Config.help config) <| do
-        putStr <| Console.usageInfo (unwords [name, "version", version]) Flag.options
+    Monad.when (Config.help config) $ do
+        putStr $ Console.usageInfo (unwords [name, "version", version]) Flag.options
         Exit.exitSuccess
 
-    Monad.when (Config.version config) <| do
+    Monad.when (Config.version config) $ do
         putStrLn version
         Exit.exitSuccess
 
     Context.fromConfig config
 
 enableWriteAheadLog :: Sql.Connection -> IO ()
-enableWriteAheadLog c = Sql.execute_ c <| into @Sql.Query
+enableWriteAheadLog c = Sql.execute_ c $ into @Sql.Query
     "pragma journal_mode = wal"
 
 createMigrationTable :: Sql.Connection -> IO ()
-createMigrationTable c = Sql.execute_ c <| into @Sql.Query
+createMigrationTable c = Sql.execute_ c $ into @Sql.Query
     "create table if not exists migration \
     \(migratedAt text not null, \
     \sql text not null, \
@@ -89,21 +89,21 @@ createMigrationTable c = Sql.execute_ c <| into @Sql.Query
     \without rowid"
 
 runMigration :: Sql.Connection -> Migration.Migration -> IO ()
-runMigration c m = Sql.withTransaction c <| do
+runMigration c m = Sql.withTransaction c $ do
     xs <- Sql.query c (into @Sql.Query "select count(*) from migration where time = ?") [Migration.time m]
-    Monad.when (xs /= [Sql.Only (1 :: Int)]) <| do
-        Sql.execute_ c <| Migration.sql m
+    Monad.when (xs /= [Sql.Only (1 :: Int)]) $ do
+        Sql.execute_ c $ Migration.sql m
         now <- Time.getCurrentTime
         Sql.execute
             c
             (into @Sql.Query "insert into migration (migratedAt, sql, time) values (?, ?, ?)")
             ( now
-            , into @String <| Migration.sql m
+            , into @String $ Migration.sql m
             , Migration.time m
             )
 
 migrations :: [Migration.Migration]
-migrations = List.sortOn Migration.time <| mconcat
+migrations = List.sortOn Migration.time $ mconcat
     [ HackageIndex.migrations
     , PreferredVersions.migrations
     , Session.migrations

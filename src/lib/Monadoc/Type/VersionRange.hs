@@ -13,16 +13,16 @@ newtype VersionRange
     deriving (Eq, Show)
 
 instance From VersionRange String where
-    from = into @Cabal.VersionRange .> Cabal.prettyShow
+    from = Cabal.prettyShow . into @Cabal.VersionRange
 
 instance From Cabal.VersionRange VersionRange where
-    from = Cabal.normaliseVersionRange .> VersionRange
+    from = VersionRange . Cabal.normaliseVersionRange
 
 instance From VersionRange Cabal.VersionRange where
     from (VersionRange x) = x
 
 instance TryFrom String VersionRange where
-    tryFrom = maybeTryFrom <| Cabal.simpleParsec .> fmap (from @Cabal.VersionRange)
+    tryFrom = maybeTryFrom $ fmap (from @Cabal.VersionRange) . Cabal.simpleParsec
 
 instance Sql.FromField VersionRange where
     fromField field = do
@@ -32,7 +32,7 @@ instance Sql.FromField VersionRange where
             Right versionRange -> pure versionRange
 
 instance Sql.ToField VersionRange where
-    toField = into @String .> Sql.toField
+    toField = Sql.toField . into @String
 
 any :: VersionRange
 any = from Cabal.anyVersion

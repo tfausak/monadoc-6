@@ -10,7 +10,7 @@ data GithubUser = GithubUser
     } deriving (Eq, Show)
 
 instance Aeson.FromJSON GithubUser where
-    parseJSON = Aeson.withObject "GithubUser" <| \ object -> do
+    parseJSON = Aeson.withObject "GithubUser" $ \ object -> do
         id <- object Aeson..: into @Text "id"
         login <- object Aeson..: into @Text "login"
         pure GithubUser

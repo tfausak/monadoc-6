@@ -17,7 +17,7 @@ import qualified System.FilePath as FilePath
 
 application :: Context.Context -> Wai.Application
 application context request respond = do
-    let handler = Maybe.fromMaybe notFoundHandler <| getHandler request
+    let handler = Maybe.fromMaybe notFoundHandler $ getHandler request
     response <- handler context request
     respond response
 
@@ -27,19 +27,19 @@ getHandler request = do
     route <- getRoute request
     case (method, route) of
         (Http.GET, Route.Index) -> Just GetIndex.handler
-        (Http.GET, Route.Bootstrap) -> Just <| fileHandler "bootstrap.css" "text/css; charset=UTF-8"
+        (Http.GET, Route.Bootstrap) -> Just $ fileHandler "bootstrap.css" "text/css; charset=UTF-8"
         (Http.GET, Route.Favicon) -> Just GetFavicon.handler
         (Http.GET, Route.Callback) -> Just GetGithubCallback.handler
-        (Http.GET, Route.Logo) -> Just <| fileHandler "monadoc.svg" "image/svg+xml; charset=UTF-8"
-        (Http.GET, Route.Template) -> Just <| fileHandler "monadoc.xsl" "text/xsl; charset=UTF-8"
-        (Http.GET, Route.Robots) -> Just <| fileHandler "robots.txt" "text/plain; charset=UTF-8"
+        (Http.GET, Route.Logo) -> Just $ fileHandler "monadoc.svg" "image/svg+xml; charset=UTF-8"
+        (Http.GET, Route.Template) -> Just $ fileHandler "monadoc.xsl" "text/xsl; charset=UTF-8"
+        (Http.GET, Route.Robots) -> Just $ fileHandler "robots.txt" "text/plain; charset=UTF-8"
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod
-getMethod = either (\ _ -> Nothing) Just <. Http.parseMethod <. Wai.requestMethod
+getMethod = either (\ _ -> Nothing) Just . Http.parseMethod . Wai.requestMethod
 
 getRoute :: Wai.Request -> Maybe Route.Route
-getRoute = Route.fromStrings <. fmap (into @String) <. Wai.pathInfo
+getRoute = Route.fromStrings . fmap (into @String) . Wai.pathInfo
 
 fileHandler :: FilePath -> String -> Handler.Handler
 fileHandler relative mime context _ = do
@@ -52,4 +52,4 @@ fileHandler relative mime context _ = do
     Response.file status headers absolute
 
 notFoundHandler :: Handler.Handler
-notFoundHandler _ _ = pure <| Response.status Http.notFound404 []
+notFoundHandler _ _ = pure $ Response.status Http.notFound404 []

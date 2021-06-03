@@ -34,7 +34,7 @@ handler context request = do
         clientId = Config.clientId config
         clientSecret = Config.clientSecret config
         manager = Context.manager context
-    case lookup (into @ByteString "code") <| Wai.queryString request of
+    case lookup (into @ByteString "code") $ Wai.queryString request of
         Just (Just code) -> do
             accessToken <- do
                 initial <- Client.parseUrlThrow "https://github.com/login/oauth/access_token"
@@ -49,20 +49,20 @@ handler context request = do
                 res <- Client.httpLbs req manager
                 let responseBody = Client.responseBody res
                 case Aeson.eitherDecode responseBody of
-                    Left message -> throwM <| InvalidJson.new message responseBody
-                    Right oAuthResponse -> pure <| OAuthResponse.accessToken oAuthResponse
+                    Left message -> throwM $ InvalidJson.new message responseBody
+                    Right oAuthResponse -> pure $ OAuthResponse.accessToken oAuthResponse
             githubUser <- do
                 initial <- Client.parseUrlThrow "https://api.github.com/user"
                 let
                     headers
-                        = (Http.hAuthorization, into @ByteString <| "Bearer " <> accessToken)
+                        = (Http.hAuthorization, into @ByteString $ "Bearer " <> accessToken)
                         : (Http.hUserAgent, Settings.serverName)
                         : Client.requestHeaders initial
                     req = initial { Client.requestHeaders = headers }
                 res <- Client.httpLbs req manager
                 let responseBody = Client.responseBody res
                 case Aeson.eitherDecode responseBody of
-                    Left message -> throwM <| InvalidJson.new message responseBody
+                    Left message -> throwM $ InvalidJson.new message responseBody
                     Right githubUser -> pure githubUser
             now <- Time.getCurrentTime
             guid <- Guid.random
@@ -80,25 +80,25 @@ handler context request = do
                     , Session.deletedAt = Nothing
                     , Session.guid = guid
                     , Session.updatedAt = now
-                    , Session.userAgent = maybe "" (unsafeInto @String) <| Wai.requestHeaderUserAgent request
+                    , Session.userAgent = maybe "" (unsafeInto @String) $ Wai.requestHeaderUserAgent request
                     , Session.userGithubId = User.githubId user
                     }
-            Pool.withResource (Context.pool context) <| \ connection -> do
+            Pool.withResource (Context.pool context) $ \ connection -> do
                 User.insertOrUpdate connection user
                 Session.insert connection session
             let
                 cookie = Cookie.defaultSetCookie
                     { Cookie.setCookieHttpOnly = True
                     , Cookie.setCookieName = into @ByteString "guid"
-                    , Cookie.setCookiePath = Just <. into @ByteString <| Route.toString Route.Index
+                    , Cookie.setCookiePath = Just . into @ByteString $ Route.toString Route.Index
                     , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
                     , Cookie.setCookieSecure = Config.isSecure config
-                    , Cookie.setCookieValue = Uuid.toASCIIBytes <| into @Uuid.UUID guid
+                    , Cookie.setCookieValue = Uuid.toASCIIBytes $ into @Uuid.UUID guid
                     }
                 -- TODO: Redirect to where the user was originally.
-                location = into @ByteString <| baseUrl <> Route.toString Route.Index
-            pure <| Response.status Http.found302
+                location = into @ByteString $ baseUrl <> Route.toString Route.Index
+            pure $ Response.status Http.found302
                 [ (Http.hLocation, location)
-                , (Http.hSetCookie, into @ByteString <. Builder.toLazyByteString <| Cookie.renderSetCookie cookie)
+                , (Http.hSetCookie, into @ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
                 ]
-        _ -> throwM <| MissingCode.new request
+        _ -> throwM $ MissingCode.new request

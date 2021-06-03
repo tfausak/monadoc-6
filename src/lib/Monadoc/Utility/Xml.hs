@@ -7,7 +7,7 @@ import qualified Data.Map as Map
 import qualified Text.XML as Xml
 
 escape :: String -> String
-escape = foldMap <| \ c -> case c of
+escape = foldMap $ \ c -> case c of
     '"' -> "&quot;"
     '\'' -> "&apos;"
     '&' -> "&amp;"
@@ -20,17 +20,17 @@ name s = case break (== ':') s of
     (prefix, ':' : local)
         | prefix == "xsl" -> Xml.Name
             (into @Text local)
-            (Just <| into @Text "http://www.w3.org/1999/XSL/Transform")
-            (Just <| into @Text prefix)
+            (Just $ into @Text "http://www.w3.org/1999/XSL/Transform")
+            (Just $ into @Text prefix)
     _ -> Xml.Name (into @Text s) Nothing Nothing
 
 node :: String -> [(String, String)] -> [Xml.Node] -> Xml.Node
-node n as = Xml.NodeElement <. element n as
+node n as = Xml.NodeElement . element n as
 
 element :: String -> [(String, String)] -> [Xml.Node] -> Xml.Element
 element n = Xml.Element (name n)
-    <. Map.fromList
-    <. fmap (Bifunctor.bimap name (into @Text))
+    . Map.fromList
+    . fmap (Bifunctor.bimap name (into @Text))
 
 content :: String -> Xml.Node
-content = Xml.NodeContent <. into @Text
+content = Xml.NodeContent . into @Text

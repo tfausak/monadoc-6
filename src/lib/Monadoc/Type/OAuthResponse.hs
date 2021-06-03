@@ -10,7 +10,7 @@ data OAuthResponse = OAuthResponse
     } deriving (Eq, Show)
 
 instance Aeson.FromJSON OAuthResponse where
-    parseJSON = Aeson.withObject "OAuthResponse" <| \ object -> do
+    parseJSON = Aeson.withObject "OAuthResponse" $ \ object -> do
         accessToken <- object Aeson..: into @Text "access_token"
         tokenType <- object Aeson..: into @Text "token_type"
-        pure <| OAuthResponse { accessToken, tokenType }
+        pure OAuthResponse { accessToken, tokenType }

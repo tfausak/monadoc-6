@@ -17,14 +17,14 @@ warn = onHandle IO.stderr
 onHandle :: IO.Handle -> String -> IO ()
 onHandle h message = do
     now <- Time.getCurrentTime
-    withLock <. IO.hPutStrLn h <| Convert.timeToString now <> " " <> message
+    withLock . IO.hPutStrLn h $ Convert.timeToString now <> " " <> message
 
 withLock :: IO a -> IO a
 withLock action = bracket
-    (Stm.atomically <| Stm.takeTMVar lock)
-    (Stm.atomically <. Stm.putTMVar lock)
+    (Stm.atomically $ Stm.takeTMVar lock)
+    (Stm.atomically . Stm.putTMVar lock)
     (\ () -> action)
 
 lock :: Stm.TMVar ()
-lock = Unsafe.unsafePerformIO <| Stm.newTMVarIO ()
+lock = Unsafe.unsafePerformIO $ Stm.newTMVarIO ()
 {-# noinline lock #-}

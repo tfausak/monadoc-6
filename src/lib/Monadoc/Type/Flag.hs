@@ -27,7 +27,7 @@ fromArguments arguments = do
         warnings = fmap Warning.UnexpectedArgument unexpectedArguments
             <> fmap Warning.UnrecognizedOption unrecognizedOptions
     case tryInto @(NonEmpty String) errorMessages of
-        Right xs -> throwM <| OptionError.new xs
+        Right xs -> throwM $ OptionError.new xs
         Left _ -> pure (warnings, flags)
 
 options :: [Console.OptDescr Flag]

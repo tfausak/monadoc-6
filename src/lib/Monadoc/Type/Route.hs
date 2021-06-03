@@ -28,7 +28,7 @@ fromStrings path = case path of
     _ -> Nothing
 
 toString :: Route -> String
-toString = cons '/' <. List.intercalate "/" <. toStrings
+toString = cons '/' . List.intercalate "/" . toStrings
 
 toStrings :: Route -> [String]
 toStrings route = case route of
