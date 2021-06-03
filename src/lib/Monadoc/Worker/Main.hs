@@ -21,10 +21,6 @@ import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.PackageVersionConstraint as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
-import qualified Monadoc.Exception.InvalidPackageDescription as InvalidPackageDescription
-import qualified Monadoc.Exception.InvalidPackageName as InvalidPackageName
-import qualified Monadoc.Exception.InvalidPackageVersionConstraint as InvalidPackageVersionConstraint
-import qualified Monadoc.Exception.InvalidVersion as InvalidVersion
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.HackageIndex as HackageIndex
@@ -150,13 +146,11 @@ processTarEntry _context preferredVersionsVar entry = do
         _ -> throwM <| UnexpectedTarEntry.new entry
     case getTarEntryPath entry of
         ([rawPackageName, "preferred-versions"], "") -> do
-            packageName <- case tryInto @PackageName.PackageName rawPackageName of
-                Left _ -> throwM <| InvalidPackageName.new rawPackageName
-                Right packageName -> pure packageName
+            packageName <- either throwM pure <| tryInto @PackageName.PackageName rawPackageName
             versionRange <- if LazyByteString.null contents
                 then pure VersionRange.any
                 else case Cabal.simpleParsecBS <| into @ByteString contents of
-                    Nothing -> throwM <| InvalidPackageVersionConstraint.new contents
+                    Nothing -> throwM <| TryFromException @_ @Cabal.PackageVersionConstraint contents Nothing
                     Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
                         when (otherPackageName /= into @Cabal.PackageName packageName)
                             <| throwM
@@ -167,15 +161,13 @@ processTarEntry _context preferredVersionsVar entry = do
                 <| Stm.modifyTVar preferredVersionsVar
                 <| Map.insert packageName versionRange
         ([rawPackageName, rawVersion, _], ".cabal") -> do
-            packageName <- case tryInto @PackageName.PackageName rawPackageName of
-                Left _ -> throwM <| InvalidPackageName.new rawPackageName
-                Right packageName -> pure packageName
+            packageName <- either throwM pure <| tryInto @PackageName.PackageName rawPackageName
             version <- case Cabal.simpleParsec @Cabal.Version rawVersion of
-                Nothing -> throwM <| InvalidVersion.new rawVersion
+                Nothing -> throwM <| TryFromException @_ @Cabal.Version rawVersion Nothing
                 Just version -> pure version
             -- TODO: don't re-parse unchanged package descriptions
             case Cabal.parseGenericPackageDescriptionMaybe <| into @ByteString contents of
-                Nothing -> throwM <| InvalidPackageDescription.new contents
+                Nothing -> throwM <| TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
                 Just gpd -> do
                     let
                         otherPackageName = gpd |> Cabal.packageDescription |> Cabal.package |> Cabal.pkgName

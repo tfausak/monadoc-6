@@ -6,7 +6,7 @@ import qualified Data.ByteString as ByteString
 import qualified Data.Maybe as Maybe
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
-import qualified Monadoc.Exception.HackageIndexExists as HackageIndexExists
+import qualified Monadoc.Exception.DuplicateHackageIndex as DuplicateHackageIndex
 import qualified Monadoc.Type.Migration as Migration
 
 data HackageIndex = HackageIndex
@@ -40,7 +40,7 @@ select c = fmap Maybe.listToMaybe <| Sql.query_ c <| into @Sql.Query
 insert :: Sql.Connection -> HackageIndex -> IO ()
 insert connection hackageIndex = do
     rows <- Sql.query_ connection <| into @Sql.Query "select count(*) from hackageIndex"
-    when (rows /= [[0 :: Int]]) <| throwM HackageIndexExists.new
+    when (rows /= [[0 :: Int]]) <| throwM DuplicateHackageIndex.new
     Sql.execute
         connection
         (into @Sql.Query "insert into hackageIndex (contents, size) values (?, ?)")

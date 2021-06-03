@@ -86,13 +86,8 @@ library
     exposed-modules:
         Monadoc
         Monadoc.Exception.BadHackageIndexSize
-        Monadoc.Exception.HackageIndexExists
+        Monadoc.Exception.DuplicateHackageIndex
         Monadoc.Exception.InvalidJson
-        Monadoc.Exception.InvalidPackageDescription
-        Monadoc.Exception.InvalidPackageName
-        Monadoc.Exception.InvalidPackageVersionConstraint
-        Monadoc.Exception.InvalidPort
-        Monadoc.Exception.InvalidVersion
         Monadoc.Exception.Mismatch
         Monadoc.Exception.MissingCode
         Monadoc.Exception.OptionError

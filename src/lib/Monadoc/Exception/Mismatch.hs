@@ -4,9 +4,10 @@ import Monadoc.Prelude
 
 import qualified Data.Typeable as Typeable
 
-data Mismatch a
-    = Mismatch a a
-    deriving (Eq, Show)
+data Mismatch a = Mismatch
+    { expected :: a
+    , actual :: a
+    } deriving (Eq, Show)
 
 instance (Show a, Typeable.Typeable a) => Exception (Mismatch a)
 

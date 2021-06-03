@@ -4,7 +4,6 @@ import Monadoc.Prelude
 
 import qualified Control.Monad as Monad
 import qualified Data.List as List
-import qualified Monadoc.Exception.InvalidPort as InvalidPort
 import qualified Monadoc.Type.Flag as Flag
 import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Convert as Convert
@@ -66,6 +65,6 @@ applyFlag flag config = case flag of
     Flag.Help -> pure config { help = True }
     Flag.Host x -> pure config { host = Convert.stringToHost x }
     Flag.Port string -> case Read.readMaybe string of
-        Nothing -> throwM <| InvalidPort.new string
+        Nothing -> throwM <| TryFromException @_ @Warp.Port string Nothing
         Just port -> pure config { port }
     Flag.Version -> pure config { version = True }

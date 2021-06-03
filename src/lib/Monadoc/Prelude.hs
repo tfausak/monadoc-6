@@ -138,6 +138,7 @@ module Monadoc.Prelude (
     Prelude.userError,
     Prelude.zip,
     Prelude.zipWith,
+    Witch.TryFromException(..),
     Witch.eitherTryFrom,
     Witch.from,
     Witch.into,
