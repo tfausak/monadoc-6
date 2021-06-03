@@ -8,7 +8,6 @@ import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Concurrent.STM as Stm
 import qualified Control.Monad as Monad
-import qualified Data.Bifunctor as Bifunctor
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Map as Map
@@ -29,6 +28,7 @@ import qualified Monadoc.Exception.InvalidVersion as InvalidVersion
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.HackageIndex as HackageIndex
+import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.PackageName as PackageName
@@ -125,14 +125,12 @@ processHackageIndex context = do
                 |> Tar.read
                 |> Tar.foldEntries (:) [] (Unsafe.unsafePerformIO <. throwM)
                 |> traverse_ (processTarEntry context preferredVersionsVar)
-            -- TODO: store preferred versions
             preferredVersions <- Stm.atomically <| Stm.readTVar preferredVersionsVar
             preferredVersions
                 |> Map.toAscList
-                |> traverse_
-                    ( Bifunctor.bimap (into @String) (into @String)
-                    .> show
-                    .> Log.info)
+                |> fmap (uncurry PreferredVersions.new)
+                |> traverse_ (\ pv -> Pool.withResource (Context.pool context) <| \ connection ->
+                    PreferredVersions.upsert connection pv)
 
 -- Possible Hackage index tar entry paths:
 --
