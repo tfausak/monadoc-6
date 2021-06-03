@@ -145,54 +145,74 @@ processTarEntry _context preferredVersionsVar entry = do
         Tar.NormalFile x _ -> pure $ into @ByteString x
         _ -> throwM $ UnexpectedTarEntry.new entry
     case getTarEntryPath entry of
-        ([rawPackageName, "preferred-versions"], "") -> do
-            packageName <- either throwM pure $ tryInto @PackageName.PackageName rawPackageName
-            versionRange <- if ByteString.null contents
-                then pure VersionRange.any
-                else case Cabal.simpleParsecBS contents of
-                    Nothing -> throwM $ TryFromException @_ @Cabal.PackageVersionConstraint contents Nothing
-                    Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
-                        when (otherPackageName /= into @Cabal.PackageName packageName)
-                            . throwM
-                            . Mismatch.new packageName
-                            $ into @PackageName.PackageName otherPackageName
-                        pure $ into @VersionRange.VersionRange versionRange
-            Stm.atomically
-                . Stm.modifyTVar preferredVersionsVar
-                $ Map.insert packageName versionRange
-        ([rawPackageName, rawVersion, _], ".cabal") -> do
-            packageName <- either throwM pure $ tryInto @PackageName.PackageName rawPackageName
-            version <- either throwM pure $ tryInto @Version.Version rawVersion
-            -- TODO: don't re-parse unchanged package descriptions
-            Log.info
-                $ into @String (Sha256.hash contents)
-                <> " "
-                <> into @String packageName
-                <> " "
-                <> into @String version
-            case Cabal.parseGenericPackageDescriptionMaybe contents of
-                Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
-                Just gpd -> do
-                    let
-                        otherPackageName = gpd
-                            & Cabal.packageDescription
-                            & Cabal.package
-                            & Cabal.pkgName
-                            & into @PackageName.PackageName
-                        otherVersion = gpd
-                            & Cabal.packageDescription
-                            & Cabal.package
-                            & Cabal.pkgVersion
-                            & into @Version.Version
-                    when (otherPackageName /= packageName)
-                        . throwM
-                        $ Mismatch.new packageName otherPackageName
-                    when (otherVersion /= version)
-                        . throwM
-                        $ Mismatch.new version otherVersion
-                    pure () -- TODO: do something with the parsed package description
+        ([rawPackageName, "preferred-versions"], "") ->
+            processPreferredVersions preferredVersionsVar rawPackageName contents
+        ([rawPackageName, rawVersion, otherRawPackageName], ".cabal") ->
+            processPackageDescription rawPackageName rawVersion otherRawPackageName contents
         ([_, _, "package"], ".json") -> pure ()
         _ -> throwM $ UnexpectedTarEntry.new entry
+
+processPreferredVersions
+    :: Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
+    -> String
+    -> ByteString
+    -> IO ()
+processPreferredVersions preferredVersionsVar rawPackageName contents = do
+    packageName <- either throwM pure $ tryInto @PackageName.PackageName rawPackageName
+    versionRange <- if ByteString.null contents
+        then pure VersionRange.any
+        else case Cabal.simpleParsecBS contents of
+            Nothing -> throwM $ TryFromException @_ @Cabal.PackageVersionConstraint contents Nothing
+            Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
+                when (otherPackageName /= into @Cabal.PackageName packageName)
+                    . throwM
+                    . Mismatch.new packageName
+                    $ into @PackageName.PackageName otherPackageName
+                pure $ into @VersionRange.VersionRange versionRange
+    Stm.atomically
+        . Stm.modifyTVar preferredVersionsVar
+        $ Map.insert packageName versionRange
+
+processPackageDescription
+    :: String
+    -> String
+    -> String
+    -> ByteString
+    -> IO ()
+processPackageDescription rawPackageName rawVersion otherRawPackageName contents = do
+    when (otherRawPackageName /= rawPackageName)
+        . throwM
+        $ Mismatch.new rawPackageName otherRawPackageName
+    packageName <- either throwM pure $ tryInto @PackageName.PackageName rawPackageName
+    version <- either throwM pure $ tryInto @Version.Version rawVersion
+    -- TODO: don't re-parse unchanged package descriptions
+    Log.info
+        $ into @String (Sha256.hash contents)
+        <> " "
+        <> into @String packageName
+        <> " "
+        <> into @String version
+    case Cabal.parseGenericPackageDescriptionMaybe contents of
+        Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
+        Just gpd -> do
+            let
+                otherPackageName = gpd
+                    & Cabal.packageDescription
+                    & Cabal.package
+                    & Cabal.pkgName
+                    & into @PackageName.PackageName
+                otherVersion = gpd
+                    & Cabal.packageDescription
+                    & Cabal.package
+                    & Cabal.pkgVersion
+                    & into @Version.Version
+            when (otherPackageName /= packageName)
+                . throwM
+                $ Mismatch.new packageName otherPackageName
+            when (otherVersion /= version)
+                . throwM
+                $ Mismatch.new version otherVersion
+            pure () -- TODO: do something with the parsed package description
 
 isValidTarEntry :: Tar.Entry -> Bool
 isValidTarEntry entry = Tar.entryPermissions entry == 420
