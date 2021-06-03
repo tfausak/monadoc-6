@@ -26,9 +26,8 @@ import qualified Monadoc.Exception.InvalidPackageDescription as InvalidPackageDe
 import qualified Monadoc.Exception.InvalidPackageName as InvalidPackageName
 import qualified Monadoc.Exception.InvalidPackageVersionConstraint as InvalidPackageVersionConstraint
 import qualified Monadoc.Exception.InvalidVersion as InvalidVersion
-import qualified Monadoc.Exception.PackageNameMismatch as PackageNameMismatch
+import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
-import qualified Monadoc.Exception.VersionMismatch as VersionMismatch
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
@@ -155,7 +154,7 @@ processTarEntry _context preferredVersionsVar entry = do
                     Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
                         when (otherPackageName /= into @Cabal.PackageName packageName)
                             <| throwM
-                            <| PackageNameMismatch.new packageName
+                            <| Mismatch.new packageName
                             <| into @PackageName.PackageName otherPackageName
                         pure versionRange
             Stm.atomically
@@ -177,9 +176,9 @@ processTarEntry _context preferredVersionsVar entry = do
                         otherVersion = gpd |> Cabal.packageDescription |> Cabal.package |> Cabal.pkgVersion
                     when (otherPackageName /= into @Cabal.PackageName packageName)
                         <| throwM
-                        <| PackageNameMismatch.new packageName
+                        <| Mismatch.new packageName
                         <| into @PackageName.PackageName otherPackageName
-                    when (otherVersion /= version) <| throwM <| VersionMismatch.new version otherVersion
+                    when (otherVersion /= version) <| throwM <| Mismatch.new version otherVersion
                     pure () -- TODO: do something with the parsed package description
         ([_, _, "package"], ".json") -> pure ()
         _ -> throwM <| UnexpectedTarEntry.new entry

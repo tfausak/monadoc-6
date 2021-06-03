@@ -3,10 +3,10 @@ module Monadoc.Exception.InvalidJson where
 import Monadoc.Prelude
 
 data InvalidJson
-    = InvalidJson LazyByteString String
+    = InvalidJson String LazyByteString
     deriving (Eq, Show)
 
 instance Exception InvalidJson
 
-new :: LazyByteString -> String -> InvalidJson
+new :: String -> LazyByteString -> InvalidJson
 new = InvalidJson

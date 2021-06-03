@@ -38,6 +38,7 @@ mainWith name arguments = do
     setDefaultExceptionHandler
     context <- getContext name arguments
     Pool.withResource (Context.pool context) <| \ connection -> do
+        enableWriteAheadLog connection
         createMigrationTable connection
         traverse_ (runMigration connection) migrations
     Async.race_ (Server.run context) (Worker.run context)
@@ -73,6 +74,10 @@ getContext name arguments = do
         Exit.exitSuccess
 
     Context.fromConfig config
+
+enableWriteAheadLog :: Sql.Connection -> IO ()
+enableWriteAheadLog c = Sql.execute_ c <| into @Sql.Query
+    "pragma journal_mode = wal"
 
 createMigrationTable :: Sql.Connection -> IO ()
 createMigrationTable c = Sql.execute_ c <| into @Sql.Query

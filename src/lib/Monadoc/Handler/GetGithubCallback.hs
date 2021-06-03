@@ -49,7 +49,7 @@ handler context request = do
                 res <- Client.httpLbs req manager
                 let responseBody = Client.responseBody res
                 case Aeson.eitherDecode responseBody of
-                    Left message -> throwM <| InvalidJson.new responseBody message
+                    Left message -> throwM <| InvalidJson.new message responseBody
                     Right oAuthResponse -> pure <| OAuthResponse.accessToken oAuthResponse
             githubUser <- do
                 initial <- Client.parseUrlThrow "https://api.github.com/user"
@@ -62,7 +62,7 @@ handler context request = do
                 res <- Client.httpLbs req manager
                 let responseBody = Client.responseBody res
                 case Aeson.eitherDecode responseBody of
-                    Left message -> throwM <| InvalidJson.new responseBody message
+                    Left message -> throwM <| InvalidJson.new message responseBody
                     Right githubUser -> pure githubUser
             now <- Time.getCurrentTime
             guid <- Guid.random
