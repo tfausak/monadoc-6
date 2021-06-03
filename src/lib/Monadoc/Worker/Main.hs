@@ -8,6 +8,7 @@ import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Concurrent.STM as Stm
 import qualified Control.Monad as Monad
+import qualified Data.Bifunctor as Bifunctor
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Map as Map
@@ -20,7 +21,6 @@ import qualified Distribution.Types.PackageId as Cabal
 import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.PackageVersionConstraint as Cabal
 import qualified Distribution.Types.Version as Cabal
-import qualified Distribution.Types.VersionRange as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.InvalidPackageDescription as InvalidPackageDescription
 import qualified Monadoc.Exception.InvalidPackageName as InvalidPackageName
@@ -32,6 +32,7 @@ import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.VersionRange as VersionRange
 import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
@@ -125,6 +126,13 @@ processHackageIndex context = do
                 |> Tar.foldEntries (:) [] (Unsafe.unsafePerformIO <. throwM)
                 |> traverse_ (processTarEntry context preferredVersionsVar)
             -- TODO: store preferred versions
+            preferredVersions <- Stm.atomically <| Stm.readTVar preferredVersionsVar
+            preferredVersions
+                |> Map.toAscList
+                |> traverse_
+                    ( Bifunctor.bimap (into @String) (into @String)
+                    .> show
+                    .> Log.info)
 
 -- Possible Hackage index tar entry paths:
 --
@@ -136,7 +144,7 @@ processHackageIndex context = do
 --
 -- - Windows: base\4.15.0.0\base.cabal
 -- - Unix: base/4.15.0.0/base.cabal
-processTarEntry :: Context.Context -> Stm.TVar (Map PackageName.PackageName Cabal.VersionRange) -> Tar.Entry -> IO ()
+processTarEntry :: Context.Context -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange) -> Tar.Entry -> IO ()
 processTarEntry _context preferredVersionsVar entry = do
     when (not <| isValidTarEntry entry) <| throwM <| UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
@@ -148,7 +156,7 @@ processTarEntry _context preferredVersionsVar entry = do
                 Left _ -> throwM <| InvalidPackageName.new rawPackageName
                 Right packageName -> pure packageName
             versionRange <- if LazyByteString.null contents
-                then pure Cabal.anyVersion
+                then pure VersionRange.any
                 else case Cabal.simpleParsecBS <| into @ByteString contents of
                     Nothing -> throwM <| InvalidPackageVersionConstraint.new contents
                     Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
@@ -156,7 +164,7 @@ processTarEntry _context preferredVersionsVar entry = do
                             <| throwM
                             <| Mismatch.new packageName
                             <| into @PackageName.PackageName otherPackageName
-                        pure versionRange
+                        pure <| into @VersionRange.VersionRange versionRange
             Stm.atomically
                 <| Stm.modifyTVar preferredVersionsVar
                 <| Map.insert packageName versionRange

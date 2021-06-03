@@ -35,7 +35,7 @@
                                 <li class="nav-item">
                                     <xsl:choose>
                                         <xsl:when test="$user">
-                                            @<xsl:value-of select="$user"/>
+                                            <a class="nav-link" href="#TODO">@<xsl:value-of select="$user"/></a>
                                         </xsl:when>
                                         <xsl:otherwise>
                                             <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$clientId}&amp;redirect_uri={$baseUrl}/oauth/callback">Log in</a>
