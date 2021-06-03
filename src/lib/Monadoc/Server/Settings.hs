@@ -5,7 +5,7 @@ import Monadoc.Prelude
 import qualified Data.Typeable as Typeable
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
-import qualified Monadoc.Utility.Convert as Convert
+import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
@@ -33,4 +33,4 @@ onExceptionResponse _ = Response.status Http.internalServerError500 []
 
 serverName :: ByteString
 serverName = into @ByteString
-    $ "monadoc/" <> Convert.versionToString Package.version
+    $ "monadoc/" <> into @String (into @Version.Version Package.version)

@@ -117,6 +117,7 @@ library
         Monadoc.Type.PackageName
         Monadoc.Type.Port
         Monadoc.Type.Route
+        Monadoc.Type.Version
         Monadoc.Type.VersionRange
         Monadoc.Type.Warning
         Monadoc.Utility.Convert

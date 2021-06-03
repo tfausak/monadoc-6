@@ -19,8 +19,8 @@ import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Flag as Flag
 import qualified Monadoc.Type.Migration as Migration
+import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.Warning as Warning
-import qualified Monadoc.Utility.Convert as Convert
 import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Worker.Main as Worker
 import qualified Paths_monadoc as Package
@@ -65,7 +65,7 @@ getContext name arguments = do
             Warning.UnrecognizedOption option ->
                 "unrecognized option " <> show option
 
-    let version = Convert.versionToString Package.version
+    let version = into @String $ into @Version.Version Package.version
     Monad.when (Config.help config) $ do
         putStr $ Console.usageInfo (unwords [name, "version", version]) Flag.options
         Exit.exitSuccess

@@ -12,7 +12,7 @@ import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Route as Route
-import qualified Monadoc.Utility.Convert as Convert
+import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
@@ -53,7 +53,7 @@ handler context request = do
                 [ Xml.node "baseUrl" [] [Xml.content baseUrl]
                 , Xml.node "clientId" [] [Xml.content clientId]
                 , Xml.node "user" [] [Xml.content $ maybe "" User.githubLogin maybeUser]
-                , Xml.node "version" [] [Xml.content $ Convert.versionToString Package.version]
+                , Xml.node "version" [] [Xml.content . into @String $ into @Version.Version Package.version]
                 ]
             ])
         []

@@ -15,11 +15,9 @@ newtype VersionRange
 instance From VersionRange String where
     from = Cabal.prettyShow . into @Cabal.VersionRange
 
-instance From Cabal.VersionRange VersionRange where
-    from = VersionRange . Cabal.normaliseVersionRange
+instance From Cabal.VersionRange VersionRange
 
-instance From VersionRange Cabal.VersionRange where
-    from (VersionRange x) = x
+instance From VersionRange Cabal.VersionRange
 
 instance TryFrom String VersionRange where
     tryFrom = maybeTryFrom $ fmap (from @Cabal.VersionRange) . Cabal.simpleParsec

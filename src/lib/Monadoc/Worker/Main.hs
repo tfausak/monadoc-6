@@ -19,7 +19,6 @@ import qualified Distribution.Types.PackageDescription as Cabal
 import qualified Distribution.Types.PackageId as Cabal
 import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.PackageVersionConstraint as Cabal
-import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
@@ -28,6 +27,7 @@ import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
 import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Client as Client
@@ -162,21 +162,28 @@ processTarEntry _context preferredVersionsVar entry = do
                 $ Map.insert packageName versionRange
         ([rawPackageName, rawVersion, _], ".cabal") -> do
             packageName <- either throwM pure $ tryInto @PackageName.PackageName rawPackageName
-            version <- case Cabal.simpleParsec @Cabal.Version rawVersion of
-                Nothing -> throwM $ TryFromException @_ @Cabal.Version rawVersion Nothing
-                Just version -> pure version
+            version <- either throwM pure $ tryInto @Version.Version rawVersion
             -- TODO: don't re-parse unchanged package descriptions
             case Cabal.parseGenericPackageDescriptionMaybe $ into @ByteString contents of
                 Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
                 Just gpd -> do
                     let
-                        otherPackageName = gpd & Cabal.packageDescription & Cabal.package & Cabal.pkgName
-                        otherVersion = gpd & Cabal.packageDescription & Cabal.package & Cabal.pkgVersion
-                    when (otherPackageName /= into @Cabal.PackageName packageName)
+                        otherPackageName = gpd
+                            & Cabal.packageDescription
+                            & Cabal.package
+                            & Cabal.pkgName
+                            & into @PackageName.PackageName
+                        otherVersion = gpd
+                            & Cabal.packageDescription
+                            & Cabal.package
+                            & Cabal.pkgVersion
+                            & into @Version.Version
+                    when (otherPackageName /= packageName)
                         . throwM
-                        . Mismatch.new packageName
-                        $ into @PackageName.PackageName otherPackageName
-                    when (otherVersion /= version) . throwM $ Mismatch.new version otherVersion
+                        $ Mismatch.new packageName otherPackageName
+                    when (otherVersion /= version)
+                        . throwM
+                        $ Mismatch.new version otherVersion
                     pure () -- TODO: do something with the parsed package description
         ([_, _, "package"], ".json") -> pure ()
         _ -> throwM $ UnexpectedTarEntry.new entry
