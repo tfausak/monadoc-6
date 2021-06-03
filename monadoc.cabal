@@ -64,6 +64,7 @@ library
         , case-insensitive ^>= 1.2.1
         , containers ^>= 0.6.4
         , cookie ^>= 0.4.5
+        , cryptonite ^>= 0.29
         , exceptions ^>= 0.10.4
         , filepath ^>= 1.4.2
         , http-client ^>= 0.7.8
@@ -117,6 +118,7 @@ library
         Monadoc.Type.PackageName
         Monadoc.Type.Port
         Monadoc.Type.Route
+        Monadoc.Type.Sha256
         Monadoc.Type.Version
         Monadoc.Type.VersionRange
         Monadoc.Type.Warning

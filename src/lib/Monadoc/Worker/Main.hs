@@ -9,7 +9,6 @@ import qualified Control.Concurrent as Concurrent
 import qualified Control.Concurrent.STM as Stm
 import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Map as Map
 import qualified Data.Pool as Pool
 import qualified Distribution.PackageDescription.Parsec as Cabal
@@ -27,6 +26,7 @@ import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
 import qualified Monadoc.Utility.Log as Log
@@ -142,14 +142,14 @@ processTarEntry :: Context.Context -> Stm.TVar (Map PackageName.PackageName Vers
 processTarEntry _context preferredVersionsVar entry = do
     when (not $ isValidTarEntry entry) . throwM $ UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
-        Tar.NormalFile x _ -> pure x
+        Tar.NormalFile x _ -> pure $ into @ByteString x
         _ -> throwM $ UnexpectedTarEntry.new entry
     case getTarEntryPath entry of
         ([rawPackageName, "preferred-versions"], "") -> do
             packageName <- either throwM pure $ tryInto @PackageName.PackageName rawPackageName
-            versionRange <- if LazyByteString.null contents
+            versionRange <- if ByteString.null contents
                 then pure VersionRange.any
-                else case Cabal.simpleParsecBS $ into @ByteString contents of
+                else case Cabal.simpleParsecBS contents of
                     Nothing -> throwM $ TryFromException @_ @Cabal.PackageVersionConstraint contents Nothing
                     Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
                         when (otherPackageName /= into @Cabal.PackageName packageName)
@@ -164,7 +164,13 @@ processTarEntry _context preferredVersionsVar entry = do
             packageName <- either throwM pure $ tryInto @PackageName.PackageName rawPackageName
             version <- either throwM pure $ tryInto @Version.Version rawVersion
             -- TODO: don't re-parse unchanged package descriptions
-            case Cabal.parseGenericPackageDescriptionMaybe $ into @ByteString contents of
+            Log.info
+                $ into @String (Sha256.hash contents)
+                <> " "
+                <> into @String packageName
+                <> " "
+                <> into @String version
+            case Cabal.parseGenericPackageDescriptionMaybe contents of
                 Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
                 Just gpd -> do
                     let
