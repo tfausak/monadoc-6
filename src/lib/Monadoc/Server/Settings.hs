@@ -17,7 +17,7 @@ fromConfig config = Warp.setBeforeMainLoop (beforeMainLoop config)
     <. Warp.setHost (Config.host config)
     <. Warp.setOnException onException
     <. Warp.setOnExceptionResponse onExceptionResponse
-    <. Warp.setPort (Config.port config)
+    <. Warp.setPort (into @Warp.Port <| Config.port config)
     <| Warp.setServerName serverName Warp.defaultSettings
 
 beforeMainLoop :: Config.Config -> IO ()

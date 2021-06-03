@@ -41,7 +41,7 @@ spec = do
             Config.fromArguments ["--host"] `Hspec.shouldBe` Nothing
 
         Hspec.it "sets the port option" <| do
-            fmap (Config.port <. snd) (Config.fromArguments ["--port=0"]) `Hspec.shouldBe` Just 0
+            fmap (Config.port <. snd) (Config.fromArguments ["--port=0"]) `Hspec.shouldBe` Just (from @Int 0)
 
         Hspec.it "rejects an invalid port" <| do
             Config.fromArguments ["--port=x"] `Hspec.shouldBe` Nothing

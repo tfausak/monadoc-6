@@ -5,10 +5,10 @@ import Monadoc.Prelude
 import qualified Control.Monad as Monad
 import qualified Data.List as List
 import qualified Monadoc.Type.Flag as Flag
+import qualified Monadoc.Type.Port as Port
 import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.Wai.Handler.Warp as Warp
-import qualified Text.Read as Read
 
 data Config = Config
     { baseUrl :: String
@@ -19,7 +19,7 @@ data Config = Config
     , hackageUrl :: String
     , help :: Bool
     , host :: Warp.HostPreference
-    , port :: Warp.Port
+    , port :: Port.Port
     , version :: Bool
     } deriving (Eq, Show)
 
@@ -33,7 +33,7 @@ initial = Config
     , hackageUrl = "https://hackage.haskell.org"
     , help = False
     , host = Convert.stringToHost "127.0.0.1"
-    , port = 3000
+    , port = from @Int 3000
     , version = False
     }
 
@@ -64,7 +64,7 @@ applyFlag flag config = case flag of
     Flag.HackageUrl hackageUrl -> pure config { hackageUrl }
     Flag.Help -> pure config { help = True }
     Flag.Host x -> pure config { host = Convert.stringToHost x }
-    Flag.Port string -> case Read.readMaybe string of
-        Nothing -> throwM <| TryFromException @_ @Warp.Port string Nothing
-        Just port -> pure config { port }
+    Flag.Port string -> do
+        port <- either throwM pure <| tryFrom string
+        pure config { port }
     Flag.Version -> pure config { version = True }

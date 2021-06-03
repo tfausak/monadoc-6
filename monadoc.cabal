@@ -116,6 +116,7 @@ library
         Monadoc.Type.Migration
         Monadoc.Type.OAuthResponse
         Monadoc.Type.PackageName
+        Monadoc.Type.Port
         Monadoc.Type.Route
         Monadoc.Type.VersionRange
         Monadoc.Type.Warning
