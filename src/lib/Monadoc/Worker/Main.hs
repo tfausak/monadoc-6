@@ -20,12 +20,14 @@ import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.PackageVersionConstraint as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
+import qualified Monadoc.Exception.MissingHackageIndex as MissingHackageIndex
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
@@ -111,22 +113,21 @@ processHackageIndex :: Context.Context -> IO ()
 processHackageIndex context = do
     Log.info "processing Hackage index"
     maybeHackageIndex <- Pool.withResource (Context.pool context) HackageIndex.select
-    case maybeHackageIndex of
-        Nothing -> Log.warn "missing Hackage index"
-        Just hackageIndex -> do
-            preferredVersionsVar <- Stm.newTVarIO Map.empty
-            hackageIndex
-                & HackageIndex.contents
-                & into @LazyByteString
-                & Tar.read
-                & Tar.foldEntries (:) [] (Unsafe.unsafePerformIO . throwM)
-                & traverse_ (processTarEntry context preferredVersionsVar)
-            preferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
-            preferredVersions
-                & Map.toAscList
-                & fmap (uncurry PreferredVersions.new)
-                & traverse_ (\ pv -> Pool.withResource (Context.pool context) $ \ connection ->
-                    PreferredVersions.upsert connection pv)
+    hackageIndex <- maybe (throwM MissingHackageIndex.new) pure maybeHackageIndex
+    revisionsVar <- Stm.newTVarIO Map.empty
+    preferredVersionsVar <- Stm.newTVarIO Map.empty
+    hackageIndex
+        & HackageIndex.contents
+        & into @LazyByteString
+        & Tar.read
+        & Tar.foldEntries (:) [] (Unsafe.unsafePerformIO . throwM)
+        & traverse_ (processTarEntry context revisionsVar preferredVersionsVar)
+    preferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
+    preferredVersions
+        & Map.toAscList
+        & fmap (uncurry PreferredVersions.new)
+        & traverse_ (\ pv -> Pool.withResource (Context.pool context) $ \ connection ->
+            PreferredVersions.upsert connection pv)
 
 -- Possible Hackage index tar entry paths:
 --
@@ -138,8 +139,13 @@ processHackageIndex context = do
 --
 -- - Windows: base\4.15.0.0\base.cabal
 -- - Unix: base/4.15.0.0/base.cabal
-processTarEntry :: Context.Context -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange) -> Tar.Entry -> IO ()
-processTarEntry _context preferredVersionsVar entry = do
+processTarEntry
+    :: Context.Context
+    -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
+    -> Tar.Entry
+    -> IO ()
+processTarEntry _context revisionsVar preferredVersionsVar entry = do
     when (not $ isValidTarEntry entry) . throwM $ UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
         Tar.NormalFile x _ -> pure $ into @ByteString x
@@ -148,7 +154,7 @@ processTarEntry _context preferredVersionsVar entry = do
         ([rawPackageName, "preferred-versions"], "") ->
             processPreferredVersions preferredVersionsVar rawPackageName contents
         ([rawPackageName, rawVersion, otherRawPackageName], ".cabal") ->
-            processPackageDescription rawPackageName rawVersion otherRawPackageName contents
+            processPackageDescription revisionsVar rawPackageName rawVersion otherRawPackageName contents
         ([_, _, "package"], ".json") -> pure ()
         _ -> throwM $ UnexpectedTarEntry.new entry
 
@@ -174,24 +180,34 @@ processPreferredVersions preferredVersionsVar rawPackageName contents = do
         $ Map.insert packageName versionRange
 
 processPackageDescription
-    :: String
+    :: Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    -> String
     -> String
     -> String
     -> ByteString
     -> IO ()
-processPackageDescription rawPackageName rawVersion otherRawPackageName contents = do
+processPackageDescription revisionsVar rawPackageName rawVersion otherRawPackageName contents = do
     when (otherRawPackageName /= rawPackageName)
         . throwM
         $ Mismatch.new rawPackageName otherRawPackageName
     packageName <- either throwM pure $ tryInto @PackageName.PackageName rawPackageName
     version <- either throwM pure $ tryInto @Version.Version rawVersion
+    revision <- Stm.atomically . Stm.stateTVar revisionsVar $ \ revisions ->
+        let
+            key = (packageName, version)
+            revision = Map.findWithDefault Revision.zero key revisions
+            newRevisions = Map.insert key (Revision.increment revision) revisions
+        in (revision, newRevisions)
     -- TODO: don't re-parse unchanged package descriptions
-    Log.info
+    when (revision > Revision.zero)
+        . Log.info
         $ into @String (Sha256.hash contents)
         <> " "
         <> into @String packageName
         <> " "
         <> into @String version
+        <> " "
+        <> show (into @Word revision)
     case Cabal.parseGenericPackageDescriptionMaybe contents of
         Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
         Just gpd -> do

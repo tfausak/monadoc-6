@@ -25,7 +25,7 @@ name s = case break (== ':') s of
     _ -> Xml.Name (into @Text s) Nothing Nothing
 
 node :: String -> [(String, String)] -> [Xml.Node] -> Xml.Node
-node n as = Xml.NodeElement . element n as
+node n xs = Xml.NodeElement . element n xs
 
 element :: String -> [(String, String)] -> [Xml.Node] -> Xml.Element
 element n = Xml.Element (name n)

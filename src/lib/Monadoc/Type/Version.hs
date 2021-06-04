@@ -11,7 +11,7 @@ import qualified Distribution.Types.Version as Cabal
 
 newtype Version
     = Version Cabal.Version
-    deriving (Eq, Show)
+    deriving (Eq, Ord, Show)
 
 instance From Version String where
     from = Cabal.prettyShow . into @Cabal.Version

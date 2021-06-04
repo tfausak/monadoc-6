@@ -90,6 +90,7 @@ library
         Monadoc.Exception.InvalidJson
         Monadoc.Exception.Mismatch
         Monadoc.Exception.MissingCode
+        Monadoc.Exception.MissingHackageIndex
         Monadoc.Exception.OptionError
         Monadoc.Exception.UnexpectedTarEntry
         Monadoc.Handler.GetFavicon
@@ -117,6 +118,7 @@ library
         Monadoc.Type.OAuthResponse
         Monadoc.Type.PackageName
         Monadoc.Type.Port
+        Monadoc.Type.Revision
         Monadoc.Type.Route
         Monadoc.Type.Sha256
         Monadoc.Type.Version
