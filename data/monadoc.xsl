@@ -18,9 +18,9 @@
                 <title>
                     Monadoc
                 </title>
-                <link href="{$baseUrl}/bootstrap.css" rel="stylesheet"/>
+                <link href="{$baseUrl}/static/bootstrap.css" rel="stylesheet"/>
                 <link
-                    href="{$baseUrl}/monadoc.svg"
+                    href="{$baseUrl}/static/monadoc.svg"
                     rel="icon"
                     type="image/svg+xml"/>
             </head>

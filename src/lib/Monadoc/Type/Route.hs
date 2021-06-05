@@ -25,11 +25,11 @@ data Route
 fromStrings :: [String] -> Maybe Route
 fromStrings path = case path of
     [] -> Just Index
-    ["bootstrap.css"] -> Just Bootstrap
+    ["static", "bootstrap.css"] -> Just Bootstrap
     ["favicon.ico"] -> Just Favicon
     ["oauth", "callback"] -> Just Callback
-    ["monadoc.svg"] -> Just Logo
-    ["monadoc.xsl"] -> Just Template
+    ["static", "monadoc.svg"] -> Just Logo
+    ["static", "monadoc.xsl"] -> Just Template
     ["robots.txt"] -> Just Robots
     ["package", rawPackageName] -> Package
         <$> hush (tryInto @PackageName.PackageName rawPackageName)
@@ -47,13 +47,13 @@ toString = cons '/' . List.intercalate "/" . toStrings
 
 toStrings :: Route -> [String]
 toStrings route = case route of
-    Bootstrap -> ["bootstrap.css"]
+    Bootstrap -> ["static", "bootstrap.css"]
     Callback -> ["oauth", "callback"]
     Favicon -> ["favicon.ico"]
     Index -> []
-    Logo -> ["monadoc.svg"]
+    Logo -> ["static", "monadoc.svg"]
     Package packageName -> ["package", into @String packageName]
     Revision packageName version revision -> ["package", into @String packageName, into @String version, into @String revision]
     Robots -> ["robots.txt"]
-    Template -> ["monadoc.xsl"]
+    Template -> ["static", "monadoc.xsl"]
     Version packageName version -> ["package", into @String packageName, into @String version]
