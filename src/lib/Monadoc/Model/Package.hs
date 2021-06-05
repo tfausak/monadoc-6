@@ -58,9 +58,15 @@ select
     -> Version.Version
     -> Revision.Revision
     -> IO (Maybe Package)
-select c p v r = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
+select c n v r = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
     "select hash, name, revision, version \
     \from package \
     \where name = ? \
     \and version = ? \
-    \and revision = ?") (p, v, r)
+    \and revision = ?") (n, v, r)
+
+selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Package]
+selectByName c n = Sql.query c (into @Sql.Query
+    "select hash, name, revision, version \
+    \from package \
+    \where name = ?") [n]
