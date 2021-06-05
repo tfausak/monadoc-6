@@ -8,6 +8,7 @@ import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.Version as Cabal
+import qualified Monadoc.Class.ToXml as ToXml
 
 newtype Version
     = Version Cabal.Version
@@ -38,3 +39,6 @@ instance Sql.FromField Version where
 
 instance Sql.ToField Version where
     toField = Sql.toField . into @String
+
+instance ToXml.ToXml Version where
+    toXml = ToXml.toXml . into @String

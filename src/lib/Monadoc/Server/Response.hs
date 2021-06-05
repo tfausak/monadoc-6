@@ -3,6 +3,7 @@ module Monadoc.Server.Response where
 import Monadoc.Prelude
 
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
@@ -25,9 +26,9 @@ status s h = xml
         (Xml.Prologue [] Nothing [])
         (Xml.element "status" []
             [ Xml.node "code" []
-                [Xml.content . show $ Http.statusCode s]
+                [ToXml.toXml $ Http.statusCode s]
             , Xml.node "message" []
-                [Xml.content . unsafeInto @String $ Http.statusMessage s]
+                [ToXml.toXml . unsafeInto @String $ Http.statusMessage s]
             ])
         []
 

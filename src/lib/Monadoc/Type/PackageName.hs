@@ -6,6 +6,7 @@ import qualified Database.SQLite.Simple.FromField as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Types.PackageName as Cabal
+import qualified Monadoc.Class.ToXml as ToXml
 
 newtype PackageName
     = PackageName Cabal.PackageName
@@ -34,3 +35,6 @@ instance Sql.FromField PackageName where
 
 instance Sql.ToField PackageName where
     toField = Sql.toField . into @String
+
+instance ToXml.ToXml PackageName where
+    toXml = ToXml.toXml . into @String

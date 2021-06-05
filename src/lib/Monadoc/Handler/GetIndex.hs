@@ -2,6 +2,7 @@ module Monadoc.Handler.GetIndex where
 
 import Monadoc.Prelude
 
+import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
@@ -31,10 +32,10 @@ handler context request = do
             [])
         (Xml.element "monadoc" []
             [ Xml.node "config" []
-                [ Xml.node "baseUrl" [] [Xml.content baseUrl]
-                , Xml.node "clientId" [] [Xml.content clientId]
-                , Xml.node "user" [] [Xml.content $ maybe "" User.githubLogin maybeUser]
-                , Xml.node "version" [] [Xml.content . into @String $ into @Version.Version This.version]
+                [ Xml.node "baseUrl" [] [ToXml.toXml baseUrl]
+                , Xml.node "clientId" [] [ToXml.toXml clientId]
+                , Xml.node "user" [] [ToXml.toXml $ fmap User.githubLogin maybeUser]
+                , Xml.node "version" [] [ToXml.toXml $ into @Version.Version This.version]
                 ]
             , Xml.node "page" []
                 [ Xml.node "index" [] []
