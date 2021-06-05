@@ -45,7 +45,8 @@ migrations =
         \githubId integer primary key, \
         \githubLogin text not null, \
         \githubToken text not null, \
-        \updatedAt text not null)"
+        \updatedAt text not null) \
+        \without rowid"
     ]
 
 insertOrUpdate :: Sql.Connection -> User -> IO ()

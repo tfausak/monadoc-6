@@ -10,7 +10,7 @@ import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
-import qualified Paths_monadoc as Package
+import qualified Paths_monadoc as This
 
 fromConfig :: Config.Config -> Warp.Settings
 fromConfig config = Warp.defaultSettings
@@ -33,4 +33,4 @@ onExceptionResponse _ = Response.status Http.internalServerError500 []
 
 serverName :: ByteString
 serverName = into @ByteString
-    $ "monadoc/" <> into @String (into @Version.Version Package.version)
+    $ "monadoc/" <> into @String (into @Version.Version This.version)

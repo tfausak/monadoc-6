@@ -10,6 +10,7 @@ import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
 import qualified Monadoc.Model.HackageIndex as HackageIndex
+import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
@@ -23,7 +24,7 @@ import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Worker.Main as Worker
-import qualified Paths_monadoc as Package
+import qualified Paths_monadoc as This
 import qualified System.Console.GetOpt as Console
 import qualified System.Environment as Environment
 import qualified System.Exit as Exit
@@ -65,7 +66,7 @@ getContext name arguments = do
             Warning.UnrecognizedOption option ->
                 "unrecognized option " <> show option
 
-    let version = into @String $ into @Version.Version Package.version
+    let version = into @String $ into @Version.Version This.version
     Monad.when (Config.help config) $ do
         putStr $ Console.usageInfo (unwords [name, "version", version]) Flag.options
         Exit.exitSuccess
@@ -105,6 +106,7 @@ runMigration c m = Sql.withTransaction c $ do
 migrations :: [Migration.Migration]
 migrations = List.sortOn Migration.time $ mconcat
     [ HackageIndex.migrations
+    , Package.migrations
     , PreferredVersions.migrations
     , Session.migrations
     , User.migrations

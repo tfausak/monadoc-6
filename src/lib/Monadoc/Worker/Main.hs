@@ -23,6 +23,7 @@ import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.MissingHackageIndex as MissingHackageIndex
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.HackageIndex as HackageIndex
+import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
@@ -145,7 +146,7 @@ processTarEntry
     -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
     -> Tar.Entry
     -> IO ()
-processTarEntry _context revisionsVar preferredVersionsVar entry = do
+processTarEntry context revisionsVar preferredVersionsVar entry = do
     when (not $ isValidTarEntry entry) . throwM $ UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
         Tar.NormalFile x _ -> pure $ into @ByteString x
@@ -154,7 +155,7 @@ processTarEntry _context revisionsVar preferredVersionsVar entry = do
         ([rawPackageName, "preferred-versions"], "") ->
             processPreferredVersions preferredVersionsVar rawPackageName contents
         ([rawPackageName, rawVersion, otherRawPackageName], ".cabal") ->
-            processPackageDescription revisionsVar rawPackageName rawVersion otherRawPackageName contents
+            processPackageDescription context revisionsVar rawPackageName rawVersion otherRawPackageName contents
         ([_, _, "package"], ".json") -> pure ()
         _ -> throwM $ UnexpectedTarEntry.new entry
 
@@ -180,13 +181,14 @@ processPreferredVersions preferredVersionsVar rawPackageName contents = do
         $ Map.insert packageName versionRange
 
 processPackageDescription
-    :: Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    :: Context.Context
+    -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
     -> String
     -> String
     -> String
     -> ByteString
     -> IO ()
-processPackageDescription revisionsVar rawPackageName rawVersion otherRawPackageName contents = do
+processPackageDescription context revisionsVar rawPackageName rawVersion otherRawPackageName contents = do
     when (otherRawPackageName /= rawPackageName)
         . throwM
         $ Mismatch.new rawPackageName otherRawPackageName
@@ -198,37 +200,47 @@ processPackageDescription revisionsVar rawPackageName rawVersion otherRawPackage
             revision = Map.findWithDefault Revision.zero key revisions
             newRevisions = Map.insert key (Revision.increment revision) revisions
         in (revision, newRevisions)
-    -- TODO: don't re-parse unchanged package descriptions
-    when (revision > Revision.zero)
-        . Log.info
-        $ into @String (Sha256.hash contents)
-        <> " "
-        <> into @String packageName
-        <> " "
-        <> into @String version
-        <> " "
-        <> show (into @Word revision)
-    case Cabal.parseGenericPackageDescriptionMaybe contents of
-        Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
-        Just gpd -> do
-            let
-                otherPackageName = gpd
-                    & Cabal.packageDescription
-                    & Cabal.package
-                    & Cabal.pkgName
-                    & into @PackageName.PackageName
-                otherVersion = gpd
-                    & Cabal.packageDescription
-                    & Cabal.package
-                    & Cabal.pkgVersion
-                    & into @Version.Version
-            when (otherPackageName /= packageName)
-                . throwM
-                $ Mismatch.new packageName otherPackageName
-            when (otherVersion /= version)
-                . throwM
-                $ Mismatch.new version otherVersion
-            pure () -- TODO: do something with the parsed package description
+    maybePackage <- Pool.withResource (Context.pool context) $ \ connection ->
+        Package.select connection packageName version revision
+    let hash = Sha256.hash contents
+    when (fmap Package.hash maybePackage /= Just hash) $ do
+        Log.info
+            $ into @String hash
+            <> " "
+            <> into @String packageName
+            <> " "
+            <> into @String version
+            <> " "
+            <> show (into @Word revision)
+        case Cabal.parseGenericPackageDescriptionMaybe contents of
+            Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
+            Just gpd -> do
+                let
+                    otherPackageName = gpd
+                        & Cabal.packageDescription
+                        & Cabal.package
+                        & Cabal.pkgName
+                        & into @PackageName.PackageName
+                    otherVersion = gpd
+                        & Cabal.packageDescription
+                        & Cabal.package
+                        & Cabal.pkgVersion
+                        & into @Version.Version
+                when (otherPackageName /= packageName)
+                    . throwM
+                    $ Mismatch.new packageName otherPackageName
+                when (otherVersion /= version)
+                    . throwM
+                    $ Mismatch.new version otherVersion
+                let
+                    package = Package.Package
+                        { Package.hash
+                        , Package.name = packageName
+                        , Package.revision
+                        , Package.version
+                        }
+                Pool.withResource (Context.pool context) $ \ connection ->
+                    Package.insertOrUpdate connection package
 
 isValidTarEntry :: Tar.Entry -> Bool
 isValidTarEntry entry = Tar.entryPermissions entry == 420

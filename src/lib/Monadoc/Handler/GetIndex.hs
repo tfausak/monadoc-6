@@ -16,7 +16,7 @@ import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
-import qualified Paths_monadoc as Package
+import qualified Paths_monadoc as This
 import qualified Text.XML as Xml
 import qualified Web.Cookie as Cookie
 
@@ -53,7 +53,7 @@ handler context request = do
                 [ Xml.node "baseUrl" [] [Xml.content baseUrl]
                 , Xml.node "clientId" [] [Xml.content clientId]
                 , Xml.node "user" [] [Xml.content $ maybe "" User.githubLogin maybeUser]
-                , Xml.node "version" [] [Xml.content . into @String $ into @Version.Version Package.version]
+                , Xml.node "version" [] [Xml.content . into @String $ into @Version.Version This.version]
                 ]
             ])
         []
