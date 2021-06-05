@@ -98,11 +98,31 @@
             <xsl:for-each select="revisions/revision">
                 <xsl:variable name="rev" select="normalize-space(.)"/>
                 <li>
-                    <a href="#">
+                    <a href="{$baseUrl}/package/{$pkg}/{$ver}/{$rev}">
                         <xsl:value-of select="$rev"/>
                     </a>
                 </li>
             </xsl:for-each>
         </ul>
+    </xsl:template>
+
+    <xsl:template match="revision">
+        <xsl:variable name="pkg" select="normalize-space(name)"/>
+        <xsl:variable name="ver" select="normalize-space(version)"/>
+        <xsl:variable name="rev" select="normalize-space(revision)"/>
+        <h2>
+            <a href="{$baseUrl}/package/{$pkg}">
+                <xsl:value-of select="$pkg"/>
+            </a>
+            <xsl:text> </xsl:text>
+            <a href="{$baseUrl}/package/{$pkg}/{$ver}">
+                <xsl:value-of select="$ver"/>
+            </a>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="$rev"/>
+        </h2>
+        <p>
+            TODO
+        </p>
     </xsl:template>
 </xsl:stylesheet>
