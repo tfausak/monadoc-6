@@ -62,13 +62,43 @@
     </xsl:template>
 
     <xsl:template match="index">
+        <nav class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active">
+                    Home
+                </li>
+            </ol>
+        </nav>
         <p>
             &#x1f516; Better Haskell documentation.
         </p>
+        <h2>
+            Recent Uploads
+        </h2>
+        <ul>
+            <xsl:for-each select="packages/package">
+                <xsl:variable name="pkg" select="normalize-space(.)"/>
+                <li>
+                    <a href="{$baseUrl}/package/{$pkg}">
+                        <xsl:value-of select="$pkg"/>
+                    </a>
+                </li>
+            </xsl:for-each>
+        </ul>
     </xsl:template>
 
     <xsl:template match="package">
         <xsl:variable name="pkg" select="normalize-space(name)"/>
+        <nav class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{$baseUrl}">Home</a>
+                </li>
+                <li class="breadcrumb-item active">
+                    <xsl:value-of select="$pkg"/>
+                </li>
+            </ol>
+        </nav>
         <h2>
             <xsl:value-of select="$pkg"/>
         </h2>
@@ -87,11 +117,22 @@
     <xsl:template match="version">
         <xsl:variable name="pkg" select="normalize-space(name)"/>
         <xsl:variable name="ver" select="normalize-space(version)"/>
+        <nav class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{$baseUrl}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{$baseUrl}/package/{$pkg}"><xsl:value-of select="$pkg"/></a>
+                </li>
+                <li class="breadcrumb-item active">
+                    <xsl:value-of select="$ver"/>
+                </li>
+            </ol>
+        </nav>
         <h2>
-            <a href="{$baseUrl}/package/{$pkg}">
-                <xsl:value-of select="$pkg"/>
-            </a>
-            <xsl:text> </xsl:text>
+            <xsl:value-of select="$pkg"/>
+            version
             <xsl:value-of select="$ver"/>
         </h2>
         <ul>
@@ -110,19 +151,28 @@
         <xsl:variable name="pkg" select="normalize-space(name)"/>
         <xsl:variable name="ver" select="normalize-space(version)"/>
         <xsl:variable name="rev" select="normalize-space(revision)"/>
+        <nav class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{$baseUrl}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{$baseUrl}/package/{$pkg}"><xsl:value-of select="$pkg"/></a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{$baseUrl}/package/{$pkg}/{$ver}"><xsl:value-of select="$ver"/></a>
+                </li>
+                <li class="breadcrumb-item active">
+                    <xsl:value-of select="$rev"/>
+                </li>
+            </ol>
+        </nav>
         <h2>
-            <a href="{$baseUrl}/package/{$pkg}">
-                <xsl:value-of select="$pkg"/>
-            </a>
-            <xsl:text> </xsl:text>
-            <a href="{$baseUrl}/package/{$pkg}/{$ver}">
-                <xsl:value-of select="$ver"/>
-            </a>
-            <xsl:text> </xsl:text>
+            <xsl:value-of select="$pkg"/>
+            version
+            <xsl:value-of select="$ver"/>
+            revision
             <xsl:value-of select="$rev"/>
         </h2>
-        <p>
-            TODO
-        </p>
     </xsl:template>
 </xsl:stylesheet>

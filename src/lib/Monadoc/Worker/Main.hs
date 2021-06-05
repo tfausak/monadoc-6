@@ -9,8 +9,11 @@ import qualified Control.Concurrent as Concurrent
 import qualified Control.Concurrent.STM as Stm
 import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
+import qualified Data.Fixed as Fixed
 import qualified Data.Map as Map
 import qualified Data.Pool as Pool
+import qualified Data.Time as Time
+import qualified Data.Time.Clock.POSIX as Time
 import qualified Distribution.PackageDescription.Parsec as Cabal
 import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Types.GenericPackageDescription as Cabal
@@ -155,7 +158,7 @@ processTarEntry context revisionsVar preferredVersionsVar entry = do
         ([rawPackageName, "preferred-versions"], "") ->
             processPreferredVersions preferredVersionsVar rawPackageName contents
         ([rawPackageName, rawVersion, otherRawPackageName], ".cabal") ->
-            processPackageDescription context revisionsVar rawPackageName rawVersion otherRawPackageName contents
+            processPackageDescription context revisionsVar entry rawPackageName rawVersion otherRawPackageName contents
         ([_, _, "package"], ".json") -> pure ()
         _ -> throwM $ UnexpectedTarEntry.new entry
 
@@ -183,12 +186,13 @@ processPreferredVersions preferredVersionsVar rawPackageName contents = do
 processPackageDescription
     :: Context.Context
     -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    -> Tar.Entry
     -> String
     -> String
     -> String
     -> ByteString
     -> IO ()
-processPackageDescription context revisionsVar rawPackageName rawVersion otherRawPackageName contents = do
+processPackageDescription context revisionsVar entry rawPackageName rawVersion otherRawPackageName contents = do
     when (otherRawPackageName /= rawPackageName)
         . throwM
         $ Mismatch.new rawPackageName otherRawPackageName
@@ -234,13 +238,22 @@ processPackageDescription context revisionsVar rawPackageName rawVersion otherRa
                     $ Mismatch.new version otherVersion
                 let
                     package = Package.Package
-                        { Package.hash
+                        { Package.contents
+                        , Package.hash
                         , Package.name = packageName
                         , Package.revision
+                        , Package.uploadedAt = epochTimeToUtcTime $ Tar.entryTime entry
                         , Package.version
                         }
                 Pool.withResource (Context.pool context) $ \ connection ->
                     Package.insertOrUpdate connection package
+
+epochTimeToUtcTime :: Tar.EpochTime -> Time.UTCTime
+epochTimeToUtcTime = into @Time.UTCTime
+    . into @Time.POSIXTime
+    . into @Fixed.Pico
+    . (* 1000000000000)
+    . into @Integer
 
 isValidTarEntry :: Tar.Entry -> Bool
 isValidTarEntry entry = Tar.entryPermissions entry == 420

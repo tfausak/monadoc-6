@@ -8,13 +8,16 @@ class ToXml a where
     toXml :: a -> Xml.Node
 
 instance ToXml String where
-    toXml = Xml.NodeContent . into @Text
+    toXml = toXml . into @Text
 
 instance ToXml a => ToXml (Maybe a) where
-    toXml = maybe (Xml.NodeContent $ into @Text "") toXml
+    toXml = maybe (toXml $ into @Text "") toXml
 
 instance ToXml Int where
     toXml = toXml . show
 
 instance ToXml Word where
     toXml = toXml . show
+
+instance ToXml Text where
+    toXml = Xml.NodeContent

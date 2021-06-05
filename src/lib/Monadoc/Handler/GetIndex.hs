@@ -2,8 +2,10 @@ module Monadoc.Handler.GetIndex where
 
 import Monadoc.Prelude
 
+import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
+import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
@@ -23,6 +25,7 @@ handler context request = do
         baseUrl = Config.baseUrl config
         clientId = Config.clientId config
     maybeUser <- Common.getUser context request
+    packages <- Pool.withResource (Context.pool context) Package.selectRecent
     pure . Response.xml Http.ok200 [] $ Xml.Document
         (Xml.Prologue
             [Xml.MiscInstruction $ Xml.Instruction
@@ -38,7 +41,11 @@ handler context request = do
                 , Xml.node "version" [] [ToXml.toXml $ into @Version.Version This.version]
                 ]
             , Xml.node "page" []
-                [ Xml.node "index" [] []
+                [ Xml.node "index" []
+                    [ Xml.node "packages" [] $ fmap
+                        (\ pkg -> Xml.node "package" [] [ToXml.toXml $ Package.name pkg])
+                        packages
+                    ]
                 ]
             ])
         []
