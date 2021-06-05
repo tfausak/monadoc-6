@@ -93,6 +93,7 @@ library
         Monadoc.Exception.MissingHackageIndex
         Monadoc.Exception.OptionError
         Monadoc.Exception.UnexpectedTarEntry
+        Monadoc.Handler.Common
         Monadoc.Handler.GetFavicon
         Monadoc.Handler.GetGithubCallback
         Monadoc.Handler.GetIndex

@@ -3,7 +3,7 @@ module Monadoc.Handler.GetPackage where
 import Monadoc.Prelude
 
 import qualified Data.Pool as Pool
-import qualified Monadoc.Handler.GetIndex as GetIndex
+import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
@@ -24,7 +24,7 @@ handler packageName context request = do
         config = Context.config context
         baseUrl = Config.baseUrl config
         clientId = Config.clientId config
-    maybeUser <- GetIndex.getUser context request
+    maybeUser <- Common.getUser context request
     packages <- Pool.withResource (Context.pool context) $ \ connection ->
         Package.selectByName connection packageName
     case packages of
