@@ -68,8 +68,19 @@
     </xsl:template>
 
     <xsl:template match="package">
-        <p>
-            TODO <xsl:value-of select="name"/>
-        </p>
+        <h2>
+            <xsl:value-of select="name"/>
+        </h2>
+        <ul>
+            <xsl:for-each select="versions/version">
+                <xsl:variable name="v" select="number"/>
+                <xsl:for-each select="revisions/revision">
+                    <li>
+                        <xsl:value-of select="$v"/>
+                        <xsl:value-of select="."/>
+                    </li>
+                </xsl:for-each>
+            </xsl:for-each>
+        </ul>
     </xsl:template>
 </xsl:stylesheet>

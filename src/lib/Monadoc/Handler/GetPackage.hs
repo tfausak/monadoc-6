@@ -2,6 +2,9 @@ module Monadoc.Handler.GetPackage where
 
 import Monadoc.Prelude
 
+import qualified Data.List as List
+import qualified Data.Map as Map
+import qualified Data.Ord as Ord
 import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
@@ -47,7 +50,19 @@ handler packageName context request = do
                 , Xml.node "page" []
                     [ Xml.node "package" []
                         [ Xml.node "name" [] [ToXml.toXml $ Package.name package]
+                        , Xml.node "versions" []
+                        . fmap (\ (ver, pkgs) -> Xml.node "version" []
+                            [ Xml.node "number" [] [ToXml.toXml ver]
+                            , Xml.node "revisions" []
+                            . fmap (\ pkg -> Xml.node "revision" [] [ToXml.toXml $ Package.revision pkg])
+                            $ List.sortOn (Ord.Down . Package.revision) pkgs
+                            ])
+                        . Map.toDescList
+                        $ groupBy Package.version packages
                         ]
                     ]
                 ])
             []
+
+groupBy :: (Foldable t, Ord k) => (v -> k) -> t v -> Map k [v]
+groupBy f = foldr (\ v -> Map.alter (Just . maybe [v] (v :)) $ f v) Map.empty

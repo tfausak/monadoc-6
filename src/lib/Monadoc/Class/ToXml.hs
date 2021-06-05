@@ -15,3 +15,6 @@ instance ToXml a => ToXml (Maybe a) where
 
 instance ToXml Int where
     toXml = toXml . show
+
+instance ToXml Word where
+    toXml = toXml . show
