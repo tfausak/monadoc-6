@@ -1,4 +1,4 @@
-module Monadoc.Handler.GetPackage where
+module Monadoc.Handler.GetVersion where
 
 import Monadoc.Prelude
 
@@ -20,15 +20,15 @@ import qualified Network.HTTP.Types as Http
 import qualified Paths_monadoc as This
 import qualified Text.XML as Xml
 
-handler :: PackageName.PackageName -> Handler.Handler
-handler packageName context request = do
+handler :: PackageName.PackageName -> Version.Version -> Handler.Handler
+handler packageName version context request = do
     let
         config = Context.config context
         baseUrl = Config.baseUrl config
         clientId = Config.clientId config
     maybeUser <- Common.getUser context request
     packages <- Pool.withResource (Context.pool context) $ \ connection ->
-        Package.selectByName connection packageName
+        Package.selectByNameAndVersion connection packageName version
     case packages of
         [] -> pure $ Response.status Http.notFound404 []
         package : _ -> pure . Response.xml Http.ok200 [] $ Xml.Document
@@ -46,13 +46,14 @@ handler packageName context request = do
                     , Xml.node "version" [] [ToXml.toXml $ into @Version.Version This.version]
                     ]
                 , Xml.node "page" []
-                    [ Xml.node "package" []
+                    [ Xml.node "version" []
                         [ Xml.node "name" [] [ToXml.toXml $ Package.name package]
-                        , Xml.node "versions" []
-                        . fmap (\ ver -> Xml.node "version" [] [ToXml.toXml ver])
+                        , Xml.node "version" [] [ToXml.toXml $ Package.version package]
+                        , Xml.node "revisions" []
+                        . fmap (\ rev -> Xml.node "revision" [] [ToXml.toXml rev])
                         . Set.toDescList
                         . Set.fromList
-                        $ fmap Package.version packages
+                        $ fmap Package.revision packages
                         ]
                     ]
                 ])

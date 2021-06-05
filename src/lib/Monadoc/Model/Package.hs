@@ -70,3 +70,14 @@ selectByName c n = Sql.query c (into @Sql.Query
     "select hash, name, revision, version \
     \from package \
     \where name = ?") [n]
+
+selectByNameAndVersion
+    :: Sql.Connection
+    -> PackageName.PackageName
+    -> Version.Version
+    -> IO [Package]
+selectByNameAndVersion c n v = Sql.query c (into @Sql.Query
+    "select hash, name, revision, version \
+    \from package \
+    \where name = ? \
+    \and version = ?") (n, v)

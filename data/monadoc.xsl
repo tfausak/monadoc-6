@@ -68,18 +68,40 @@
     </xsl:template>
 
     <xsl:template match="package">
+        <xsl:variable name="pkg" select="normalize-space(name)"/>
         <h2>
-            <xsl:value-of select="name"/>
+            <xsl:value-of select="$pkg"/>
         </h2>
         <ul>
             <xsl:for-each select="versions/version">
-                <xsl:variable name="v" select="number"/>
-                <xsl:for-each select="revisions/revision">
-                    <li>
-                        <xsl:value-of select="$v"/>
-                        <xsl:value-of select="."/>
-                    </li>
-                </xsl:for-each>
+                <xsl:variable name="ver" select="normalize-space(.)"/>
+                <li>
+                    <a href="{$baseUrl}/package/{$pkg}/{$ver}">
+                        <xsl:value-of select="$ver"/>
+                    </a>
+                </li>
+            </xsl:for-each>
+        </ul>
+    </xsl:template>
+
+    <xsl:template match="version">
+        <xsl:variable name="pkg" select="normalize-space(name)"/>
+        <xsl:variable name="ver" select="normalize-space(version)"/>
+        <h2>
+            <a href="{$baseUrl}/package/{$pkg}">
+                <xsl:value-of select="$pkg"/>
+            </a>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="$ver"/>
+        </h2>
+        <ul>
+            <xsl:for-each select="revisions/revision">
+                <xsl:variable name="rev" select="normalize-space(.)"/>
+                <li>
+                    <a href="#">
+                        <xsl:value-of select="$rev"/>
+                    </a>
+                </li>
             </xsl:for-each>
         </ul>
     </xsl:template>

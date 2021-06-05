@@ -7,6 +7,7 @@ import qualified Monadoc.Handler.GetFavicon as GetFavicon
 import qualified Monadoc.Handler.GetGithubCallback as GetGithubCallback
 import qualified Monadoc.Handler.GetIndex as GetIndex
 import qualified Monadoc.Handler.GetPackage as GetPackage
+import qualified Monadoc.Handler.GetVersion as GetVersion
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
@@ -35,6 +36,7 @@ getHandler request = do
         (Http.GET, Route.Template) -> Just $ fileHandler "monadoc.xsl" "text/xsl; charset=UTF-8"
         (Http.GET, Route.Robots) -> Just $ fileHandler "robots.txt" "text/plain; charset=UTF-8"
         (Http.GET, Route.Package packageName) -> Just $ GetPackage.handler packageName
+        (Http.GET, Route.Version packageName version) -> Just $ GetVersion.handler packageName version
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod

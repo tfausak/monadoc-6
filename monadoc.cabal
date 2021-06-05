@@ -99,6 +99,7 @@ library
         Monadoc.Handler.GetGithubCallback
         Monadoc.Handler.GetIndex
         Monadoc.Handler.GetPackage
+        Monadoc.Handler.GetVersion
         Monadoc.Model.HackageIndex
         Monadoc.Model.Package
         Monadoc.Model.PreferredVersions

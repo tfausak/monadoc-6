@@ -4,6 +4,7 @@ import Monadoc.Prelude
 
 import qualified Data.List as List
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.Version as Version
 
 -- | Be careful making changes to this type! Everything on the Haskell side
 -- will stay up to date, but the XSL template has hard-coded strings in it.
@@ -16,6 +17,7 @@ data Route
     | Package PackageName.PackageName
     | Robots
     | Template
+    | Version PackageName.PackageName Version.Version
     deriving (Eq, Show)
 
 fromStrings :: [String] -> Maybe Route
@@ -27,7 +29,11 @@ fromStrings path = case path of
     ["monadoc.svg"] -> Just Logo
     ["monadoc.xsl"] -> Just Template
     ["robots.txt"] -> Just Robots
-    ["package", rawPackageName] -> Package <$> hush (tryInto @PackageName.PackageName rawPackageName)
+    ["package", rawPackageName] -> Package
+        <$> hush (tryInto @PackageName.PackageName rawPackageName)
+    ["package", rawPackageName, rawVersion] -> Version
+        <$> hush (tryInto @PackageName.PackageName rawPackageName)
+        <*> hush (tryInto @Version.Version rawVersion)
     _ -> Nothing
 
 toString :: Route -> String
@@ -43,3 +49,4 @@ toStrings route = case route of
     Package packageName -> ["package", into @String packageName]
     Robots -> ["robots.txt"]
     Template -> ["monadoc.xsl"]
+    Version packageName version -> ["package", into @String packageName, into @String version]
