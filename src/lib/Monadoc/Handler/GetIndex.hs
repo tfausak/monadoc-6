@@ -55,5 +55,8 @@ handler context request = do
                 , Xml.node "user" [] [Xml.content $ maybe "" User.githubLogin maybeUser]
                 , Xml.node "version" [] [Xml.content . into @String $ into @Version.Version This.version]
                 ]
+            , Xml.node "page" []
+                [ Xml.node "index" [] []
+                ]
             ])
         []

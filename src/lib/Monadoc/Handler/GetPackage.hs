@@ -27,9 +27,9 @@ handler packageName context request = do
     maybeUser <- GetIndex.getUser context request
     packages <- Pool.withResource (Context.pool context) $ \ connection ->
         Package.selectByName connection packageName
-    if null packages
-        then pure $ Response.status Http.notFound404 []
-        else pure . Response.xml Http.ok200 [] $ Xml.Document
+    case packages of
+        [] -> pure $ Response.status Http.notFound404 []
+        package : _ -> pure . Response.xml Http.ok200 [] $ Xml.Document
             (Xml.Prologue
                 [Xml.MiscInstruction $ Xml.Instruction
                     (into @Text "xml-stylesheet")
@@ -42,6 +42,11 @@ handler packageName context request = do
                     , Xml.node "clientId" [] [Xml.content clientId]
                     , Xml.node "user" [] [Xml.content $ maybe "" User.githubLogin maybeUser]
                     , Xml.node "version" [] [Xml.content . into @String $ into @Version.Version This.version]
+                    ]
+                , Xml.node "page" []
+                    [ Xml.node "package" []
+                        [ Xml.node "name" [] [Xml.content . into @String $ Package.name package]
+                        ]
                     ]
                 ])
             []

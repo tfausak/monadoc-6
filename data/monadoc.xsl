@@ -47,9 +47,7 @@
                     </nav>
                 </header>
                 <main class="container mt-3 mb-3">
-                    <p>
-                        &#x1f516; Better Haskell documentation.
-                    </p>
+                    <xsl:apply-templates select="page"/>
                 </main>
                 <footer class="container pt-3 mt-3 text-muted border-top">
                     <p>
@@ -61,5 +59,17 @@
                 </footer>
             </body>
         </html>
+    </xsl:template>
+
+    <xsl:template match="index">
+        <p>
+            &#x1f516; Better Haskell documentation.
+        </p>
+    </xsl:template>
+
+    <xsl:template match="package">
+        <p>
+            TODO <xsl:value-of select="name"/>
+        </p>
     </xsl:template>
 </xsl:stylesheet>
