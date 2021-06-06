@@ -6,10 +6,10 @@ import qualified Data.List as List
 import qualified Data.Ord as Ord
 import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
-import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.PackageName as PackageName
@@ -17,45 +17,43 @@ import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
-import qualified Network.HTTP.Types as Http
 
 handler :: PackageName.PackageName -> Version.Version -> Handler.Handler
 handler packageName version context request = do
     maybeUser <- Common.getUser context request
     packages <- Pool.withResource (Context.pool context) $ \ connection ->
         Package.selectByNameAndVersion connection packageName version
-    case packages of
-        [] -> pure $ Response.status Http.notFound404 []
-        _ : _ -> pure $ Common.makeResponse Common.Monadoc
-            { Common.monadoc_config = (Common.config_fromContext context)
-                { Common.config_breadcrumbs =
-                    [ Common.Breadcrumb
-                        { Common.breadcrumb_name = "Home"
-                        , Common.breadcrumb_route = Just Route.Index
-                        }
-                    , Common.Breadcrumb
-                        { Common.breadcrumb_name = into @String packageName
-                        , Common.breadcrumb_route = Just $ Route.Package packageName
-                        }
-                    , Common.Breadcrumb
-                        { Common.breadcrumb_name = into @String version
-                        , Common.breadcrumb_route = Nothing
-                        }
-                    ]
-                , Common.config_user = fmap User.githubLogin maybeUser
-                }
-            , Common.monadoc_page = Version
-                { version_name = packageName
-                , version_version = version
-                , version_revisions =
-                    fmap
-                        (\ package -> Revision
-                            { revision_number = Package.revision package
-                            , revision_route = Route.Revision (Package.name package) (Package.version package) (Package.revision package)
-                            })
-                    $ List.sortOn (Ord.Down . Package.revision) packages
-                }
+    when (null packages) $ throwM NotFound.new
+    pure $ Common.makeResponse Common.Monadoc
+        { Common.monadoc_config = (Common.config_fromContext context)
+            { Common.config_breadcrumbs =
+                [ Common.Breadcrumb
+                    { Common.breadcrumb_name = "Home"
+                    , Common.breadcrumb_route = Just Route.Index
+                    }
+                , Common.Breadcrumb
+                    { Common.breadcrumb_name = into @String packageName
+                    , Common.breadcrumb_route = Just $ Route.Package packageName
+                    }
+                , Common.Breadcrumb
+                    { Common.breadcrumb_name = into @String version
+                    , Common.breadcrumb_route = Nothing
+                    }
+                ]
+            , Common.config_user = fmap User.githubLogin maybeUser
             }
+        , Common.monadoc_page = Version
+            { version_name = packageName
+            , version_version = version
+            , version_revisions =
+                fmap
+                    (\ package -> Revision
+                        { revision_number = Package.revision package
+                        , revision_route = Route.Revision (Package.name package) (Package.version package) (Package.revision package)
+                        })
+                $ List.sortOn (Ord.Down . Package.revision) packages
+            }
+        }
 
 data Version = Version
     { version_name :: PackageName.PackageName

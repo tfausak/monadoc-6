@@ -2,7 +2,7 @@ module Monadoc.Server.Application where
 
 import Monadoc.Prelude
 
-import qualified Data.Maybe as Maybe
+import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.GetAccount as GetAccount
 import qualified Monadoc.Handler.GetFavicon as GetFavicon
 import qualified Monadoc.Handler.GetCallback as GetCallback
@@ -24,7 +24,9 @@ import qualified System.FilePath as FilePath
 
 application :: Context.Context -> Wai.Application
 application context request respond = do
-    let handler = Maybe.fromMaybe notFoundHandler $ getHandler request
+    handler <- case getHandler request of
+        Nothing -> throwM NotFound.new
+        Just handler -> pure handler
     response <- handler context request
     respond response
 
@@ -64,6 +66,3 @@ fileHandler relative mime context _ = do
         directory = Config.dataDirectory config
         absolute = FilePath.combine directory relative
     Response.file status headers absolute
-
-notFoundHandler :: Handler.Handler
-notFoundHandler _ _ = pure $ Response.status Http.notFound404 []

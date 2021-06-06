@@ -2,7 +2,9 @@ module Monadoc.Server.Settings where
 
 import Monadoc.Prelude
 
+import qualified Control.Exception as Exception
 import qualified Data.Typeable as Typeable
+import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Version as Version
@@ -29,7 +31,9 @@ onException _ (SomeException e) = Log.warn $
     "[" <> show (Typeable.typeOf e) <> "] " <> displayException e
 
 onExceptionResponse :: SomeException -> Wai.Response
-onExceptionResponse _ = Response.status Http.internalServerError500 []
+onExceptionResponse e
+    | Just NotFound.NotFound <- Exception.fromException e = Response.status Http.notFound404 []
+    | otherwise = Response.status Http.internalServerError500 []
 
 serverName :: ByteString
 serverName = into @ByteString
