@@ -8,50 +8,49 @@ import qualified Data.Ord as Ord
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Exception.Forbidden as Forbidden
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
-import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml
-import qualified Network.HTTP.Types as Http
 
 handler :: Handler.Handler
 handler context request = do
     maybeUser <- Common.getUser context request
-    case maybeUser of
-        Nothing -> pure $ Response.status Http.forbidden403 []
-        Just user -> do
-            sessions <- Pool.withResource (Context.pool context) $ \ connection ->
-                Session.selectByGithubId connection $ User.githubId user
-            pure $ Common.makeResponse Common.Monadoc
-                { Common.monadoc_config = (Common.config_fromContext context)
-                    { Common.config_breadcrumbs =
-                        [ Common.Breadcrumb
-                            { Common.breadcrumb_name = "Home"
-                            , Common.breadcrumb_route = Just Route.Index
-                            }
-                        , Common.Breadcrumb
-                            { Common.breadcrumb_name = "Account"
-                            , Common.breadcrumb_route = Nothing
-                            }
-                        ]
-                    , Common.config_user = fmap User.githubLogin maybeUser
+    user <- case maybeUser of
+        Nothing -> throwM Forbidden.new
+        Just user -> pure user
+    sessions <- Pool.withResource (Context.pool context) $ \ connection ->
+        Session.selectByGithubId connection $ User.githubId user
+    pure $ Common.makeResponse Common.Monadoc
+        { Common.monadoc_config = (Common.config_fromContext context)
+            { Common.config_breadcrumbs =
+                [ Common.Breadcrumb
+                    { Common.breadcrumb_name = "Home"
+                    , Common.breadcrumb_route = Just Route.Index
                     }
-                , Common.monadoc_page = Account
-                    { account_name = User.githubLogin user
-                    , account_sessions = fmap (\ session -> Session
-                        { session_createdAt = Session.createdAt session
-                        , session_guid = Session.guid session
-                        , session_userAgent = Session.userAgent session
-                        })
-                        . List.sortOn (Ord.Down . Session.createdAt)
-                        $ filter (Maybe.isNothing . Session.deletedAt) sessions
+                , Common.Breadcrumb
+                    { Common.breadcrumb_name = "Account"
+                    , Common.breadcrumb_route = Nothing
                     }
-                }
+                ]
+            , Common.config_user = fmap User.githubLogin maybeUser
+            }
+        , Common.monadoc_page = Account
+            { account_name = User.githubLogin user
+            , account_sessions = fmap (\ session -> Session
+                { session_createdAt = Session.createdAt session
+                , session_guid = Session.guid session
+                , session_userAgent = Session.userAgent session
+                })
+                . List.sortOn (Ord.Down . Session.createdAt)
+                $ filter (Maybe.isNothing . Session.deletedAt) sessions
+            }
+        }
 
 data Account = Account
     { account_name :: String
