@@ -18,6 +18,7 @@ data Route
     | Logo
     | Package PackageName.PackageName
     | Revision PackageName.PackageName Version.Version Revision.Revision
+    | Revoke
     | Robots
     | Search
     | Template
@@ -48,6 +49,7 @@ fromStrings path = case path of
     ["search"] -> Just Search
     ["account"] -> Just Account
     ["account", "log-out"] -> Just LogOut
+    ["account", "revoke"] -> Just Revoke
     _ -> Nothing
 
 toString :: Route -> String
@@ -64,6 +66,7 @@ toStrings route = case route of
     Logo -> ["static", "monadoc.svg"]
     Package packageName -> ["package", into @String packageName]
     Revision packageName version revision -> ["package", into @String packageName, into @String version, into @String revision]
+    Revoke -> ["account", "revoke"]
     Robots -> ["robots.txt"]
     Search -> ["search"]
     Template -> ["static", "monadoc.xsl"]

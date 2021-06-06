@@ -12,6 +12,7 @@ import qualified Monadoc.Handler.GetRevision as GetRevision
 import qualified Monadoc.Handler.GetSearch as GetSearch
 import qualified Monadoc.Handler.GetVersion as GetVersion
 import qualified Monadoc.Handler.PostLogOut as PostLogOut
+import qualified Monadoc.Handler.PostRevoke as PostRevoke
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
@@ -45,6 +46,7 @@ getHandler request = do
         (Http.GET, Route.Search) -> Just GetSearch.handler
         (Http.GET, Route.Account) -> Just GetAccount.handler
         (Http.POST, Route.LogOut) -> Just PostLogOut.handler
+        (Http.POST, Route.Revoke) -> Just PostRevoke.handler
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod

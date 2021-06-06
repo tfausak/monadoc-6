@@ -105,6 +105,7 @@ config_fromContext context = Config
         , routes_callback = Route.Callback
         , routes_favicon = Route.Favicon
         , routes_logOut = Route.LogOut
+        , routes_revoke = Route.Revoke
         , routes_search = Route.Search
         }
     , config_user = Nothing
@@ -128,6 +129,7 @@ data Routes = Routes
     , routes_callback :: Route.Route
     , routes_favicon :: Route.Route
     , routes_logOut :: Route.Route
+    , routes_revoke :: Route.Route
     , routes_search :: Route.Route
     } deriving (Eq, Show)
 
@@ -138,5 +140,6 @@ instance ToXml.ToXml Routes where
         , Xml.node "callback" [] [ToXml.toXml $ routes_callback routes]
         , Xml.node "favicon" [] [ToXml.toXml $ routes_favicon routes]
         , Xml.node "logOut" [] [ToXml.toXml $ routes_logOut routes]
+        , Xml.node "revoke" [] [ToXml.toXml $ routes_revoke routes]
         , Xml.node "search" [] [ToXml.toXml $ routes_search routes]
         ]

@@ -104,6 +104,7 @@ library
         Monadoc.Handler.GetSearch
         Monadoc.Handler.GetVersion
         Monadoc.Handler.PostLogOut
+        Monadoc.Handler.PostRevoke
         Monadoc.Model.HackageIndex
         Monadoc.Model.Package
         Monadoc.Model.PreferredVersions

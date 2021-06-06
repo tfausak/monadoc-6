@@ -186,7 +186,7 @@
                 <li>
                     <xsl:value-of select="normalize-space(createdAt)"/>:
                     <xsl:value-of select="normalize-space(userAgent)"/>
-                    <form action="#TODO" method="post">
+                    <form action="{$baseUrl}{normalize-space(/monadoc/config/routes/revoke)}" method="post">
                         <input type="hidden" name="guid" value="{normalize-space(guid)}"/>
                         <button class="btn btn-outline-danger" type="submit">Revoke</button>
                     </form>
