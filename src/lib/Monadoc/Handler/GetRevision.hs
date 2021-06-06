@@ -2,6 +2,7 @@ module Monadoc.Handler.GetRevision where
 
 import Monadoc.Prelude
 
+import qualified Data.CaseInsensitive as CI
 import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
@@ -35,7 +36,9 @@ handler packageName version revision context request = do
         Package.select connection packageName version revision
     case maybePackage of
         Nothing -> pure $ Response.status Http.notFound404 []
-        Just package -> pure . Response.xml Http.ok200 [] $ Xml.Document
+        Just package -> pure . Response.xml Http.ok200
+            [(CI.mk $ into @ByteString "Link", into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style")]
+            $ Xml.Document
             (Xml.Prologue
                 [Xml.MiscInstruction $ Xml.Instruction
                     (into @Text "xml-stylesheet")

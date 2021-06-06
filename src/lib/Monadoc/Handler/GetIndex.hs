@@ -2,6 +2,7 @@ module Monadoc.Handler.GetIndex where
 
 import Monadoc.Prelude
 
+import qualified Data.CaseInsensitive as CI
 import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
@@ -26,7 +27,9 @@ handler context request = do
         clientId = Config.clientId config
     maybeUser <- Common.getUser context request
     packages <- Pool.withResource (Context.pool context) Package.selectRecent
-    pure . Response.xml Http.ok200 [] $ Xml.Document
+    pure . Response.xml Http.ok200
+        [(CI.mk $ into @ByteString "Link", into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style")]
+        $ Xml.Document
         (Xml.Prologue
             [Xml.MiscInstruction $ Xml.Instruction
                 (into @Text "xml-stylesheet")

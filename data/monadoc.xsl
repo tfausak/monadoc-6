@@ -28,9 +28,7 @@
                 <header class="mb-3">
                     <nav class="navbar navbar-light bg-light">
                         <div class="container">
-                            <h1 class="fs-6">
-                                <a class="navbar-brand" href="{$baseUrl}/">Monadoc</a>
-                            </h1>
+                            <a class="navbar-brand" href="{$baseUrl}/">Monadoc</a>
                             <ul class="navbar-nav">
                                 <li class="nav-item">
                                     <xsl:choose>

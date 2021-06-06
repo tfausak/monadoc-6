@@ -2,6 +2,7 @@ module Monadoc.Handler.GetVersion where
 
 import Monadoc.Prelude
 
+import qualified Data.CaseInsensitive as CI
 import qualified Data.Pool as Pool
 import qualified Data.Set as Set
 import qualified Monadoc.Class.ToXml as ToXml
@@ -31,7 +32,9 @@ handler packageName version context request = do
         Package.selectByNameAndVersion connection packageName version
     case packages of
         [] -> pure $ Response.status Http.notFound404 []
-        package : _ -> pure . Response.xml Http.ok200 [] $ Xml.Document
+        package : _ -> pure . Response.xml Http.ok200
+            [(CI.mk $ into @ByteString "Link", into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style")]
+            $ Xml.Document
             (Xml.Prologue
                 [Xml.MiscInstruction $ Xml.Instruction
                     (into @Text "xml-stylesheet")
