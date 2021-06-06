@@ -26,9 +26,22 @@
             </head>
             <body>
                 <header class="mb-3">
-                    <nav class="navbar navbar-light bg-light">
+                    <nav class="navbar navbar-dark bg-dark flex-nowrap">
                         <div class="container">
                             <a class="navbar-brand" href="{$baseUrl}/">Monadoc</a>
+                            <form class="d-flex">
+                                <input class="form-control me-1" name="query" type="search" placeholder="Search"/>
+                                <button class="btn btn-outline-light" type="submit">Go</button>
+                            </form>
+                        </div>
+                    </nav>
+                    <nav class="navbar navbar-light bg-light">
+                        <div class="container">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item active">
+                                    TODO
+                                </li>
+                            </ol>
                             <ul class="navbar-nav">
                                 <li class="nav-item">
                                     <xsl:choose>
