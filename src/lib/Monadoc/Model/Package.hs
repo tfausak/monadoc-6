@@ -101,3 +101,18 @@ selectRecent c = Sql.query_ c $ into @Sql.Query
     \from package \
     \order by uploadedAt desc \
     \limit 10"
+
+selectByNameLike :: Sql.Connection -> String -> IO [PackageName.PackageName]
+selectByNameLike c x = fmap (fmap Sql.fromOnly) $ Sql.query c (into @Sql.Query
+    "select distinct name \
+    \from package \
+    \where name like ? escape ? \
+    \order by uploadedAt desc \
+    \limit 10") ("%" <> escapeLike x <> "%", "\\")
+
+escapeLike :: String -> String
+escapeLike = foldMap $ \ c -> case c of
+    '%' -> "\\%"
+    '_' -> "\\_"
+    '\\' -> "\\\\"
+    _ -> [c]

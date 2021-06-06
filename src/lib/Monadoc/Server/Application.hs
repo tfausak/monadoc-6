@@ -8,6 +8,7 @@ import qualified Monadoc.Handler.GetGithubCallback as GetGithubCallback
 import qualified Monadoc.Handler.GetIndex as GetIndex
 import qualified Monadoc.Handler.GetPackage as GetPackage
 import qualified Monadoc.Handler.GetRevision as GetRevision
+import qualified Monadoc.Handler.GetSearch as GetSearch
 import qualified Monadoc.Handler.GetVersion as GetVersion
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
@@ -39,6 +40,7 @@ getHandler request = do
         (Http.GET, Route.Package packageName) -> Just $ GetPackage.handler packageName
         (Http.GET, Route.Version packageName version) -> Just $ GetVersion.handler packageName version
         (Http.GET, Route.Revision packageName version revision) -> Just $ GetRevision.handler packageName version revision
+        (Http.GET, Route.Search) -> Just GetSearch.handler
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod

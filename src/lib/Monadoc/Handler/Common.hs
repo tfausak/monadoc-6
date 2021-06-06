@@ -87,6 +87,7 @@ config_fromContext context = Config
     , config_routes = Routes
         { routes_bootstrap = Route.Bootstrap
         , routes_favicon = Route.Favicon
+        , routes_search = Route.Search
         }
     , config_user = Nothing
     , config_version = into @Version.Version This.version
@@ -106,10 +107,12 @@ instance ToXml.ToXml Breadcrumb where
 data Routes = Routes
     { routes_bootstrap :: Route.Route
     , routes_favicon :: Route.Route
+    , routes_search :: Route.Route
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Routes where
     toXml routes = Xml.node "routes" []
         [ Xml.node "bootstrap" [] [ToXml.toXml $ routes_bootstrap routes]
         , Xml.node "favicon" [] [ToXml.toXml $ routes_favicon routes]
+        , Xml.node "search" [] [ToXml.toXml $ routes_search routes]
         ]

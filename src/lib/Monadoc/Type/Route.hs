@@ -17,6 +17,7 @@ data Route
     | Package PackageName.PackageName
     | Revision PackageName.PackageName Version.Version Revision.Revision
     | Robots
+    | Search
     | Template
     | Version PackageName.PackageName Version.Version
     deriving (Eq, Show)
@@ -42,6 +43,7 @@ fromStrings path = case path of
         <$> hush (tryInto @PackageName.PackageName rawPackageName)
         <*> hush (tryInto @Version.Version rawVersion)
         <*> hush (tryInto @Revision.Revision rawRevision)
+    ["search"] -> Just Search
     _ -> Nothing
 
 toString :: Route -> String
@@ -57,5 +59,6 @@ toStrings route = case route of
     Package packageName -> ["package", into @String packageName]
     Revision packageName version revision -> ["package", into @String packageName, into @String version, into @String revision]
     Robots -> ["robots.txt"]
+    Search -> ["search"]
     Template -> ["static", "monadoc.xsl"]
     Version packageName version -> ["package", into @String packageName, into @String version]

@@ -26,7 +26,7 @@
                     <nav class="navbar navbar-dark bg-dark flex-nowrap">
                         <div class="container">
                             <a class="navbar-brand" href="{$baseUrl}">Monadoc</a>
-                            <form class="d-flex">
+                            <form action="{$baseUrl}{normalize-space(config/routes/search)}" class="d-flex">
                                 <input class="form-control me-1" name="query" type="search" placeholder="Search"/>
                                 <button class="btn btn-outline-light" type="submit">Go</button>
                             </form>
@@ -143,5 +143,27 @@
             <xsl:text>-</xsl:text>
             <xsl:value-of select="normalize-space(revision)"/>
         </h2>
+    </xsl:template>
+
+    <xsl:template match="search">
+        <h2>
+            Search
+        </h2>
+        <form action="{$baseUrl}{normalize-space(/monadoc/config/routes/search)}" class="d-flex mb-3">
+            <input class="form-control form-control-lg me-2" name="query" type="search" placeholder="Search" value="{normalize-space(query)}"/>
+            <button class="btn btn-lg btn-primary" type="submit">Go</button>
+        </form>
+        <h3>
+            Packages
+        </h3>
+        <ul>
+            <xsl:for-each select="packages/package">
+                <li>
+                    <a href="{$baseUrl}{normalize-space(route)}">
+                        <xsl:value-of select="normalize-space(name)"/>
+                    </a>
+                </li>
+            </xsl:for-each>
+        </ul>
     </xsl:template>
 </xsl:stylesheet>
