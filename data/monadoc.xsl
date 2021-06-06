@@ -175,7 +175,7 @@
             Logged in as
             <a href="https://github.com/{normalize-space(name)}">@<xsl:value-of select="normalize-space(name)"/></a>.
         </p>
-        <form action="#TODO" method="post">
+        <form action="{$baseUrl}{normalize-space(/monadoc/config/routes/logOut)}" method="post">
             <button class="btn btn-outline-danger" type="submit">Log out</button>
         </form>
         <h3>

@@ -3,7 +3,6 @@ module Monadoc.Handler.Common where
 import Monadoc.Prelude
 
 import qualified Data.CaseInsensitive as CI
-import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
 import qualified Data.UUID as Uuid
 import qualified Monadoc.Class.ToXml as ToXml
@@ -12,6 +11,7 @@ import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
+import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
@@ -23,17 +23,32 @@ import qualified Web.Cookie as Cookie
 
 getUser :: Context.Context -> Wai.Request -> IO (Maybe User.User)
 getUser context request = do
-    let
-        cookies = Cookie.parseCookies . Maybe.fromMaybe mempty . lookup Http.hCookie $ Wai.requestHeaders request
-    case lookup (into @ByteString "guid") cookies of
-        Just byteString -> case fmap (from @Uuid.UUID) $ Uuid.fromASCIIBytes byteString of
-            Just guid -> Pool.withResource (Context.pool context) $ \ connection -> do
-                    maybeSession <- Session.selectByGuid connection guid
-                    case maybeSession of
-                        Just session -> User.selectByGithubId connection $ Session.userGithubId session
-                        Nothing -> pure Nothing
-            _ -> pure Nothing
-        _ -> pure Nothing
+    maybeSession <- getSession context request
+    case maybeSession of
+        Nothing -> pure Nothing
+        Just session -> getUserWith context session
+
+getUserWith :: Context.Context -> Session.Session -> IO (Maybe User.User)
+getUserWith context session =
+    Pool.withResource (Context.pool context) $ \ connection ->
+        User.selectByGithubId connection $ Session.userGithubId session
+
+getSession :: Context.Context -> Wai.Request -> IO (Maybe Session.Session)
+getSession context request =
+    case getSessionGuid request of
+        Nothing -> pure Nothing
+        Just guid -> getSessionWith context guid
+
+getSessionGuid :: Wai.Request -> Maybe Guid.Guid
+getSessionGuid request = do
+    cookies <- lookup Http.hCookie $ Wai.requestHeaders request
+    byteString <- lookup (into @ByteString "guid") $ Cookie.parseCookies cookies
+    fmap (into @Guid.Guid) $ Uuid.fromASCIIBytes byteString
+
+getSessionWith :: Context.Context -> Guid.Guid -> IO (Maybe Session.Session)
+getSessionWith context guid =
+    Pool.withResource (Context.pool context) $ \ connection ->
+        Session.selectByGuid connection guid
 
 makeResponse :: ToXml.ToXml page => Monadoc page -> Wai.Response
 makeResponse monadoc =
@@ -88,6 +103,7 @@ config_fromContext context = Config
         { routes_account = Route.Account
         , routes_bootstrap = Route.Bootstrap
         , routes_favicon = Route.Favicon
+        , routes_logOut = Route.LogOut
         , routes_search = Route.Search
         }
     , config_user = Nothing
@@ -109,6 +125,7 @@ data Routes = Routes
     { routes_account :: Route.Route
     , routes_bootstrap :: Route.Route
     , routes_favicon :: Route.Route
+    , routes_logOut :: Route.Route
     , routes_search :: Route.Route
     } deriving (Eq, Show)
 
@@ -117,5 +134,6 @@ instance ToXml.ToXml Routes where
         [ Xml.node "account" [] [ToXml.toXml $ routes_account routes]
         , Xml.node "bootstrap" [] [ToXml.toXml $ routes_bootstrap routes]
         , Xml.node "favicon" [] [ToXml.toXml $ routes_favicon routes]
+        , Xml.node "logOut" [] [ToXml.toXml $ routes_logOut routes]
         , Xml.node "search" [] [ToXml.toXml $ routes_search routes]
         ]

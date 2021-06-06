@@ -14,6 +14,7 @@ data Route
     | Callback
     | Favicon
     | Index
+    | LogOut
     | Logo
     | Package PackageName.PackageName
     | Revision PackageName.PackageName Version.Version Revision.Revision
@@ -46,6 +47,7 @@ fromStrings path = case path of
         <*> hush (tryInto @Revision.Revision rawRevision)
     ["search"] -> Just Search
     ["account"] -> Just Account
+    ["account", "log-out"] -> Just LogOut
     _ -> Nothing
 
 toString :: Route -> String
@@ -58,6 +60,7 @@ toStrings route = case route of
     Callback -> ["oauth", "callback"]
     Favicon -> ["favicon.ico"]
     Index -> []
+    LogOut -> ["account", "log-out"]
     Logo -> ["static", "monadoc.svg"]
     Package packageName -> ["package", into @String packageName]
     Revision packageName version revision -> ["package", into @String packageName, into @String version, into @String revision]

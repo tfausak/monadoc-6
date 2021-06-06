@@ -69,3 +69,11 @@ selectByGithubId c i = Sql.query c (into @Sql.Query
     "select createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
     \from session \
     \where userGithubId = ?") [i]
+
+delete :: Sql.Connection -> Session -> IO ()
+delete connection session = do
+    now <- Time.getCurrentTime
+    Sql.execute
+        connection
+        (into @Sql.Query "update session set deletedAt = ? where guid = ?")
+        (now, guid session)

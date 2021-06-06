@@ -1,4 +1,4 @@
-module Monadoc.Handler.GetFavicon (handler) where
+module Monadoc.Handler.GetFavicon where
 
 import Monadoc.Prelude
 

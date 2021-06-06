@@ -103,6 +103,7 @@ library
         Monadoc.Handler.GetRevision
         Monadoc.Handler.GetSearch
         Monadoc.Handler.GetVersion
+        Monadoc.Handler.PostLogOut
         Monadoc.Model.HackageIndex
         Monadoc.Model.Package
         Monadoc.Model.PreferredVersions
