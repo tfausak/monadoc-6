@@ -32,7 +32,7 @@ fromStrings path = case path of
     [] -> Just Index
     ["static", "bootstrap.css"] -> Just Bootstrap
     ["favicon.ico"] -> Just Favicon
-    ["oauth", "callback"] -> Just Callback
+    ["account", "callback"] -> Just Callback
     ["static", "monadoc.svg"] -> Just Logo
     ["static", "monadoc.xsl"] -> Just Template
     ["robots.txt"] -> Just Robots
@@ -57,7 +57,7 @@ toStrings :: Route -> [String]
 toStrings route = case route of
     Account -> ["account"]
     Bootstrap -> ["static", "bootstrap.css"]
-    Callback -> ["oauth", "callback"]
+    Callback -> ["account", "callback"]
     Favicon -> ["favicon.ico"]
     Index -> []
     LogOut -> ["account", "log-out"]

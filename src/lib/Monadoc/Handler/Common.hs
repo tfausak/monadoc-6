@@ -102,6 +102,7 @@ config_fromContext context = Config
     , config_routes = Routes
         { routes_account = Route.Account
         , routes_bootstrap = Route.Bootstrap
+        , routes_callback = Route.Callback
         , routes_favicon = Route.Favicon
         , routes_logOut = Route.LogOut
         , routes_search = Route.Search
@@ -124,6 +125,7 @@ instance ToXml.ToXml Breadcrumb where
 data Routes = Routes
     { routes_account :: Route.Route
     , routes_bootstrap :: Route.Route
+    , routes_callback :: Route.Route
     , routes_favicon :: Route.Route
     , routes_logOut :: Route.Route
     , routes_search :: Route.Route
@@ -133,6 +135,7 @@ instance ToXml.ToXml Routes where
     toXml routes = Xml.node "routes" []
         [ Xml.node "account" [] [ToXml.toXml $ routes_account routes]
         , Xml.node "bootstrap" [] [ToXml.toXml $ routes_bootstrap routes]
+        , Xml.node "callback" [] [ToXml.toXml $ routes_callback routes]
         , Xml.node "favicon" [] [ToXml.toXml $ routes_favicon routes]
         , Xml.node "logOut" [] [ToXml.toXml $ routes_logOut routes]
         , Xml.node "search" [] [ToXml.toXml $ routes_search routes]

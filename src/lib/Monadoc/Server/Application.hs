@@ -5,7 +5,7 @@ import Monadoc.Prelude
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Handler.GetAccount as GetAccount
 import qualified Monadoc.Handler.GetFavicon as GetFavicon
-import qualified Monadoc.Handler.GetGithubCallback as GetGithubCallback
+import qualified Monadoc.Handler.GetCallback as GetCallback
 import qualified Monadoc.Handler.GetIndex as GetIndex
 import qualified Monadoc.Handler.GetPackage as GetPackage
 import qualified Monadoc.Handler.GetRevision as GetRevision
@@ -35,7 +35,7 @@ getHandler request = do
         (Http.GET, Route.Index) -> Just GetIndex.handler
         (Http.GET, Route.Bootstrap) -> Just $ fileHandler "bootstrap.css" "text/css; charset=UTF-8"
         (Http.GET, Route.Favicon) -> Just GetFavicon.handler
-        (Http.GET, Route.Callback) -> Just GetGithubCallback.handler
+        (Http.GET, Route.Callback) -> Just GetCallback.handler
         (Http.GET, Route.Logo) -> Just $ fileHandler "monadoc.svg" "image/svg+xml; charset=UTF-8"
         (Http.GET, Route.Template) -> Just $ fileHandler "monadoc.xsl" "text/xsl; charset=UTF-8"
         (Http.GET, Route.Robots) -> Just $ fileHandler "robots.txt" "text/plain; charset=UTF-8"

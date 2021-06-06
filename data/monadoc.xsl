@@ -62,7 +62,7 @@
                                             <a class="nav-link" href="{$baseUrl}{normalize-space(config/routes/account)}">@<xsl:value-of select="$user"/></a>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={normalize-space(config/clientId)}&amp;redirect_uri={$baseUrl}/oauth/callback">Log in</a>
+                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={normalize-space(config/clientId)}&amp;redirect_uri={$baseUrl}{normalize-space(config/routes/callback)}">Log in</a>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </li>

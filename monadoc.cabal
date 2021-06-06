@@ -96,8 +96,8 @@ library
         Monadoc.Exception.UnexpectedTarEntry
         Monadoc.Handler.Common
         Monadoc.Handler.GetAccount
+        Monadoc.Handler.GetCallback
         Monadoc.Handler.GetFavicon
-        Monadoc.Handler.GetGithubCallback
         Monadoc.Handler.GetIndex
         Monadoc.Handler.GetPackage
         Monadoc.Handler.GetRevision

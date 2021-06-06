@@ -1,4 +1,4 @@
-module Monadoc.Handler.GetGithubCallback where
+module Monadoc.Handler.GetCallback where
 
 import Monadoc.Prelude
 
