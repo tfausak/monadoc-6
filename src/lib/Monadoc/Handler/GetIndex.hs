@@ -2,22 +2,19 @@ module Monadoc.Handler.GetIndex where
 
 import Monadoc.Prelude
 
-import qualified Data.CaseInsensitive as CI
 import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
-import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
+import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
-import qualified Network.HTTP.Types as Http
 import qualified Paths_monadoc as This
-import qualified Text.XML as Xml
 
 handler :: Handler.Handler
 handler context request = do
@@ -27,34 +24,45 @@ handler context request = do
         clientId = Config.clientId config
     maybeUser <- Common.getUser context request
     packages <- Pool.withResource (Context.pool context) Package.selectRecent
-    pure . Response.xml Http.ok200
-        [(CI.mk $ into @ByteString "Link", into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style")]
-        $ Xml.Document
-        (Xml.Prologue
-            [Xml.MiscInstruction $ Xml.Instruction
-                (into @Text "xml-stylesheet")
-                (into @Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")]
-            Nothing
-            [])
-        (Xml.element "monadoc" []
-            [ Xml.node "config" []
-                [ Xml.node "baseUrl" [] [ToXml.toXml baseUrl]
-                , Xml.node "breadcrumbs" []
-                    [ Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml "Home"]]
-                    ]
-                , Xml.node "clientId" [] [ToXml.toXml clientId]
-                , Xml.node "user" [] [ToXml.toXml $ fmap User.githubLogin maybeUser]
-                , Xml.node "version" [] [ToXml.toXml $ into @Version.Version This.version]
+    pure $ Common.makeResponse Common.Monadoc
+        { Common.monadoc_config = Common.Config
+            { Common.config_baseUrl = baseUrl
+            , Common.config_breadcrumbs =
+                [ Common.Breadcrumb
+                    { Common.breadcrumb_name = "Home"
+                    , Common.breadcrumb_link = Nothing
+                    }
                 ]
-            , Xml.node "page" []
-                [ Xml.node "index" []
-                    [ Xml.node "packages" [] $ fmap
-                        (\ pkg -> Xml.node "package" []
-                            [ Xml.node "name" [] [ToXml.toXml $ Package.name pkg]
-                            , Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString (Route.Package $ Package.name pkg)]
-                            ])
-                        packages
-                    ]
-                ]
-            ])
-        []
+            , Common.config_clientId = clientId
+            , Common.config_user = fmap User.githubLogin maybeUser
+            , Common.config_version = into @Version.Version This.version
+            }
+        , Common.monadoc_page = Index
+            { index_packages = fmap
+                (\ package -> Package
+                    { package_name = Package.name package
+                    , package_link = baseUrl <> Route.toString (Route.Package $ Package.name package)
+                    })
+                packages
+            }
+        }
+
+newtype Index = Index
+    { index_packages :: [Package]
+    } deriving (Eq, Show)
+
+instance ToXml.ToXml Index where
+    toXml index = Xml.node "index" []
+        [ Xml.node "packages" [] . fmap ToXml.toXml $ index_packages index
+        ]
+
+data Package = Package
+    { package_name :: PackageName.PackageName
+    , package_link :: String
+    } deriving (Eq, Show)
+
+instance ToXml.ToXml Package where
+    toXml package = Xml.node "package" []
+        [ Xml.node "name" [] [ToXml.toXml $ package_name package]
+        , Xml.node "link" [] [ToXml.toXml $ package_link package]
+        ]

@@ -2,7 +2,6 @@ module Monadoc.Handler.GetPackage where
 
 import Monadoc.Prelude
 
-import qualified Data.CaseInsensitive as CI
 import qualified Data.Pool as Pool
 import qualified Data.Set as Set
 import qualified Monadoc.Class.ToXml as ToXml
@@ -19,7 +18,6 @@ import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
 import qualified Paths_monadoc as This
-import qualified Text.XML as Xml
 
 handler :: PackageName.PackageName -> Handler.Handler
 handler packageName context request = do
@@ -32,38 +30,54 @@ handler packageName context request = do
         Package.selectByName connection packageName
     case packages of
         [] -> pure $ Response.status Http.notFound404 []
-        _ : _ -> pure . Response.xml Http.ok200
-            [(CI.mk $ into @ByteString "Link", into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style")]
-            $ Xml.Document
-            (Xml.Prologue
-                [Xml.MiscInstruction $ Xml.Instruction
-                    (into @Text "xml-stylesheet")
-                    (into @Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")]
-                Nothing
-                [])
-            (Xml.element "monadoc" []
-                [ Xml.node "config" []
-                    [ Xml.node "baseUrl" [] [ToXml.toXml baseUrl]
-                    , Xml.node "breadcrumbs" []
-                        [ Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml "Home"], Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString Route.Index]]
-                        , Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml packageName]]
-                        ]
-                    , Xml.node "clientId" [] [ToXml.toXml clientId]
-                    , Xml.node "user" [] [ToXml.toXml $ fmap User.githubLogin maybeUser]
-                    , Xml.node "version" [] [ToXml.toXml $ into @Version.Version This.version]
+        _ : _ -> pure $ Common.makeResponse Common.Monadoc
+            { Common.monadoc_config = Common.Config
+                { Common.config_baseUrl = baseUrl
+                , Common.config_breadcrumbs =
+                    [ Common.Breadcrumb
+                        { Common.breadcrumb_name = "Home"
+                        , Common.breadcrumb_link = Just $ baseUrl <> Route.toString Route.Index
+                        }
+                    , Common.Breadcrumb
+                        { Common.breadcrumb_name = into @String packageName
+                        , Common.breadcrumb_link = Nothing
+                        }
                     ]
-                , Xml.node "page" []
-                    [ Xml.node "package" []
-                        [ Xml.node "name" [] [ToXml.toXml packageName]
-                        , Xml.node "versions" []
-                        . fmap (\ ver -> Xml.node "version" []
-                            [ Xml.node "number" [] [ToXml.toXml ver]
-                            , Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString (Route.Version packageName ver)]
-                            ])
-                        . Set.toDescList
-                        . Set.fromList
-                        $ fmap Package.version packages
-                        ]
-                    ]
-                ])
-            []
+                , Common.config_clientId = clientId
+                , Common.config_user = fmap User.githubLogin maybeUser
+                , Common.config_version = into @Version.Version This.version
+                }
+            , Common.monadoc_page = Package
+                { package_name = packageName
+                , package_versions =
+                    fmap (\ version -> Version
+                        { version_number = version
+                        , version_link = baseUrl <> Route.toString (Route.Version packageName version)
+                        })
+                    . Set.toDescList
+                    . Set.fromList
+                    $ fmap Package.version packages
+                }
+            }
+
+data Package = Package
+    { package_name :: PackageName.PackageName
+    , package_versions :: [Version]
+    } deriving (Eq, Show)
+
+instance ToXml.ToXml Package where
+    toXml package = Xml.node "package" []
+        [ Xml.node "name" [] [ToXml.toXml $ package_name package]
+        , Xml.node "versions" [] . fmap ToXml.toXml $ package_versions package
+        ]
+
+data Version = Version
+    { version_number :: Version.Version
+    , version_link :: String
+    } deriving (Eq, Show)
+
+instance ToXml.ToXml Version where
+    toXml version = Xml.node "version" []
+        [ Xml.node "number" [] [ToXml.toXml $ version_number version]
+        , Xml.node "link" [] [ToXml.toXml $ version_link version]
+        ]
