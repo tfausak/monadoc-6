@@ -4,6 +4,7 @@ import Monadoc.Prelude
 
 import qualified Control.Concurrent.Async as Async
 import qualified Control.Monad as Monad
+import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
@@ -43,7 +44,9 @@ mainWith name arguments = do
         enableWriteAheadLog connection
         createMigrationTable connection
         traverse_ (runMigration connection) migrations
-    Async.race_ (Server.run context) (Worker.run context)
+    Exception.onException
+        (Async.race_ (Server.run context) (Worker.run context))
+        . Pool.destroyAllResources $ Context.pool context
 
 setDefaultExceptionHandler :: IO ()
 setDefaultExceptionHandler = do
