@@ -32,7 +32,7 @@ handler packageName version context request = do
         Package.selectByNameAndVersion connection packageName version
     case packages of
         [] -> pure $ Response.status Http.notFound404 []
-        package : _ -> pure . Response.xml Http.ok200
+        _ : _ -> pure . Response.xml Http.ok200
             [(CI.mk $ into @ByteString "Link", into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style")]
             $ Xml.Document
             (Xml.Prologue
@@ -44,14 +44,19 @@ handler packageName version context request = do
             (Xml.element "monadoc" []
                 [ Xml.node "config" []
                     [ Xml.node "baseUrl" [] [ToXml.toXml baseUrl]
+                    , Xml.node "breadcrumbs" []
+                        [ Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml "Home"], Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString Route.Index]]
+                        , Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml packageName], Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString (Route.Package packageName)]]
+                        , Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml version]]
+                        ]
                     , Xml.node "clientId" [] [ToXml.toXml clientId]
                     , Xml.node "user" [] [ToXml.toXml $ fmap User.githubLogin maybeUser]
                     , Xml.node "version" [] [ToXml.toXml $ into @Version.Version This.version]
                     ]
                 , Xml.node "page" []
                     [ Xml.node "version" []
-                        [ Xml.node "name" [] [ToXml.toXml $ Package.name package]
-                        , Xml.node "version" [] [ToXml.toXml $ Package.version package]
+                        [ Xml.node "name" [] [ToXml.toXml packageName]
+                        , Xml.node "version" [] [ToXml.toXml version]
                         , Xml.node "revisions" []
                         . fmap (\ rev -> Xml.node "revision" [] [ToXml.toXml rev])
                         . Set.toDescList

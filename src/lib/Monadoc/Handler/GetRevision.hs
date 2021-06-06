@@ -36,7 +36,7 @@ handler packageName version revision context request = do
         Package.select connection packageName version revision
     case maybePackage of
         Nothing -> pure $ Response.status Http.notFound404 []
-        Just package -> pure . Response.xml Http.ok200
+        Just _ -> pure . Response.xml Http.ok200
             [(CI.mk $ into @ByteString "Link", into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style")]
             $ Xml.Document
             (Xml.Prologue
@@ -48,15 +48,21 @@ handler packageName version revision context request = do
             (Xml.element "monadoc" []
                 [ Xml.node "config" []
                     [ Xml.node "baseUrl" [] [ToXml.toXml baseUrl]
+                    , Xml.node "breadcrumbs" []
+                        [ Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml "Home"], Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString Route.Index]]
+                        , Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml packageName], Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString (Route.Package packageName)]]
+                        , Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml version], Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString (Route.Version packageName version)]]
+                        , Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml revision]]
+                        ]
                     , Xml.node "clientId" [] [ToXml.toXml clientId]
                     , Xml.node "user" [] [ToXml.toXml $ fmap User.githubLogin maybeUser]
                     , Xml.node "version" [] [ToXml.toXml $ into @Version.Version This.version]
                     ]
                 , Xml.node "page" []
                     [ Xml.node "revision" []
-                        [ Xml.node "name" [] [ToXml.toXml $ Package.name package]
-                        , Xml.node "version" [] [ToXml.toXml $ Package.version package]
-                        , Xml.node "revision" [] [ToXml.toXml $ Package.revision package]
+                        [ Xml.node "name" [] [ToXml.toXml packageName]
+                        , Xml.node "version" [] [ToXml.toXml version]
+                        , Xml.node "revision" [] [ToXml.toXml revision]
                         ]
                     ]
                 ])

@@ -29,8 +29,8 @@ import qualified System.Console.GetOpt as Console
 import qualified System.Environment as Environment
 import qualified System.Exit as Exit
 
-main :: IO ()
-main = do
+defaultMain :: IO ()
+defaultMain = do
     name <- Environment.getProgName
     arguments <- Environment.getArgs
     mainWith name arguments

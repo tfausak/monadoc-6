@@ -32,7 +32,7 @@ handler packageName context request = do
         Package.selectByName connection packageName
     case packages of
         [] -> pure $ Response.status Http.notFound404 []
-        package : _ -> pure . Response.xml Http.ok200
+        _ : _ -> pure . Response.xml Http.ok200
             [(CI.mk $ into @ByteString "Link", into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style")]
             $ Xml.Document
             (Xml.Prologue
@@ -44,13 +44,17 @@ handler packageName context request = do
             (Xml.element "monadoc" []
                 [ Xml.node "config" []
                     [ Xml.node "baseUrl" [] [ToXml.toXml baseUrl]
+                    , Xml.node "breadcrumbs" []
+                        [ Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml "Home"], Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString Route.Index]]
+                        , Xml.node "breadcrumb" [] [Xml.node "name" [] [ToXml.toXml packageName]]
+                        ]
                     , Xml.node "clientId" [] [ToXml.toXml clientId]
                     , Xml.node "user" [] [ToXml.toXml $ fmap User.githubLogin maybeUser]
                     , Xml.node "version" [] [ToXml.toXml $ into @Version.Version This.version]
                     ]
                 , Xml.node "page" []
                     [ Xml.node "package" []
-                        [ Xml.node "name" [] [ToXml.toXml $ Package.name package]
+                        [ Xml.node "name" [] [ToXml.toXml packageName]
                         , Xml.node "versions" []
                         . fmap (\ ver -> Xml.node "version" [] [ToXml.toXml ver])
                         . Set.toDescList
