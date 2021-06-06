@@ -40,19 +40,19 @@ handler packageName version revision context request = do
                 , Common.config_breadcrumbs =
                     [ Common.Breadcrumb
                         { Common.breadcrumb_name = "Home"
-                        , Common.breadcrumb_link = Just $ baseUrl <> Route.toString Route.Index
+                        , Common.breadcrumb_route = Just Route.Index
                         }
                     , Common.Breadcrumb
                         { Common.breadcrumb_name = into @String packageName
-                        , Common.breadcrumb_link = Just $ baseUrl <> Route.toString (Route.Package packageName)
+                        , Common.breadcrumb_route = Just $ Route.Package packageName
                         }
                     , Common.Breadcrumb
                         { Common.breadcrumb_name = into @String version
-                        , Common.breadcrumb_link = Just $ baseUrl <> Route.toString (Route.Version packageName version)
+                        , Common.breadcrumb_route = Just $ Route.Version packageName version
                         }
                     , Common.Breadcrumb
                         { Common.breadcrumb_name = into @String revision
-                        , Common.breadcrumb_link = Nothing
+                        , Common.breadcrumb_route = Nothing
                         }
                     ]
                 , Common.config_clientId = clientId

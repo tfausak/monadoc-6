@@ -36,11 +36,11 @@ handler packageName context request = do
                 , Common.config_breadcrumbs =
                     [ Common.Breadcrumb
                         { Common.breadcrumb_name = "Home"
-                        , Common.breadcrumb_link = Just $ baseUrl <> Route.toString Route.Index
+                        , Common.breadcrumb_route = Just Route.Index
                         }
                     , Common.Breadcrumb
                         { Common.breadcrumb_name = into @String packageName
-                        , Common.breadcrumb_link = Nothing
+                        , Common.breadcrumb_route = Nothing
                         }
                     ]
                 , Common.config_clientId = clientId
@@ -52,7 +52,7 @@ handler packageName context request = do
                 , package_versions =
                     fmap (\ version -> Version
                         { version_number = version
-                        , version_link = baseUrl <> Route.toString (Route.Version packageName version)
+                        , version_route = Route.Version packageName version
                         })
                     . Set.toDescList
                     . Set.fromList
@@ -73,11 +73,11 @@ instance ToXml.ToXml Package where
 
 data Version = Version
     { version_number :: Version.Version
-    , version_link :: String
+    , version_route :: Route.Route
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Version where
     toXml version = Xml.node "version" []
         [ Xml.node "number" [] [ToXml.toXml $ version_number version]
-        , Xml.node "link" [] [ToXml.toXml $ version_link version]
+        , Xml.node "route" [] [ToXml.toXml $ version_route version]
         ]

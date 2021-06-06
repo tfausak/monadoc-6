@@ -37,15 +37,15 @@ handler packageName version context request = do
                 , Common.config_breadcrumbs =
                     [ Common.Breadcrumb
                         { Common.breadcrumb_name = "Home"
-                        , Common.breadcrumb_link = Just $ baseUrl <> Route.toString Route.Index
+                        , Common.breadcrumb_route = Just Route.Index
                         }
                     , Common.Breadcrumb
                         { Common.breadcrumb_name = into @String packageName
-                        , Common.breadcrumb_link = Just $ baseUrl <> Route.toString (Route.Package packageName)
+                        , Common.breadcrumb_route = Just $ Route.Package packageName
                         }
                     , Common.Breadcrumb
                         { Common.breadcrumb_name = into @String version
-                        , Common.breadcrumb_link = Nothing
+                        , Common.breadcrumb_route = Nothing
                         }
                     ]
                 , Common.config_clientId = clientId
@@ -59,7 +59,7 @@ handler packageName version context request = do
                     fmap
                         (\ revision -> Revision
                             { revision_number = revision
-                            , revision_link = baseUrl <> Route.toString (Route.Revision packageName version revision)
+                            , revision_route = Route.Revision packageName version revision
                             })
                     . Set.toDescList
                     . Set.fromList
@@ -82,11 +82,11 @@ instance ToXml.ToXml Version where
 
 data Revision = Revision
     { revision_number :: Revision.Revision
-    , revision_link :: String
+    , revision_route :: Route.Route
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Revision where
     toXml revision = Xml.node "revision" []
         [ Xml.node "number" [] [ToXml.toXml $ revision_number revision]
-        , Xml.node "link" [] [ToXml.toXml $ revision_link revision]
+        , Xml.node "route" [] [ToXml.toXml $ revision_route revision]
         ]

@@ -30,7 +30,7 @@ handler context request = do
             , Common.config_breadcrumbs =
                 [ Common.Breadcrumb
                     { Common.breadcrumb_name = "Home"
-                    , Common.breadcrumb_link = Nothing
+                    , Common.breadcrumb_route = Nothing
                     }
                 ]
             , Common.config_clientId = clientId
@@ -41,7 +41,7 @@ handler context request = do
             { index_packages = fmap
                 (\ package -> Package
                     { package_name = Package.name package
-                    , package_link = baseUrl <> Route.toString (Route.Package $ Package.name package)
+                    , package_route = Route.Package $ Package.name package
                     })
                 packages
             }
@@ -58,11 +58,11 @@ instance ToXml.ToXml Index where
 
 data Package = Package
     { package_name :: PackageName.PackageName
-    , package_link :: String
+    , package_route :: Route.Route
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Package where
     toXml package = Xml.node "package" []
         [ Xml.node "name" [] [ToXml.toXml $ package_name package]
-        , Xml.node "link" [] [ToXml.toXml $ package_link package]
+        , Xml.node "route" [] [ToXml.toXml $ package_route package]
         ]

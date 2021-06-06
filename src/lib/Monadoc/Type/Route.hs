@@ -3,6 +3,7 @@ module Monadoc.Type.Route where
 import Monadoc.Prelude
 
 import qualified Data.List as List
+import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Version as Version
@@ -21,6 +22,9 @@ data Route
     | Template
     | Version PackageName.PackageName Version.Version
     deriving (Eq, Show)
+
+instance ToXml.ToXml Route where
+    toXml = ToXml.toXml . toString
 
 fromStrings :: [String] -> Maybe Route
 fromStrings path = case path of

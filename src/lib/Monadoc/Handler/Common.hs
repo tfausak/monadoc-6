@@ -77,11 +77,11 @@ instance ToXml.ToXml Config where
 
 data Breadcrumb = Breadcrumb
     { breadcrumb_name :: String
-    , breadcrumb_link :: Maybe String
+    , breadcrumb_route :: Maybe Route.Route
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Breadcrumb where
     toXml breadcrumb = Xml.node "breadcrumb" []
         [ Xml.node "name" [] [ToXml.toXml $ breadcrumb_name breadcrumb]
-        , Xml.node "link" [] [ToXml.toXml $ breadcrumb_link breadcrumb]
+        , Xml.node "route" [] [ToXml.toXml $ breadcrumb_route breadcrumb]
         ]
