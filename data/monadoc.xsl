@@ -6,12 +6,12 @@
         media-type="text/html"
         method="html"/>
 
-    <xsl:variable name="baseUrl" select="normalize-space(/monadoc/config/baseUrl)"/>
-    <xsl:variable name="clientId" select="normalize-space(/monadoc/config/clientId)"/>
-    <xsl:variable name="user" select="normalize-space(/monadoc/config/user)"/>
-    <xsl:variable name="version" select="normalize-space(/monadoc/config/version)"/>
-
     <xsl:template match="/monadoc">
+        <xsl:variable name="baseUrl" select="normalize-space(/monadoc/config/baseUrl)"/>
+        <xsl:variable name="clientId" select="normalize-space(/monadoc/config/clientId)"/>
+        <xsl:variable name="user" select="normalize-space(/monadoc/config/user)"/>
+        <xsl:variable name="version" select="normalize-space(/monadoc/config/version)"/>
+
         <html lang="en-US">
             <head>
                 <meta content="initial-scale = 1, width = device-width" name="viewport"/>
@@ -28,7 +28,7 @@
                 <header class="mb-3">
                     <nav class="navbar navbar-dark bg-dark flex-nowrap">
                         <div class="container">
-                            <a class="navbar-brand" href="{$baseUrl}/">Monadoc</a>
+                            <a class="navbar-brand" href="{$baseUrl}">Monadoc</a>
                             <form class="d-flex">
                                 <input class="form-control me-1" name="query" type="search" placeholder="Search"/>
                                 <button class="btn btn-outline-light" type="submit">Go</button>
@@ -40,6 +40,7 @@
                             <ol class="breadcrumb mb-0">
                                 <xsl:for-each select="config/breadcrumbs/breadcrumb">
                                     <xsl:variable name="link" select="normalize-space(link)"/>
+
                                     <xsl:choose>
                                         <xsl:when test="$link">
                                             <li class="breadcrumb-item">
@@ -95,10 +96,9 @@
         </h2>
         <ul>
             <xsl:for-each select="packages/package">
-                <xsl:variable name="pkg" select="normalize-space(.)"/>
                 <li>
-                    <a href="{$baseUrl}/package/{$pkg}">
-                        <xsl:value-of select="$pkg"/>
+                    <a href="{normalize-space(link)}">
+                        <xsl:value-of select="normalize-space(name)"/>
                     </a>
                 </li>
             </xsl:for-each>
@@ -106,16 +106,14 @@
     </xsl:template>
 
     <xsl:template match="package">
-        <xsl:variable name="pkg" select="normalize-space(name)"/>
         <h2>
-            <xsl:value-of select="$pkg"/>
+            <xsl:value-of select="normalize-space(name)"/>
         </h2>
         <ul>
             <xsl:for-each select="versions/version">
-                <xsl:variable name="ver" select="normalize-space(.)"/>
                 <li>
-                    <a href="{$baseUrl}/package/{$pkg}/{$ver}">
-                        <xsl:value-of select="$ver"/>
+                    <a href="{normalize-space(link)}">
+                        <xsl:value-of select="normalize-space(number)"/>
                     </a>
                 </li>
             </xsl:for-each>
@@ -123,19 +121,16 @@
     </xsl:template>
 
     <xsl:template match="version">
-        <xsl:variable name="pkg" select="normalize-space(name)"/>
-        <xsl:variable name="ver" select="normalize-space(version)"/>
         <h2>
-            <xsl:value-of select="$pkg"/>
+            <xsl:value-of select="normalize-space(name)"/>
             <xsl:text> </xsl:text>
-            <xsl:value-of select="$ver"/>
+            <xsl:value-of select="normalize-space(version)"/>
         </h2>
         <ul>
             <xsl:for-each select="revisions/revision">
-                <xsl:variable name="rev" select="normalize-space(.)"/>
                 <li>
-                    <a href="{$baseUrl}/package/{$pkg}/{$ver}/{$rev}">
-                        <xsl:value-of select="$rev"/>
+                    <a href="{normalize-space(link)}">
+                        <xsl:value-of select="normalize-space(number)"/>
                     </a>
                 </li>
             </xsl:for-each>
@@ -143,15 +138,12 @@
     </xsl:template>
 
     <xsl:template match="revision">
-        <xsl:variable name="pkg" select="normalize-space(name)"/>
-        <xsl:variable name="ver" select="normalize-space(version)"/>
-        <xsl:variable name="rev" select="normalize-space(revision)"/>
         <h2>
-            <xsl:value-of select="$pkg"/>
+            <xsl:value-of select="normalize-space(name)"/>
             <xsl:text> </xsl:text>
-            <xsl:value-of select="$ver"/>
+            <xsl:value-of select="normalize-space(version)"/>
             <xsl:text>-</xsl:text>
-            <xsl:value-of select="$rev"/>
+            <xsl:value-of select="normalize-space(revision)"/>
         </h2>
     </xsl:template>
 </xsl:stylesheet>

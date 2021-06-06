@@ -49,7 +49,10 @@ handler context request = do
             , Xml.node "page" []
                 [ Xml.node "index" []
                     [ Xml.node "packages" [] $ fmap
-                        (\ pkg -> Xml.node "package" [] [ToXml.toXml $ Package.name pkg])
+                        (\ pkg -> Xml.node "package" []
+                            [ Xml.node "name" [] [ToXml.toXml $ Package.name pkg]
+                            , Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString (Route.Package $ Package.name pkg)]
+                            ])
                         packages
                     ]
                 ]

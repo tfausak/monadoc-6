@@ -58,7 +58,10 @@ handler packageName version context request = do
                         [ Xml.node "name" [] [ToXml.toXml packageName]
                         , Xml.node "version" [] [ToXml.toXml version]
                         , Xml.node "revisions" []
-                        . fmap (\ rev -> Xml.node "revision" [] [ToXml.toXml rev])
+                        . fmap (\ rev -> Xml.node "revision" []
+                            [ Xml.node "number" [] [ToXml.toXml rev]
+                            , Xml.node "link" [] [ToXml.toXml $ baseUrl <> Route.toString (Route.Revision packageName version rev)]
+                            ])
                         . Set.toDescList
                         . Set.fromList
                         $ fmap Package.revision packages
