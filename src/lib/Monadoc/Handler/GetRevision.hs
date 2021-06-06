@@ -8,7 +8,6 @@ import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
-import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.PackageName as PackageName
@@ -17,7 +16,6 @@ import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
-import qualified Paths_monadoc as This
 
 handler
     :: PackageName.PackageName
@@ -25,19 +23,14 @@ handler
     -> Revision.Revision
     -> Handler.Handler
 handler packageName version revision context request = do
-    let
-        config = Context.config context
-        baseUrl = Config.baseUrl config
-        clientId = Config.clientId config
     maybeUser <- Common.getUser context request
     maybePackage <- Pool.withResource (Context.pool context) $ \ connection ->
         Package.select connection packageName version revision
     case maybePackage of
         Nothing -> pure $ Response.status Http.notFound404 []
         Just _ -> pure $ Common.makeResponse Common.Monadoc
-            { Common.monadoc_config = Common.Config
-                { Common.config_baseUrl = baseUrl
-                , Common.config_breadcrumbs =
+            { Common.monadoc_config = (Common.config_fromContext context)
+                { Common.config_breadcrumbs =
                     [ Common.Breadcrumb
                         { Common.breadcrumb_name = "Home"
                         , Common.breadcrumb_route = Just Route.Index
@@ -55,9 +48,7 @@ handler packageName version revision context request = do
                         , Common.breadcrumb_route = Nothing
                         }
                     ]
-                , Common.config_clientId = clientId
                 , Common.config_user = fmap User.githubLogin maybeUser
-                , Common.config_version = into @Version.Version This.version
                 }
             , Common.monadoc_page = Revision
                 { revision_name = packageName

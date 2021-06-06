@@ -9,19 +9,15 @@
     <xsl:variable name="baseUrl" select="normalize-space(/monadoc/config/baseUrl)"/>
 
     <xsl:template match="/monadoc">
-        <xsl:variable name="clientId" select="normalize-space(config/clientId)"/>
-        <xsl:variable name="user" select="normalize-space(config/user)"/>
-        <xsl:variable name="version" select="normalize-space(config/version)"/>
-
         <html lang="en-US">
             <head>
                 <meta content="initial-scale = 1, width = device-width" name="viewport"/>
                 <title>
                     Monadoc
                 </title>
-                <link href="{$baseUrl}/static/bootstrap.css" rel="stylesheet"/>
+                <link href="{$baseUrl}{normalize-space(config/routes/bootstrap)}" rel="stylesheet"/>
                 <link
-                    href="{$baseUrl}/static/monadoc.svg"
+                    href="{$baseUrl}{normalize-space(config/routes/favicon)}"
                     rel="icon"
                     type="image/svg+xml"/>
             </head>
@@ -60,12 +56,13 @@
                             </ol>
                             <ul class="navbar-nav">
                                 <li class="nav-item">
+                                    <xsl:variable name="user" select="normalize-space(config/user)"/>
                                     <xsl:choose>
                                         <xsl:when test="$user">
                                             <a class="nav-link" href="#TODO">@<xsl:value-of select="$user"/></a>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$clientId}&amp;redirect_uri={$baseUrl}/oauth/callback">Log in</a>
+                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={normalize-space(config/clientId)}&amp;redirect_uri={$baseUrl}/oauth/callback">Log in</a>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </li>
@@ -81,7 +78,7 @@
                         Powered by
                         <a href="https://github.com/tfausak/monadoc">Monadoc</a>
                         version
-                        <xsl:value-of select="$version"/>.
+                        <xsl:value-of select="normalize-space(config/version)"/>.
                     </p>
                 </footer>
             </body>
@@ -113,7 +110,7 @@
         <ul>
             <xsl:for-each select="versions/version">
                 <li>
-                    <a href="{normalize-space(route)}">
+                    <a href="{$baseUrl}{normalize-space(route)}">
                         <xsl:value-of select="normalize-space(number)"/>
                     </a>
                 </li>
@@ -130,7 +127,7 @@
         <ul>
             <xsl:for-each select="revisions/revision">
                 <li>
-                    <a href="{normalize-space(route)}">
+                    <a href="{$baseUrl}{normalize-space(route)}">
                         <xsl:value-of select="normalize-space(number)"/>
                     </a>
                 </li>

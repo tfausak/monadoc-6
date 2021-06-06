@@ -8,8 +8,6 @@ import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Version as Version
 
--- | Be careful making changes to this type! Everything on the Haskell side
--- will stay up to date, but the XSL template has hard-coded strings in it.
 data Route
     = Bootstrap
     | Callback

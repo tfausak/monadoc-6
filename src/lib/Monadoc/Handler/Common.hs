@@ -10,12 +10,14 @@ import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
+import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
+import qualified Paths_monadoc as This
 import qualified Text.XML as Xml
 import qualified Web.Cookie as Cookie
 
@@ -62,6 +64,7 @@ data Config = Config
     { config_baseUrl :: String
     , config_breadcrumbs :: [Breadcrumb]
     , config_clientId :: String
+    , config_routes :: Routes
     , config_user :: Maybe String
     , config_version :: Version.Version
     } deriving (Eq, Show)
@@ -71,9 +74,23 @@ instance ToXml.ToXml Config where
         [ Xml.node "baseUrl" [] [ToXml.toXml $ config_baseUrl config]
         , Xml.node "breadcrumbs" [] . fmap ToXml.toXml $ config_breadcrumbs config
         , Xml.node "clientId" [] [ToXml.toXml $ config_clientId config]
+        , ToXml.toXml $ config_routes config
         , Xml.node "user" [] [ToXml.toXml $ config_user config]
         , Xml.node "version" [] [ToXml.toXml $ config_version config]
         ]
+
+config_fromContext :: Context.Context -> Config
+config_fromContext context = Config
+    { config_baseUrl = Config.baseUrl $ Context.config context
+    , config_breadcrumbs = []
+    , config_clientId = Config.clientId $ Context.config context
+    , config_routes = Routes
+        { routes_bootstrap = Route.Bootstrap
+        , routes_favicon = Route.Favicon
+        }
+    , config_user = Nothing
+    , config_version = into @Version.Version This.version
+    }
 
 data Breadcrumb = Breadcrumb
     { breadcrumb_name :: String
@@ -84,4 +101,15 @@ instance ToXml.ToXml Breadcrumb where
     toXml breadcrumb = Xml.node "breadcrumb" []
         [ Xml.node "name" [] [ToXml.toXml $ breadcrumb_name breadcrumb]
         , Xml.node "route" [] [ToXml.toXml $ breadcrumb_route breadcrumb]
+        ]
+
+data Routes = Routes
+    { routes_bootstrap :: Route.Route
+    , routes_favicon :: Route.Route
+    } deriving (Eq, Show)
+
+instance ToXml.ToXml Routes where
+    toXml routes = Xml.node "routes" []
+        [ Xml.node "bootstrap" [] [ToXml.toXml $ routes_bootstrap routes]
+        , Xml.node "favicon" [] [ToXml.toXml $ routes_favicon routes]
         ]
