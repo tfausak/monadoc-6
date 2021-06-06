@@ -3,6 +3,7 @@ module Monadoc.Server.Application where
 import Monadoc.Prelude
 
 import qualified Data.Maybe as Maybe
+import qualified Monadoc.Handler.GetAccount as GetAccount
 import qualified Monadoc.Handler.GetFavicon as GetFavicon
 import qualified Monadoc.Handler.GetGithubCallback as GetGithubCallback
 import qualified Monadoc.Handler.GetIndex as GetIndex
@@ -41,6 +42,7 @@ getHandler request = do
         (Http.GET, Route.Version packageName version) -> Just $ GetVersion.handler packageName version
         (Http.GET, Route.Revision packageName version revision) -> Just $ GetRevision.handler packageName version revision
         (Http.GET, Route.Search) -> Just GetSearch.handler
+        (Http.GET, Route.Account) -> Just GetAccount.handler
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod

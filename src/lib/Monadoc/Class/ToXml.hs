@@ -2,6 +2,7 @@ module Monadoc.Class.ToXml where
 
 import Monadoc.Prelude
 
+import qualified Data.Time as Time
 import qualified Text.XML as Xml
 
 class ToXml a where
@@ -21,3 +22,6 @@ instance ToXml Word where
 
 instance ToXml Text where
     toXml = Xml.NodeContent
+
+instance ToXml Time.UTCTime where
+    toXml = toXml . Time.formatTime Time.defaultTimeLocale "%Y-%m-%dT%H:%M:%S%3QZ"

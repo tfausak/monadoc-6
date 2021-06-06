@@ -9,7 +9,8 @@ import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Version as Version
 
 data Route
-    = Bootstrap
+    = Account
+    | Bootstrap
     | Callback
     | Favicon
     | Index
@@ -44,6 +45,7 @@ fromStrings path = case path of
         <*> hush (tryInto @Version.Version rawVersion)
         <*> hush (tryInto @Revision.Revision rawRevision)
     ["search"] -> Just Search
+    ["account"] -> Just Account
     _ -> Nothing
 
 toString :: Route -> String
@@ -51,6 +53,7 @@ toString = cons '/' . List.intercalate "/" . toStrings
 
 toStrings :: Route -> [String]
 toStrings route = case route of
+    Account -> ["account"]
     Bootstrap -> ["static", "bootstrap.css"]
     Callback -> ["oauth", "callback"]
     Favicon -> ["favicon.ico"]

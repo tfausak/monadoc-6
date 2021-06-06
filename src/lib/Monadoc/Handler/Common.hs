@@ -85,7 +85,8 @@ config_fromContext context = Config
     , config_breadcrumbs = []
     , config_clientId = Config.clientId $ Context.config context
     , config_routes = Routes
-        { routes_bootstrap = Route.Bootstrap
+        { routes_account = Route.Account
+        , routes_bootstrap = Route.Bootstrap
         , routes_favicon = Route.Favicon
         , routes_search = Route.Search
         }
@@ -105,14 +106,16 @@ instance ToXml.ToXml Breadcrumb where
         ]
 
 data Routes = Routes
-    { routes_bootstrap :: Route.Route
+    { routes_account :: Route.Route
+    , routes_bootstrap :: Route.Route
     , routes_favicon :: Route.Route
     , routes_search :: Route.Route
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Routes where
     toXml routes = Xml.node "routes" []
-        [ Xml.node "bootstrap" [] [ToXml.toXml $ routes_bootstrap routes]
+        [ Xml.node "account" [] [ToXml.toXml $ routes_account routes]
+        , Xml.node "bootstrap" [] [ToXml.toXml $ routes_bootstrap routes]
         , Xml.node "favicon" [] [ToXml.toXml $ routes_favicon routes]
         , Xml.node "search" [] [ToXml.toXml $ routes_search routes]
         ]

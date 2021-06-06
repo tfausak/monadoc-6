@@ -63,3 +63,9 @@ selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
     \where deletedAt is null \
     \and guid = ? \
     \limit 1") [g]
+
+selectByGithubId :: Sql.Connection -> Int -> IO [Session]
+selectByGithubId c i = Sql.query c (into @Sql.Query
+    "select createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
+    \from session \
+    \where userGithubId = ?") [i]

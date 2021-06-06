@@ -59,7 +59,7 @@
                                     <xsl:variable name="user" select="normalize-space(config/user)"/>
                                     <xsl:choose>
                                         <xsl:when test="$user">
-                                            <a class="nav-link" href="#TODO">@<xsl:value-of select="$user"/></a>
+                                            <a class="nav-link" href="{$baseUrl}{normalize-space(config/routes/account)}">@<xsl:value-of select="$user"/></a>
                                         </xsl:when>
                                         <xsl:otherwise>
                                             <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={normalize-space(config/clientId)}&amp;redirect_uri={$baseUrl}/oauth/callback">Log in</a>
@@ -162,6 +162,34 @@
                     <a href="{$baseUrl}{normalize-space(route)}">
                         <xsl:value-of select="normalize-space(name)"/>
                     </a>
+                </li>
+            </xsl:for-each>
+        </ul>
+    </xsl:template>
+
+    <xsl:template match="account">
+        <h2>
+            Account
+        </h2>
+        <p>
+            Logged in as
+            <a href="https://github.com/{normalize-space(name)}">@<xsl:value-of select="normalize-space(name)"/></a>.
+        </p>
+        <form action="#TODO" method="post">
+            <button class="btn btn-outline-danger" type="submit">Log out</button>
+        </form>
+        <h3>
+            Sessions
+        </h3>
+        <ul>
+            <xsl:for-each select="sessions/session">
+                <li>
+                    <xsl:value-of select="normalize-space(createdAt)"/>:
+                    <xsl:value-of select="normalize-space(userAgent)"/>
+                    <form action="#TODO" method="post">
+                        <input type="hidden" name="guid" value="{normalize-space(guid)}"/>
+                        <button class="btn btn-outline-danger" type="submit">Revoke</button>
+                    </form>
                 </li>
             </xsl:for-each>
         </ul>

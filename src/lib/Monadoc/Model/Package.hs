@@ -12,7 +12,6 @@ import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
 
--- TODO: Add more fields to this model.
 data Package = Package
     { contents :: ByteString
     , hash :: Sha256.Sha256
