@@ -2,8 +2,9 @@ module Monadoc.Handler.GetVersion where
 
 import Monadoc.Prelude
 
+import qualified Data.List as List
+import qualified Data.Ord as Ord
 import qualified Data.Pool as Pool
-import qualified Data.Set as Set
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Package as Package
@@ -48,13 +49,11 @@ handler packageName version context request = do
                 , version_version = version
                 , version_revisions =
                     fmap
-                        (\ revision -> Revision
-                            { revision_number = revision
-                            , revision_route = Route.Revision packageName version revision
+                        (\ package -> Revision
+                            { revision_number = Package.revision package
+                            , revision_route = Route.Revision (Package.name package) (Package.version package) (Package.revision package)
                             })
-                    . Set.toDescList
-                    . Set.fromList
-                    $ fmap Package.revision packages
+                    $ List.sortOn (Ord.Down . Package.revision) packages
                 }
             }
 
