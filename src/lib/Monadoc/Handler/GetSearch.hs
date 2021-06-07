@@ -16,6 +16,7 @@ import qualified Network.Wai as Wai
 
 handler :: Handler.Handler
 handler context request = do
+    let route = Route.Search
     query <- case lookup (into @ByteString "query") $ Wai.queryString request of
         Just (Just q) -> either throwM pure $ tryInto @String q
         _ -> pure $ into @String ""
@@ -23,7 +24,7 @@ handler context request = do
         Package.selectByNameLike connection query
     maybeUser <- Common.getUser context request
     pure $ Common.makeResponse Common.Monadoc
-        { Common.monadoc_config = (Common.config_fromContext context)
+        { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
                 [ Common.Breadcrumb
                     { Common.breadcrumb_name = "Home"

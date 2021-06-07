@@ -20,6 +20,7 @@ import qualified Monadoc.Utility.Xml as Xml
 
 handler :: Handler.Handler
 handler context request = do
+    let route = Route.Account
     maybeUser <- Common.getUser context request
     user <- case maybeUser of
         Nothing -> throwM Forbidden.new
@@ -27,7 +28,7 @@ handler context request = do
     sessions <- Pool.withResource (Context.pool context) $ \ connection ->
         Session.selectByGithubId connection $ User.githubId user
     pure $ Common.makeResponse Common.Monadoc
-        { Common.monadoc_config = (Common.config_fromContext context)
+        { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
                 [ Common.Breadcrumb
                     { Common.breadcrumb_name = "Home"

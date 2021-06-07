@@ -94,8 +94,8 @@ instance ToXml.ToXml Config where
         , Xml.node "version" [] [ToXml.toXml $ config_version config]
         ]
 
-config_fromContext :: Context.Context -> Config
-config_fromContext context = Config
+config_fromContext :: Context.Context -> Route.Route -> Config
+config_fromContext context self = Config
     { config_baseUrl = Config.baseUrl $ Context.config context
     , config_breadcrumbs = []
     , config_clientId = Config.clientId $ Context.config context
@@ -107,6 +107,7 @@ config_fromContext context = Config
         , routes_logOut = Route.LogOut
         , routes_revoke = Route.Revoke
         , routes_search = Route.Search
+        , routes_self = self
         }
     , config_user = Nothing
     , config_version = into @Version.Version This.version
@@ -131,6 +132,7 @@ data Routes = Routes
     , routes_logOut :: Route.Route
     , routes_revoke :: Route.Route
     , routes_search :: Route.Route
+    , routes_self :: Route.Route
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Routes where
@@ -142,4 +144,5 @@ instance ToXml.ToXml Routes where
         , Xml.node "logOut" [] [ToXml.toXml $ routes_logOut routes]
         , Xml.node "revoke" [] [ToXml.toXml $ routes_revoke routes]
         , Xml.node "search" [] [ToXml.toXml $ routes_search routes]
+        , Xml.node "self" [] [ToXml.toXml $ routes_self routes]
         ]

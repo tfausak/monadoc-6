@@ -7,6 +7,7 @@
         method="html"/>
 
     <xsl:variable name="baseUrl" select="normalize-space(/monadoc/config/baseUrl)"/>
+    <xsl:variable name="clientId" select="normalize-space(/monadoc/config/clientId)"/>
 
     <xsl:template match="/monadoc">
         <html lang="en-US">
@@ -20,6 +21,7 @@
                     href="{$baseUrl}{normalize-space(config/routes/favicon)}"
                     rel="icon"
                     type="image/svg+xml"/>
+                <link rel="canonical" href="{$baseUrl}{normalize-space(config/routes/self)}"/>
             </head>
             <body>
                 <header class="mb-3">
@@ -62,7 +64,7 @@
                                             <a class="nav-link" href="{$baseUrl}{normalize-space(config/routes/account)}">@<xsl:value-of select="$user"/></a>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={normalize-space(config/clientId)}&amp;redirect_uri={$baseUrl}{normalize-space(config/routes/callback)}">Log in</a>
+                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$clientId}&amp;redirect_uri={$baseUrl}{normalize-space(config/routes/callback)}">Log in</a>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </li>
@@ -95,6 +97,7 @@
         <ul>
             <xsl:for-each select="packages/package">
                 <li>
+                    <xsl:value-of select="uploadedAt"/>:
                     <a href="{$baseUrl}{normalize-space(route)}">
                         <xsl:value-of select="normalize-space(name)"/>
                     </a>
@@ -174,6 +177,8 @@
         <p>
             Logged in as
             <a href="https://github.com/{normalize-space(name)}">@<xsl:value-of select="normalize-space(name)"/></a>.
+            Manage access
+            <a href="https://github.com/settings/connections/applications/{$clientId}">on GitHub</a>.
         </p>
         <form action="{$baseUrl}{normalize-space(/monadoc/config/routes/logOut)}" method="post">
             <button class="btn btn-outline-danger" type="submit">Log out</button>

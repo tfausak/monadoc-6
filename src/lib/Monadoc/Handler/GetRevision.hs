@@ -23,12 +23,13 @@ handler
     -> Revision.Revision
     -> Handler.Handler
 handler packageName version revision context request = do
+    let route = Route.Revision packageName version revision
     maybeUser <- Common.getUser context request
     maybePackage <- Pool.withResource (Context.pool context) $ \ connection ->
         Package.select connection packageName version revision
     when (Maybe.isNothing maybePackage) $ throwM NotFound.new
     pure $ Common.makeResponse Common.Monadoc
-        { Common.monadoc_config = (Common.config_fromContext context)
+        { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
                 [ Common.Breadcrumb
                     { Common.breadcrumb_name = "Home"

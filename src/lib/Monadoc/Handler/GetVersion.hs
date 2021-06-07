@@ -20,12 +20,13 @@ import qualified Monadoc.Utility.Xml as Xml
 
 handler :: PackageName.PackageName -> Version.Version -> Handler.Handler
 handler packageName version context request = do
+    let route = Route.Version packageName version
     maybeUser <- Common.getUser context request
     packages <- Pool.withResource (Context.pool context) $ \ connection ->
         Package.selectByNameAndVersion connection packageName version
     when (null packages) $ throwM NotFound.new
     pure $ Common.makeResponse Common.Monadoc
-        { Common.monadoc_config = (Common.config_fromContext context)
+        { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
                 [ Common.Breadcrumb
                     { Common.breadcrumb_name = "Home"

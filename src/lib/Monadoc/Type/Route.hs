@@ -20,7 +20,7 @@ data Route
     | Revision PackageName.PackageName Version.Version Revision.Revision
     | Revoke
     | Robots
-    | Search
+    | Search -- TODO: Include query
     | Template
     | Version PackageName.PackageName Version.Version
     deriving (Eq, Show)

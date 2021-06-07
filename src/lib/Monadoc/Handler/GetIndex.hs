@@ -3,6 +3,7 @@ module Monadoc.Handler.GetIndex where
 import Monadoc.Prelude
 
 import qualified Data.Pool as Pool
+import qualified Data.Time as Time
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Package as Package
@@ -15,10 +16,11 @@ import qualified Monadoc.Utility.Xml as Xml
 
 handler :: Handler.Handler
 handler context request = do
+    let route = Route.Index
     maybeUser <- Common.getUser context request
     packages <- Pool.withResource (Context.pool context) Package.selectRecent
     pure $ Common.makeResponse Common.Monadoc
-        { Common.monadoc_config = (Common.config_fromContext context)
+        { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
                 [ Common.Breadcrumb
                     { Common.breadcrumb_name = "Home"
@@ -32,6 +34,7 @@ handler context request = do
                 (\ package -> Package
                     { package_name = Package.name package
                     , package_route = Route.Package $ Package.name package
+                    , package_uploadedAt = Package.uploadedAt package
                     })
                 packages
             }
@@ -49,10 +52,12 @@ instance ToXml.ToXml Index where
 data Package = Package
     { package_name :: PackageName.PackageName
     , package_route :: Route.Route
+    , package_uploadedAt :: Time.UTCTime
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Package where
     toXml package = Xml.node "package" []
         [ Xml.node "name" [] [ToXml.toXml $ package_name package]
         , Xml.node "route" [] [ToXml.toXml $ package_route package]
+        , Xml.node "uploadedAt" [] [ToXml.toXml $ package_uploadedAt package]
         ]
