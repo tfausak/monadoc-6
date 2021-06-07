@@ -13,9 +13,6 @@ allow-newer:
     -- https://github.com/haskell/cabal/pull/7342
     , Cabal:Win32
 
-    -- https://github.com/haskell/process/pull/203
-    , process:Win32
-
 -- https://github.com/bos/blaze-textual/pull/14
 source-repository-package
     location: https://github.com/swamp-agr/blaze-textual
