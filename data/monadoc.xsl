@@ -107,9 +107,14 @@
     </xsl:template>
 
     <xsl:template match="package">
+        <xsl:variable name="name" select="normalize-space(name)"/>
+
         <h2>
-            <xsl:value-of select="normalize-space(name)"/>
+            <xsl:value-of select="$name"/>
         </h2>
+        <p>
+            View this package <a href="https://hackage.haskell.org/package/{$name}">on Hackage</a>.
+        </p>
         <ul>
             <xsl:for-each select="versions/version">
                 <li>
@@ -122,11 +127,17 @@
     </xsl:template>
 
     <xsl:template match="version">
+        <xsl:variable name="name" select="normalize-space(name)"/>
+        <xsl:variable name="version" select="normalize-space(version)"/>
+
         <h2>
-            <xsl:value-of select="normalize-space(name)"/>
+            <xsl:value-of select="$name"/>
             <xsl:text> </xsl:text>
-            <xsl:value-of select="normalize-space(version)"/>
+            <xsl:value-of select="$version"/>
         </h2>
+        <p>
+            View this package <a href="https://hackage.haskell.org/package/{$name}-{$version}">on Hackage</a>.
+        </p>
         <ul>
             <xsl:for-each select="revisions/revision">
                 <li>
@@ -139,13 +150,19 @@
     </xsl:template>
 
     <xsl:template match="revision">
+        <xsl:variable name="name" select="normalize-space(name)"/>
+        <xsl:variable name="version" select="normalize-space(version)"/>
+
         <h2>
-            <xsl:value-of select="normalize-space(name)"/>
+            <xsl:value-of select="$name"/>
             <xsl:text> </xsl:text>
-            <xsl:value-of select="normalize-space(version)"/>
+            <xsl:value-of select="$version"/>
             <xsl:text>-</xsl:text>
             <xsl:value-of select="normalize-space(revision)"/>
         </h2>
+        <p>
+            View this package <a href="https://hackage.haskell.org/package/{$name}-{$version}">on Hackage</a>.
+        </p>
         <ul>
             <li> author: <xsl:value-of select="author"/> </li>
             <li> bugReports: <xsl:value-of select="bugReports"/> </li>
