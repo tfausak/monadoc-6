@@ -146,6 +146,25 @@
             <xsl:text>-</xsl:text>
             <xsl:value-of select="normalize-space(revision)"/>
         </h2>
+        <ul>
+            <li> author: <xsl:value-of select="author"/> </li>
+            <li> bugReports: <xsl:value-of select="bugReports"/> </li>
+            <li> buildType: <xsl:value-of select="buildType"/> </li>
+            <li> cabalVersion: <xsl:value-of select="cabalVersion"/> </li>
+            <li> category: <xsl:value-of select="category"/> </li>
+            <li> copyright: <xsl:value-of select="copyright"/> </li>
+            <li> description: <xsl:value-of select="description"/> </li>
+            <li> homepage: <xsl:value-of select="homepage"/> </li>
+            <li> license: <xsl:value-of select="license"/> </li>
+            <li> maintainer: <xsl:value-of select="maintainer"/> </li>
+            <li> name: <xsl:value-of select="name"/> </li>
+            <li> pkgUrl: <xsl:value-of select="pkgUrl"/> </li>
+            <li> revision: <xsl:value-of select="revision"/> </li>
+            <li> stability: <xsl:value-of select="stability"/> </li>
+            <li> synopsis: <xsl:value-of select="synopsis"/> </li>
+            <li> uploadedAt: <xsl:value-of select="uploadedAt"/> </li>
+            <li> version: <xsl:value-of select="version"/> </li>
+        </ul>
     </xsl:template>
 
     <xsl:template match="search">

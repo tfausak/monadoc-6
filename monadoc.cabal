@@ -120,12 +120,15 @@ library
         Monadoc.Server.Middleware
         Monadoc.Server.Response
         Monadoc.Server.Settings
+        Monadoc.Type.BuildType
+        Monadoc.Type.CabalVersion
         Monadoc.Type.Config
         Monadoc.Type.Context
         Monadoc.Type.Flag
         Monadoc.Type.GithubUser
         Monadoc.Type.Guid
         Monadoc.Type.Handler
+        Monadoc.Type.License
         Monadoc.Type.Migration
         Monadoc.Type.OAuthResponse
         Monadoc.Type.PackageName

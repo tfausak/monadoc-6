@@ -28,8 +28,11 @@ import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
+import qualified Monadoc.Type.BuildType as BuildType
+import qualified Monadoc.Type.CabalVersion as CabalVersion
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
+import qualified Monadoc.Type.License as License
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
@@ -220,13 +223,12 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
             Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
             Just gpd -> do
                 let
-                    otherPackageName = gpd
-                        & Cabal.packageDescription
+                    pd = Cabal.packageDescription gpd
+                    otherPackageName = pd
                         & Cabal.package
                         & Cabal.pkgName
                         & into @PackageName.PackageName
-                    otherVersion = gpd
-                        & Cabal.packageDescription
+                    otherVersion = pd
                         & Cabal.package
                         & Cabal.pkgVersion
                         & into @Version.Version
@@ -238,10 +240,23 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
                     $ Mismatch.new version otherVersion
                 let
                     package = Package.Package
-                        { Package.contents
+                        { Package.author = into @Text $ Cabal.author pd
+                        , Package.bugReports = into @Text $ Cabal.bugReports pd
+                        , Package.buildType = into @BuildType.BuildType $ Cabal.buildType pd
+                        , Package.cabalVersion = into @CabalVersion.CabalVersion $ Cabal.specVersion pd
+                        , Package.category = into @Text $ Cabal.category pd
+                        , Package.contents
+                        , Package.copyright = into @Text $ Cabal.copyright pd
+                        , Package.description = into @Text $ Cabal.description pd
                         , Package.hash
+                        , Package.homepage = into @Text $ Cabal.homepage pd
+                        , Package.license = into @License.License $ Cabal.license pd
+                        , Package.maintainer = into @Text $ Cabal.maintainer pd
                         , Package.name = packageName
+                        , Package.pkgUrl = into @Text $ Cabal.pkgUrl pd
                         , Package.revision
+                        , Package.stability = into @Text $ Cabal.stability pd
+                        , Package.synopsis = into @Text $ Cabal.synopsis pd
                         , Package.uploadedAt = epochTimeToUtcTime $ Tar.entryTime entry
                         , Package.version
                         }

@@ -21,11 +21,17 @@ instance From Cabal.Version Version
 
 instance From Version Cabal.Version
 
+instance From [Int] Version where
+    from = into @Version . Cabal.mkVersion
+
+instance From Version [Int] where
+    from = Cabal.versionNumbers . into @Cabal.Version
+
 instance From Version.Version Version where
-    from = into @Version . Cabal.mkVersion . Version.versionBranch
+    from = into @Version . Version.versionBranch
 
 instance From Version Version.Version where
-    from = Version.makeVersion . Cabal.versionNumbers . into @Cabal.Version
+    from = Version.makeVersion . into @[Int]
 
 instance TryFrom String Version where
     tryFrom = maybeTryFrom $ fmap (from @Cabal.Version) . Cabal.simpleParsec
