@@ -108,6 +108,8 @@ migrations =
         \unique (name, version, revision))"
     , Migration.new 2021 6 5 17 13 0
         "create index package_uploadedAt on package (uploadedAt)"
+    , Migration.new 2021 6 8 22 20 0
+        "create index package_name on package (name)"
     ]
 
 insertOrUpdate :: Sql.Connection -> Package -> IO ()
@@ -169,13 +171,13 @@ selectRecent c = Sql.query_ c $ into @Sql.Query
     \order by uploadedAt desc \
     \limit 10"
 
-selectByNameLike :: Sql.Connection -> String -> IO [PackageName.PackageName]
-selectByNameLike c x = fmap (fmap Sql.fromOnly) $ Sql.query c (into @Sql.Query
+selectNamesLike :: Sql.Connection -> String -> IO [PackageName.PackageName]
+selectNamesLike c x = fmap (fmap Sql.fromOnly) $ Sql.query c (into @Sql.Query
     "select distinct name \
     \from package \
     \where name like ? escape ? \
     \order by uploadedAt desc \
-    \limit 10") ("%" <> escapeLike x <> "%", "\\")
+    \limit 10") (x, "\\")
 
 escapeLike :: String -> String
 escapeLike = foldMap $ \ c -> case c of

@@ -2,6 +2,7 @@ module Monadoc.Handler.GetSearch where
 
 import Monadoc.Prelude
 
+import qualified Data.Containers.ListUtils as Containers
 import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
@@ -20,8 +21,10 @@ handler context request = do
     query <- case lookup (into @ByteString "query") $ Wai.queryString request of
         Just (Just q) -> either throwM pure $ tryInto @String q
         _ -> pure $ into @String ""
-    packageNames <- Pool.withResource (Context.pool context) $ \ connection ->
-        Package.selectByNameLike connection query
+    exactMatches <- Pool.withResource (Context.pool context) $ \ connection ->
+        Package.selectNamesLike connection $ Package.escapeLike query
+    partialMatches <- Pool.withResource (Context.pool context) $ \ connection ->
+        Package.selectNamesLike connection $ "%" <> Package.escapeLike query <> "%"
     maybeUser <- Common.getUser context request
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
@@ -42,7 +45,7 @@ handler context request = do
             ,search_packages = fmap (\ packageName -> Package
                 { package_name = packageName
                 , package_route = Route.Package packageName
-                }) packageNames
+                }) . Containers.nubOrd $ exactMatches <> partialMatches
             }
         }
 
