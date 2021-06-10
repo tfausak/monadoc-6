@@ -106,26 +106,6 @@
         </ul>
     </xsl:template>
 
-    <xsl:template match="package">
-        <xsl:variable name="name" select="normalize-space(name)"/>
-
-        <h2>
-            <xsl:value-of select="$name"/>
-        </h2>
-        <p>
-            View this package <a href="https://hackage.haskell.org/package/{$name}">on Hackage</a>.
-        </p>
-        <ul>
-            <xsl:for-each select="versions/version">
-                <li>
-                    <a href="{$baseUrl}{normalize-space(route)}">
-                        <xsl:value-of select="normalize-space(number)"/>
-                    </a>
-                </li>
-            </xsl:for-each>
-        </ul>
-    </xsl:template>
-
     <xsl:template match="revision">
         <xsl:variable name="name" select="normalize-space(name)"/>
         <xsl:variable name="version" select="normalize-space(version)"/>

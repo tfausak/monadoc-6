@@ -19,12 +19,12 @@ handler :: PackageName.PackageName -> Version.Version -> Handler.Handler
 handler packageName version context _ = do
     packages <- Pool.withResource (Context.pool context) $ \ connection ->
         Package.selectByNameAndVersion connection packageName version
-    revision <- case Foldable.maximum $ fmap Package.revision packages of
+    package <- case Foldable.maximumOn Package.revision packages of
         Nothing -> throwM NotFound.new
-        Just revision -> pure revision
+        Just package -> pure package
     let
         config = Context.config context
         baseUrl = Config.baseUrl config
-        route = Route.Revision packageName version revision
+        route = Route.Revision packageName version $ Package.revision package
         location = into @ByteString $ baseUrl <> Route.toString route
     pure $ Response.status Http.found302 [(Http.hLocation, location)]
