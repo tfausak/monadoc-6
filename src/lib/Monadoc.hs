@@ -10,6 +10,7 @@ import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
+import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
@@ -93,18 +94,26 @@ createMigrationTable c = Sql.execute_ c $ into @Sql.Query
     \without rowid"
 
 runMigration :: Sql.Connection -> Migration.Migration -> IO ()
-runMigration c m = Sql.withTransaction c $ do
-    xs <- Sql.query c (into @Sql.Query "select count(*) from migration where time = ?") [Migration.time m]
-    Monad.when (xs /= [Sql.Only (1 :: Int)]) $ do
-        Sql.execute_ c $ Migration.sql m
-        now <- Time.getCurrentTime
-        Sql.execute
-            c
-            (into @Sql.Query "insert into migration (migratedAt, sql, time) values (?, ?, ?)")
-            ( now
-            , into @String $ Migration.sql m
-            , Migration.time m
-            )
+runMigration connection migration = Sql.withTransaction connection $ do
+    rows <- Sql.query connection
+        (into @Sql.Query "select sql from migration where time = ?")
+        [Migration.time migration]
+    case rows of
+        [] -> do
+            Sql.execute_ connection $ Migration.sql migration
+            now <- Time.getCurrentTime
+            Sql.execute
+                connection
+                (into @Sql.Query "insert into migration (migratedAt, sql, time) values (?, ?, ?)")
+                ( now
+                , into @String $ Migration.sql migration
+                , Migration.time migration
+                )
+        Sql.Only sql : _ -> do
+            let
+                actual = from @Text @Sql.Query sql
+                expected = Migration.sql migration
+            when (actual /= expected) . throwM $ Mismatch.new expected actual
 
 migrations :: [Migration.Migration]
 migrations = List.sortOn Migration.time $ mconcat
