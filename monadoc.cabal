@@ -140,6 +140,7 @@ library
         Monadoc.Type.VersionRange
         Monadoc.Type.Warning
         Monadoc.Utility.Convert
+        Monadoc.Utility.Foldable
         Monadoc.Utility.Log
         Monadoc.Utility.Xml
         Monadoc.Worker.Main
