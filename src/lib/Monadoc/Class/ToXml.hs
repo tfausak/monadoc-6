@@ -25,3 +25,6 @@ instance ToXml Text where
 
 instance ToXml Time.UTCTime where
     toXml = toXml . Time.formatTime Time.defaultTimeLocale "%Y-%m-%dT%H:%M:%S%3QZ"
+
+instance ToXml Bool where
+    toXml p = toXml $ if p then "true" else ""

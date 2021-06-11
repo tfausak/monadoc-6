@@ -113,9 +113,11 @@
         <h2>
             <xsl:value-of select="$name"/>
             <xsl:text> </xsl:text>
-            <xsl:value-of select="$version"/>
-            <xsl:text>-</xsl:text>
-            <xsl:value-of select="normalize-space(package/revision)"/>
+            <small class="text-muted">
+                <xsl:value-of select="$version"/>
+                <xsl:text>-</xsl:text>
+                <xsl:value-of select="normalize-space(package/revision)"/>
+            </small>
         </h2>
         <p>
             View this package <a href="https://hackage.haskell.org/package/{$name}-{$version}">on Hackage</a>.
@@ -133,6 +135,7 @@
             <li> maintainer: <xsl:value-of select="package/maintainer"/> </li>
             <li> name: <xsl:value-of select="package/name"/> </li>
             <li> pkgUrl: <xsl:value-of select="package/pkgUrl"/> </li>
+            <li> preferred: <xsl:value-of select="boolean(normalize-space(package/preferred))"/> </li>
             <li> revision: <xsl:value-of select="package/revision"/> </li>
             <li> stability: <xsl:value-of select="package/stability"/> </li>
             <li> synopsis: <xsl:value-of select="package/synopsis"/> </li>
@@ -144,6 +147,8 @@
         </h3>
         <ul>
             <xsl:for-each select="versions/version">
+                <xsl:variable name="preferred" select="boolean(normalize-space(preferred))"/>
+
                 <li>
                     <code>
                         <xsl:value-of select="normalize-space(uploadedAt)"/>
@@ -154,6 +159,9 @@
                         <xsl:text>-</xsl:text>
                         <xsl:value-of select="normalize-space(revision)"/>
                     </a>
+                    <xsl:if test="not($preferred)">
+                        (not preferred)
+                    </xsl:if>
                 </li>
             </xsl:for-each>
         </ul>
