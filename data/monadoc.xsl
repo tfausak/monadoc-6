@@ -107,37 +107,55 @@
     </xsl:template>
 
     <xsl:template match="revision">
-        <xsl:variable name="name" select="normalize-space(name)"/>
-        <xsl:variable name="version" select="normalize-space(version)"/>
+        <xsl:variable name="name" select="normalize-space(package/name)"/>
+        <xsl:variable name="version" select="normalize-space(package/version)"/>
 
         <h2>
             <xsl:value-of select="$name"/>
             <xsl:text> </xsl:text>
             <xsl:value-of select="$version"/>
             <xsl:text>-</xsl:text>
-            <xsl:value-of select="normalize-space(revision)"/>
+            <xsl:value-of select="normalize-space(package/revision)"/>
         </h2>
         <p>
             View this package <a href="https://hackage.haskell.org/package/{$name}-{$version}">on Hackage</a>.
         </p>
         <ul>
-            <li> author: <xsl:value-of select="author"/> </li>
-            <li> bugReports: <xsl:value-of select="bugReports"/> </li>
-            <li> buildType: <xsl:value-of select="buildType"/> </li>
-            <li> cabalVersion: <xsl:value-of select="cabalVersion"/> </li>
-            <li> category: <xsl:value-of select="category"/> </li>
-            <li> copyright: <xsl:value-of select="copyright"/> </li>
-            <li> description: <xsl:value-of select="description"/> </li>
-            <li> homepage: <xsl:value-of select="homepage"/> </li>
-            <li> license: <xsl:value-of select="license"/> </li>
-            <li> maintainer: <xsl:value-of select="maintainer"/> </li>
-            <li> name: <xsl:value-of select="name"/> </li>
-            <li> pkgUrl: <xsl:value-of select="pkgUrl"/> </li>
-            <li> revision: <xsl:value-of select="revision"/> </li>
-            <li> stability: <xsl:value-of select="stability"/> </li>
-            <li> synopsis: <xsl:value-of select="synopsis"/> </li>
-            <li> uploadedAt: <xsl:value-of select="uploadedAt"/> </li>
-            <li> version: <xsl:value-of select="version"/> </li>
+            <li> author: <xsl:value-of select="package/author"/> </li>
+            <li> bugReports: <xsl:value-of select="package/bugReports"/> </li>
+            <li> buildType: <xsl:value-of select="package/buildType"/> </li>
+            <li> cabalVersion: <xsl:value-of select="package/cabalVersion"/> </li>
+            <li> category: <xsl:value-of select="package/category"/> </li>
+            <li> copyright: <xsl:value-of select="package/copyright"/> </li>
+            <li> description: <xsl:value-of select="package/description"/> </li>
+            <li> homepage: <xsl:value-of select="package/homepage"/> </li>
+            <li> license: <xsl:value-of select="package/license"/> </li>
+            <li> maintainer: <xsl:value-of select="package/maintainer"/> </li>
+            <li> name: <xsl:value-of select="package/name"/> </li>
+            <li> pkgUrl: <xsl:value-of select="package/pkgUrl"/> </li>
+            <li> revision: <xsl:value-of select="package/revision"/> </li>
+            <li> stability: <xsl:value-of select="package/stability"/> </li>
+            <li> synopsis: <xsl:value-of select="package/synopsis"/> </li>
+            <li> uploadedAt: <xsl:value-of select="package/uploadedAt"/> </li>
+            <li> version: <xsl:value-of select="package/version"/> </li>
+        </ul>
+        <h3>
+            Versions
+        </h3>
+        <ul>
+            <xsl:for-each select="versions/version">
+                <li>
+                    <code>
+                        <xsl:value-of select="normalize-space(uploadedAt)"/>
+                    </code>
+                    <xsl:text>: </xsl:text>
+                    <a href="{$baseUrl}{normalize-space(route)}">
+                        <xsl:value-of select="normalize-space(number)"/>
+                        <xsl:text>-</xsl:text>
+                        <xsl:value-of select="normalize-space(revision)"/>
+                    </a>
+                </li>
+            </xsl:for-each>
         </ul>
     </xsl:template>
 

@@ -2,6 +2,8 @@ module Monadoc.Handler.GetRevision where
 
 import Monadoc.Prelude
 
+import qualified Data.List as List
+import qualified Data.Ord as Ord
 import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
@@ -27,6 +29,8 @@ handler packageName version revision context request = do
     maybePackage <- Pool.withResource (Context.pool context) $ \ connection ->
         Package.select connection packageName version revision
     package <- maybe (throwM NotFound.new) pure maybePackage
+    packages <- Pool.withResource (Context.pool context) $ \ connection ->
+        Package.selectByName connection packageName
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
@@ -50,31 +54,57 @@ handler packageName version revision context request = do
             , Common.config_user = fmap User.githubLogin maybeUser
             }
         , Common.monadoc_page = Revision
-            { revision_package = package
+            { revision_package = Package package
+            , revision_versions = packages
+                & List.sortOn (\ p -> Ord.Down (Package.version p, Package.revision p))
+                & fmap Version
             }
         }
 
-newtype Revision = Revision
-    { revision_package :: Package.Package
+data Revision = Revision
+    { revision_package :: Package
+    , revision_versions :: [Version]
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Revision where
     toXml revision = Xml.node "revision" []
-        [ Xml.node "author" [] [ToXml.toXml . Package.author $ revision_package revision]
-        , Xml.node "bugReports" [] [ToXml.toXml . Package.bugReports $ revision_package revision]
-        , Xml.node "buildType" [] [ToXml.toXml . Package.buildType $ revision_package revision]
-        , Xml.node "cabalVersion" [] [ToXml.toXml . Package.cabalVersion $ revision_package revision]
-        , Xml.node "category" [] [ToXml.toXml . Package.category $ revision_package revision]
-        , Xml.node "copyright" [] [ToXml.toXml . Package.copyright $ revision_package revision]
-        , Xml.node "description" [] [ToXml.toXml . Package.description $ revision_package revision]
-        , Xml.node "homepage" [] [ToXml.toXml . Package.homepage $ revision_package revision]
-        , Xml.node "license" [] [ToXml.toXml . Package.license $ revision_package revision]
-        , Xml.node "maintainer" [] [ToXml.toXml . Package.maintainer $ revision_package revision]
-        , Xml.node "name" [] [ToXml.toXml . Package.name $ revision_package revision]
-        , Xml.node "pkgUrl" [] [ToXml.toXml . Package.pkgUrl $ revision_package revision]
-        , Xml.node "revision" [] [ToXml.toXml . Package.revision $ revision_package revision]
-        , Xml.node "stability" [] [ToXml.toXml . Package.stability $ revision_package revision]
-        , Xml.node "synopsis" [] [ToXml.toXml . Package.synopsis $ revision_package revision]
-        , Xml.node "uploadedAt" [] [ToXml.toXml . Package.uploadedAt $ revision_package revision]
-        , Xml.node "version" [] [ToXml.toXml . Package.version $ revision_package revision]
+        [ ToXml.toXml $ revision_package revision
+        , Xml.node "versions" [] . fmap ToXml.toXml $ revision_versions revision
+        ]
+
+newtype Package = Package
+    { package_package :: Package.Package
+    } deriving (Eq, Show)
+
+instance ToXml.ToXml Package where
+    toXml (Package package) = Xml.node "package" []
+        [ Xml.node "author" [] [ToXml.toXml $ Package.author package]
+        , Xml.node "bugReports" [] [ToXml.toXml $ Package.bugReports package]
+        , Xml.node "buildType" [] [ToXml.toXml $ Package.buildType package]
+        , Xml.node "cabalVersion" [] [ToXml.toXml $ Package.cabalVersion package]
+        , Xml.node "category" [] [ToXml.toXml $ Package.category package]
+        , Xml.node "copyright" [] [ToXml.toXml $ Package.copyright package]
+        , Xml.node "description" [] [ToXml.toXml $ Package.description package]
+        , Xml.node "homepage" [] [ToXml.toXml $ Package.homepage package]
+        , Xml.node "license" [] [ToXml.toXml $ Package.license package]
+        , Xml.node "maintainer" [] [ToXml.toXml $ Package.maintainer package]
+        , Xml.node "name" [] [ToXml.toXml $ Package.name package]
+        , Xml.node "pkgUrl" [] [ToXml.toXml $ Package.pkgUrl package]
+        , Xml.node "revision" [] [ToXml.toXml $ Package.revision package]
+        , Xml.node "stability" [] [ToXml.toXml $ Package.stability package]
+        , Xml.node "synopsis" [] [ToXml.toXml $ Package.synopsis package]
+        , Xml.node "uploadedAt" [] [ToXml.toXml $ Package.uploadedAt package]
+        , Xml.node "version" [] [ToXml.toXml $ Package.version package]
+        ]
+
+newtype Version = Version
+    { version_package :: Package.Package
+    } deriving (Eq, Show)
+
+instance ToXml.ToXml Version where
+    toXml (Version package) = Xml.node "version" []
+        [ Xml.node "number" [] [ToXml.toXml $ Package.version package]
+        , Xml.node "revision" [] [ToXml.toXml $ Package.revision package]
+        , Xml.node "route" [] [ToXml.toXml $ Route.Revision (Package.name package) (Package.version package) (Package.revision package)]
+        , Xml.node "uploadedAt" [] [ToXml.toXml $ Package.uploadedAt package]
         ]
