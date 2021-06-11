@@ -6,7 +6,9 @@ import qualified Database.SQLite.Simple.FromField as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
+import qualified Distribution.Types.Version as Cabal
 import qualified Distribution.Types.VersionRange as Cabal
+import qualified Monadoc.Type.Version as Version
 
 newtype VersionRange
     = VersionRange Cabal.VersionRange
@@ -34,3 +36,6 @@ instance Sql.ToField VersionRange where
 
 any :: VersionRange
 any = from Cabal.anyVersion
+
+contains :: Version.Version -> VersionRange -> Bool
+contains v r = Cabal.withinRange (into @Cabal.Version v) (into @Cabal.VersionRange r)

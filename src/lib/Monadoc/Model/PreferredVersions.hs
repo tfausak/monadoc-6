@@ -2,6 +2,7 @@ module Monadoc.Model.PreferredVersions where
 
 import Monadoc.Prelude
 
+import qualified Data.Maybe as Maybe
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Type.Migration as Migration
@@ -42,3 +43,9 @@ upsert c = Sql.execute c $ into @Sql.Query
     \values (?, ?) \
     \on conflict (packageName) \
     \do update set versionRange = excluded.versionRange"
+
+selectByPackageName :: Sql.Connection -> PackageName.PackageName -> IO (Maybe PreferredVersions)
+selectByPackageName c n = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
+    "select packageName, versionRange \
+    \from preferredVersions \
+    \where packageName = ?") [n]
