@@ -13,6 +13,7 @@ import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Handler as Handler
+import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Route as Route
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
@@ -34,9 +35,9 @@ handler context request = do
     session <- case maybeSession of
         Nothing -> throwM NotFound.new
         Just session -> pure session
-    when (Session.userGithubId session /= User.githubId user) $ throwM Forbidden.new
+    when (Session.userGithubId (Model.value session) /= User.githubId user) $ throwM Forbidden.new
     Pool.withResource (Context.pool context) $ \ connection ->
-        Session.delete connection session
+        Session.delete connection $ Model.key session
     let
         config = Context.config context
         baseUrl = Config.baseUrl config

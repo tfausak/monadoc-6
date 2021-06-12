@@ -85,7 +85,7 @@ handler context request = do
                     }
             Pool.withResource (Context.pool context) $ \ connection -> do
                 User.insertOrUpdate connection user
-                Session.insert connection session
+                void $ Session.insert connection session
             let
                 cookie = Cookie.defaultSetCookie
                     { Cookie.setCookieHttpOnly = True

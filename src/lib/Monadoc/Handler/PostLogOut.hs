@@ -12,6 +12,7 @@ import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
+import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Route as Route
 import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Types.Header as Http
@@ -24,7 +25,7 @@ handler context request = do
         Nothing -> throwM Forbidden.new
         Just session -> pure session
     Pool.withResource (Context.pool context) $ \ connection ->
-        Session.delete connection session
+        Session.delete connection $ Model.key session
     let
         config = Context.config context
         baseUrl = Config.baseUrl config

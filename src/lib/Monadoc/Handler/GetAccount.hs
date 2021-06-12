@@ -15,6 +15,7 @@ import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Handler as Handler
+import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml
 
@@ -49,7 +50,8 @@ handler context request = do
                 , session_userAgent = Session.userAgent session
                 })
                 . List.sortOn (Ord.Down . Session.createdAt)
-                $ filter (Maybe.isNothing . Session.deletedAt) sessions
+                . filter (Maybe.isNothing . Session.deletedAt)
+                $ fmap Model.value sessions
             }
         }
 

@@ -12,6 +12,7 @@ import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
+import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
@@ -28,12 +29,12 @@ getUser context request = do
         Nothing -> pure Nothing
         Just session -> getUserWith context session
 
-getUserWith :: Context.Context -> Session.Session -> IO (Maybe User.User)
+getUserWith :: Context.Context -> Model.Model Session.Session -> IO (Maybe User.User)
 getUserWith context session =
     Pool.withResource (Context.pool context) $ \ connection ->
-        User.selectByGithubId connection $ Session.userGithubId session
+        User.selectByGithubId connection . Session.userGithubId $ Model.value session
 
-getSession :: Context.Context -> Wai.Request -> IO (Maybe Session.Session)
+getSession :: Context.Context -> Wai.Request -> IO (Maybe (Model.Model Session.Session))
 getSession context request =
     case getSessionGuid request of
         Nothing -> pure Nothing
@@ -45,7 +46,7 @@ getSessionGuid request = do
     byteString <- lookup (into @ByteString "guid") $ Cookie.parseCookies cookies
     fmap (into @Guid.Guid) $ Uuid.fromASCIIBytes byteString
 
-getSessionWith :: Context.Context -> Guid.Guid -> IO (Maybe Session.Session)
+getSessionWith :: Context.Context -> Guid.Guid -> IO (Maybe (Model.Model Session.Session))
 getSessionWith context guid =
     Pool.withResource (Context.pool context) $ \ connection ->
         Session.selectByGuid connection guid
