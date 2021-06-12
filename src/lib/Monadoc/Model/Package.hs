@@ -19,21 +19,66 @@ import qualified Monadoc.Type.Version as Version
 
 data Package = Package
     { author :: Text
+    -- ^ This is a free form text field. It is usually empty. Often it matches
+    -- one of these patterns:
+    --
+    -- - Jane Doe
+    -- - Jane Doe <jane@doe.example>
+    -- - jane@doe.example
+    -- - Jane Doe, John Smith
+    --     - Or separated by "and" or "&".
+    -- - Jane Doe and John Smith
+    -- - JaneDoe
+    --     - Presumably a Hackage user name.
+    -- - AUTHORS
+    --     - Presumably a file name that's included in the package tarball.
+    -- - Acme Software LLC
     , bugReports :: Text
+    -- ^ This is a free form text field. It is usually empty. Often it matches
+    -- one of these patterns:
+    --
+    -- - https://github.com/jane-doe/some-package/issues
+    -- - mailto:jane@doe.example
     , buildType :: BuildType.BuildType
     , cabalVersion :: CabalVersion.CabalVersion
     , category :: Text
+    -- ^ This is a free form text field. Somewhat surprisingly, it is not
+    -- usually empty. It's almost always a comma separated list of categories.
+    -- There is not fixed set of categories to pick from.
     , contents :: ByteString
     , copyright :: Text
-    , description :: Text
+    -- ^ This is a free form text field. It is usually empty. Often it looks
+    -- like the author field, but with some additional data like years. For
+    -- example:
+    --
+    -- - Jane Doe
+    -- - Jane Doe <jane@doe.example>
+    -- - Copyright (c) 1970 Jane Doe
+    -- - (c) 1970 Jane Doe
+    -- - 1970 Jane Doe
+    -- - 1970-2021 Jane Doe
+    , description :: Text -- TODO: Parse as ... Haddock?
     , hash :: Sha256.Sha256
     , homepage :: Text
+    -- ^ This is a free form text field. It is usually empty. Often it matches
+    -- one of these patterns:
+    --
+    -- - https://github.com/jane-doe/some-package
+    -- - https://some-package.github.io
+    -- - https://some-package.example
     , license :: License.License
     , maintainer :: Text
+    -- ^ This is a free form text field. It's very similar to the author field,
+    -- except it is usually not empty.
     , name :: PackageName.PackageName
     , pkgUrl :: Text
+    -- ^ This is a free form text field. It's almost always empty. It's similar
+    -- to the bug reports and homepage fields, but people seem to use it for
+    -- source code.
     , revision :: Revision.Revision
     , stability :: Text
+    -- ^ This is a free form text field. It's usually empty. There's no fixed
+    -- set of stabilities, but people often pick "experimental" or "stable".
     , synopsis :: Text
     , uploadedAt :: Time.UTCTime
     , uploadedBy :: Key.Key

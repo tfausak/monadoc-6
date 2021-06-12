@@ -9,9 +9,15 @@ import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 
+-- | This model represents a user on Hackage. You can find a user on Hackage at
+-- @https:\/\/hackage.haskell.org\/user\/:name@.
 data HackageUser = HackageUser
     { id :: Int
+    -- ^ Hackage exposes this ID in the package index, but it doesn't appear to
+    -- use it anywhere else.
     , name :: String
+    -- ^ People often use their real name in PascalCase. So for example this
+    -- might be @\"JaneDoe\"@.
     } deriving (Eq, Show)
 
 instance Sql.FromRow HackageUser where
