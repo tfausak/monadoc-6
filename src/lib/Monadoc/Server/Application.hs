@@ -52,7 +52,7 @@ getHandler request = do
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod
-getMethod = either (\ _ -> Nothing) Just . Http.parseMethod . Wai.requestMethod
+getMethod = either (always Nothing) Just . Http.parseMethod . Wai.requestMethod
 
 getRoute :: Wai.Request -> Maybe Route.Route
 getRoute = Route.fromStrings . fmap (into @String) . Wai.pathInfo

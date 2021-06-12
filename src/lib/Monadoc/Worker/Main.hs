@@ -156,7 +156,7 @@ processTarEntry
     -> Tar.Entry
     -> IO ()
 processTarEntry context revisionsVar preferredVersionsVar entry = do
-    when (not $ isValidTarEntry entry) . throwM $ UnexpectedTarEntry.new entry
+    unless (isValidTarEntry entry) . throwM $ UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
         Tar.NormalFile x _ -> pure $ into @ByteString x
         _ -> throwM $ UnexpectedTarEntry.new entry
