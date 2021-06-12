@@ -103,6 +103,7 @@ instance ToXml.ToXml Package where
         , Xml.node "stability" [] [ToXml.toXml $ Package.stability package]
         , Xml.node "synopsis" [] [ToXml.toXml $ Package.synopsis package]
         , Xml.node "uploadedAt" [] [ToXml.toXml $ Package.uploadedAt package]
+        , Xml.node "uploadedBy" [] [ToXml.toXml $ Package.uploadedBy package]
         , Xml.node "version" [] [ToXml.toXml $ Package.version package]
         ]
 

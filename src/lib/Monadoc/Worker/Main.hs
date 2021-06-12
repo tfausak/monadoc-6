@@ -26,6 +26,7 @@ import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.MissingHackageIndex as MissingHackageIndex
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.HackageIndex as HackageIndex
+import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Type.BuildType as BuildType
@@ -241,6 +242,20 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
                 when (otherVersion /= version)
                     . throwM
                     $ Mismatch.new version otherVersion
+                hackageUser <- do
+                    let
+                        ownership = Tar.entryOwnership entry
+                        name = Tar.ownerName ownership
+                        id = Tar.ownerId ownership
+                        value = HackageUser.HackageUser { HackageUser.id, HackageUser.name }
+                    maybeModel <- Pool.withResource (Context.pool context) $ \ connection ->
+                        HackageUser.selectByName connection name
+                    case maybeModel of
+                        Just model -> pure model
+                        Nothing -> do
+                            key <- Pool.withResource (Context.pool context) $ \ connection ->
+                                HackageUser.insert connection value
+                            pure Model.Model { Model.key, Model.value }
                 let
                     package = Package.Package
                         { Package.author = into @Text $ Cabal.author pd
@@ -261,6 +276,7 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
                         , Package.stability = into @Text $ Cabal.stability pd
                         , Package.synopsis = into @Text $ Cabal.synopsis pd
                         , Package.uploadedAt = epochTimeToUtcTime $ Tar.entryTime entry
+                        , Package.uploadedBy = Model.key hackageUser
                         , Package.version
                         }
                 Pool.withResource (Context.pool context) $ \ connection ->

@@ -28,3 +28,6 @@ instance ToXml Time.UTCTime where
 
 instance ToXml Bool where
     toXml p = toXml $ if p then "true" else ""
+
+instance ToXml Int64 where
+    toXml = toXml . show

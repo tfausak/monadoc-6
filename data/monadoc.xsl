@@ -140,6 +140,7 @@
             <li> stability: <xsl:value-of select="package/stability"/> </li>
             <li> synopsis: <xsl:value-of select="package/synopsis"/> </li>
             <li> uploadedAt: <xsl:value-of select="package/uploadedAt"/> </li>
+            <li> uploadedBy: <xsl:value-of select="package/uploadedBy"/> </li>
             <li> version: <xsl:value-of select="package/version"/> </li>
         </ul>
         <h3>

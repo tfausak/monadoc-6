@@ -108,6 +108,7 @@ library
         Monadoc.Handler.PostLogOut
         Monadoc.Handler.PostRevoke
         Monadoc.Model.HackageIndex
+        Monadoc.Model.HackageUser
         Monadoc.Model.Migration
         Monadoc.Model.Package
         Monadoc.Model.PreferredVersions

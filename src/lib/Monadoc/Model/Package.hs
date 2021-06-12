@@ -36,12 +36,14 @@ data Package = Package
     , stability :: Text
     , synopsis :: Text
     , uploadedAt :: Time.UTCTime
+    , uploadedBy :: Key.Key
     , version :: Version.Version
     } deriving (Eq, Show)
 
 instance Sql.FromRow Package where
     fromRow = Package
         <$> Sql.field
+        <*> Sql.field
         <*> Sql.field
         <*> Sql.field
         <*> Sql.field
@@ -81,6 +83,7 @@ instance Sql.ToRow Package where
         , Sql.toField $ stability package
         , Sql.toField $ synopsis package
         , Sql.toField $ uploadedAt package
+        , Sql.toField $ uploadedBy package
         , Sql.toField $ version package
         ]
 
@@ -107,6 +110,7 @@ migrations =
         \stability text not null, \
         \synopsis text not null, \
         \uploadedAt text not null, \
+        \uploadedBy integer not null, \
         \version text not null, \
         \unique (name, version, revision))"
     , Migration.new 2021 6 5 17 13 0
@@ -120,8 +124,8 @@ insertOrUpdate connection package = do
     Sql.execute
         connection
         (into @Sql.Query
-            "insert into package (author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version) \
-            \values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \
+            "insert into package (author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version) \
+            \values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \
             \on conflict (name, version, revision) \
             \do update set author = excluded.author, \
             \bugReports = excluded.bugReports, \
@@ -138,7 +142,8 @@ insertOrUpdate connection package = do
             \pkgUrl = excluded.pkgUrl, \
             \stability = excluded.stability, \
             \synopsis = excluded.synopsis, \
-            \uploadedAt = excluded.uploadedAt")
+            \uploadedAt = excluded.uploadedAt, \
+            \uploadedBy = excluded.uploadedBy")
         package
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
@@ -149,7 +154,7 @@ select
     -> Revision.Revision
     -> IO (Maybe (Model.Model Package))
 select c n v r = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
-    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ? \
     \and version = ? \
@@ -157,7 +162,7 @@ select c n v r = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
 
 selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Model.Model Package]
 selectByName c n = Sql.query c (into @Sql.Query
-    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ?") [n]
 
@@ -167,14 +172,14 @@ selectByNameAndVersion
     -> Version.Version
     -> IO [Model.Model Package]
 selectByNameAndVersion c n v = Sql.query c (into @Sql.Query
-    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ? \
     \and version = ?") (n, v)
 
 selectRecent :: Sql.Connection -> IO [Model.Model Package]
 selectRecent c = Sql.query_ c $ into @Sql.Query
-    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \order by uploadedAt desc \
     \limit 10"

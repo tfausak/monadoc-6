@@ -10,6 +10,7 @@ import qualified Data.Pool as Pool
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
 import qualified Monadoc.Model.HackageIndex as HackageIndex
+import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.Session as Session
@@ -86,6 +87,7 @@ enableWriteAheadLog c = Sql.execute_ c $ into @Sql.Query
 migrations :: [MMigration.Migration]
 migrations = List.sortOn MMigration.time $ mconcat
     [ HackageIndex.migrations
+    , HackageUser.migrations
     , Package.migrations
     , PreferredVersions.migrations
     , Session.migrations
