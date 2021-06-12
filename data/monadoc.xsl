@@ -97,7 +97,7 @@
         <ul>
             <xsl:for-each select="packages/package">
                 <li>
-                    <xsl:value-of select="uploadedAt"/>:
+                    <xsl:value-of select="normalize-space(uploadedAt)"/>:
                     <a href="{$baseUrl}{normalize-space(route)}">
                         <xsl:value-of select="normalize-space(name)"/>
                     </a>

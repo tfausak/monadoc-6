@@ -14,13 +14,28 @@ import qualified Data.Map as Map
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Data.Time.Clock.POSIX as Time
+import qualified Distribution.Compiler as Cabal
+import qualified Distribution.PackageDescription.Configuration as Cabal
 import qualified Distribution.PackageDescription.Parsec as Cabal
 import qualified Distribution.Parsec as Cabal
+import qualified Distribution.System as Cabal
+import qualified Distribution.Types.Benchmark as Cabal
+import qualified Distribution.Types.Component as Cabal
+import qualified Distribution.Types.ComponentRequestedSpec as Cabal
+import qualified Distribution.Types.Dependency as Cabal
+import qualified Distribution.Types.Executable as Cabal
+import qualified Distribution.Types.Flag as Cabal
+import qualified Distribution.Types.ForeignLib as Cabal
 import qualified Distribution.Types.GenericPackageDescription as Cabal
+import qualified Distribution.Types.Library as Cabal
+import qualified Distribution.Types.LibraryName as Cabal
 import qualified Distribution.Types.PackageDescription as Cabal
 import qualified Distribution.Types.PackageId as Cabal
 import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.PackageVersionConstraint as Cabal
+import qualified Distribution.Types.TestSuite as Cabal
+import qualified Distribution.Types.UnqualComponentName as Cabal
+import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.MissingHackageIndex as MissingHackageIndex
@@ -226,8 +241,10 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
         case Cabal.parseGenericPackageDescriptionMaybe contents of
             Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
             Just gpd -> do
+                pd <- case toPackageDescription gpd of
+                    Left dependencies -> throwM $ userError $ "invalid package description: " <> show dependencies
+                    Right (pd, _) -> pure pd
                 let
-                    pd = Cabal.packageDescription gpd
                     otherPackageName = pd
                         & Cabal.package
                         & Cabal.pkgName
@@ -281,6 +298,9 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
                         }
                 Pool.withResource (Context.pool context) $ \ connection ->
                     void $ Package.insertOrUpdate connection package
+                pd -- TODO
+                    & Cabal.pkgComponents
+                    & traverse_ (\ component -> Log.info $ "[component] " <> into @String packageName <> ":" <> componentName component)
 
 epochTimeToUtcTime :: Tar.EpochTime -> Time.UTCTime
 epochTimeToUtcTime = into @Time.UTCTime
@@ -302,3 +322,29 @@ getTarEntryPath :: Tar.Entry -> ([FilePath], String)
 getTarEntryPath entry =
     let (prefix, suffix) = FilePath.splitExtensions $ Tar.entryPath entry
     in (FilePath.splitDirectories prefix, suffix)
+
+-- | Although the generic package description type does have a package
+-- description in it, that nested PD isn't actually usable. This function is
+-- necessary in order to choose the platform, compiler, flags, and other stuff.
+toPackageDescription
+    :: Cabal.GenericPackageDescription
+    -> Either [Cabal.Dependency] (Cabal.PackageDescription, Cabal.FlagAssignment)
+toPackageDescription = Cabal.finalizePD
+    (Cabal.mkFlagAssignment [])
+    Cabal.defaultComponentRequestedSpec
+    (always True)
+    (Cabal.Platform Cabal.X86_64 Cabal.Linux)
+    (Cabal.unknownCompilerInfo (Cabal.CompilerId Cabal.GHC (Cabal.mkVersion [9, 0, 1])) Cabal.NoAbiTag)
+    []
+
+componentName :: Cabal.Component -> String
+componentName component = case component of
+    Cabal.CLib library -> case Cabal.libName library of
+        Cabal.LMainLibName -> "lib"
+        Cabal.LSubLibName unqualComponentName -> "lib:" <> Cabal.unUnqualComponentName unqualComponentName
+    -- Only a handful of libraries have foreign libraries: hexchat, HABQT,
+    -- perceptual-hash, and toysolver.
+    Cabal.CFLib foreignLib -> "flib:" <> Cabal.unUnqualComponentName (Cabal.foreignLibName foreignLib)
+    Cabal.CExe executable -> "exe:" <> Cabal.unUnqualComponentName (Cabal.exeName executable)
+    Cabal.CTest testSuite -> "test:" <> Cabal.unUnqualComponentName (Cabal.testName testSuite)
+    Cabal.CBench benchmark -> "bench:" <> Cabal.unUnqualComponentName (Cabal.benchmarkName benchmark)
