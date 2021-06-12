@@ -28,7 +28,7 @@ handler context request = do
                     , Common.breadcrumb_route = Nothing
                     }
                 ]
-            , Common.config_user = fmap User.githubLogin maybeUser
+            , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Common.monadoc_page = Index
             { index_packages = fmap

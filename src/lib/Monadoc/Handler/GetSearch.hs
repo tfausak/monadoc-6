@@ -10,6 +10,7 @@ import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
+import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml
@@ -38,7 +39,7 @@ handler context request = do
                     , Common.breadcrumb_route = Nothing
                     }
                 ]
-            , Common.config_user = fmap User.githubLogin maybeUser
+            , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Common.monadoc_page = Search
             { search_query = query

@@ -22,14 +22,14 @@ import qualified Paths_monadoc as This
 import qualified Text.XML as Xml
 import qualified Web.Cookie as Cookie
 
-getUser :: Context.Context -> Wai.Request -> IO (Maybe User.User)
+getUser :: Context.Context -> Wai.Request -> IO (Maybe (Model.Model User.User))
 getUser context request = do
     maybeSession <- getSession context request
     case maybeSession of
         Nothing -> pure Nothing
         Just session -> getUserWith context session
 
-getUserWith :: Context.Context -> Model.Model Session.Session -> IO (Maybe User.User)
+getUserWith :: Context.Context -> Model.Model Session.Session -> IO (Maybe (Model.Model User.User))
 getUserWith context session =
     Pool.withResource (Context.pool context) $ \ connection ->
         User.selectByGithubId connection . Session.userGithubId $ Model.value session

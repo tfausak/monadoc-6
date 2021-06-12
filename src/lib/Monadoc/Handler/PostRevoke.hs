@@ -35,7 +35,7 @@ handler context request = do
     session <- case maybeSession of
         Nothing -> throwM NotFound.new
         Just session -> pure session
-    when (Session.userGithubId (Model.value session) /= User.githubId user) $ throwM Forbidden.new
+    when (Session.userGithubId (Model.value session) /= User.githubId (Model.value user)) $ throwM Forbidden.new
     Pool.withResource (Context.pool context) $ \ connection ->
         Session.delete connection $ Model.key session
     let

@@ -57,7 +57,7 @@ handler packageName version revision context request = do
                     , Common.breadcrumb_route = Nothing
                     }
                 ]
-            , Common.config_user = fmap User.githubLogin maybeUser
+            , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Common.monadoc_page = Revision
             { revision_package = Package (Model.value package) (VersionRange.contains (Package.version $ Model.value package) versionRange)

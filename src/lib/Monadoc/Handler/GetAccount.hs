@@ -27,7 +27,7 @@ handler context request = do
         Nothing -> throwM Forbidden.new
         Just user -> pure user
     sessions <- Pool.withResource (Context.pool context) $ \ connection ->
-        Session.selectByGithubId connection $ User.githubId user
+        Session.selectByGithubId connection . User.githubId $ Model.value user
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
@@ -40,10 +40,10 @@ handler context request = do
                     , Common.breadcrumb_route = Nothing
                     }
                 ]
-            , Common.config_user = fmap User.githubLogin maybeUser
+            , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Common.monadoc_page = Account
-            { account_name = User.githubLogin user
+            { account_name = User.githubLogin $ Model.value user
             , account_sessions = fmap (\ session -> Session
                 { session_createdAt = Session.createdAt session
                 , session_guid = Session.guid session
