@@ -13,6 +13,7 @@ import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
+import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Route as Route
@@ -59,8 +60,9 @@ handler packageName version revision context request = do
             , Common.config_user = fmap User.githubLogin maybeUser
             }
         , Common.monadoc_page = Revision
-            { revision_package = Package package (VersionRange.contains (Package.version package) versionRange)
+            { revision_package = Package (Model.value package) (VersionRange.contains (Package.version $ Model.value package) versionRange)
             , revision_versions = packages
+                & fmap Model.value
                 & List.sortOn (\ p -> Ord.Down (Package.version p, Package.revision p))
                 & fmap (\ p -> Version p (VersionRange.contains (Package.version p) versionRange))
             }

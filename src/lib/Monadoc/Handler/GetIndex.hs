@@ -10,6 +10,7 @@ import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
+import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml
@@ -32,9 +33,9 @@ handler context request = do
         , Common.monadoc_page = Index
             { index_packages = fmap
                 (\ package -> Package
-                    { package_name = Package.name package
-                    , package_route = Route.Package $ Package.name package
-                    , package_uploadedAt = Package.uploadedAt package
+                    { package_name = Package.name $ Model.value package
+                    , package_route = Route.Package . Package.name $ Model.value package
+                    , package_uploadedAt = Package.uploadedAt $ Model.value package
                     })
                 packages
             }

@@ -213,7 +213,7 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
     maybePackage <- Pool.withResource (Context.pool context) $ \ connection ->
         Package.select connection packageName version revision
     let hash = Sha256.hash contents
-    when (fmap Package.hash maybePackage /= Just hash) $ do
+    when (fmap (Package.hash . Model.value) maybePackage /= Just hash) $ do
         Log.info
             $ into @String hash
             <> " "
@@ -264,7 +264,7 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
                         , Package.version
                         }
                 Pool.withResource (Context.pool context) $ \ connection ->
-                    Package.insertOrUpdate connection package
+                    void $ Package.insertOrUpdate connection package
 
 epochTimeToUtcTime :: Tar.EpochTime -> Time.UTCTime
 epochTimeToUtcTime = into @Time.UTCTime

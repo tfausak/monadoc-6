@@ -8,8 +8,10 @@ import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Type.BuildType as BuildType
 import qualified Monadoc.Type.CabalVersion as CabalVersion
+import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.License as License
 import qualified Monadoc.Type.Migration as Migration
+import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
@@ -86,7 +88,8 @@ migrations :: [Migration.Migration]
 migrations =
     [ Migration.new 2021 6 5 8 11 0
         "create table package \
-        \(author text not null, \
+        \(key integer not null primary key, \
+        \author text not null, \
         \bugReports text not null, \
         \buildType text not null, \
         \cabalVersion text not null, \
@@ -112,44 +115,49 @@ migrations =
         "create index package_name on package (name)"
     ]
 
-insertOrUpdate :: Sql.Connection -> Package -> IO ()
-insertOrUpdate c = Sql.execute c $ into @Sql.Query
-    "insert into package (author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version) \
-    \values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \
-    \on conflict (name, version, revision) \
-    \do update set author = excluded.author, \
-    \bugReports = excluded.bugReports, \
-    \buildType = excluded.buildType, \
-    \cabalVersion = excluded.cabalVersion, \
-    \category = excluded.category, \
-    \contents = excluded.contents, \
-    \copyright = excluded.copyright, \
-    \description = excluded.description, \
-    \hash = excluded.hash, \
-    \homepage = excluded.homepage, \
-    \license = excluded.license, \
-    \maintainer = excluded.maintainer, \
-    \pkgUrl = excluded.pkgUrl, \
-    \stability = excluded.stability, \
-    \synopsis = excluded.synopsis, \
-    \uploadedAt = excluded.uploadedAt"
+insertOrUpdate :: Sql.Connection -> Package -> IO Key.Key
+insertOrUpdate connection package = do
+    Sql.execute
+        connection
+        (into @Sql.Query
+            "insert into package (author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version) \
+            \values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \
+            \on conflict (name, version, revision) \
+            \do update set author = excluded.author, \
+            \bugReports = excluded.bugReports, \
+            \buildType = excluded.buildType, \
+            \cabalVersion = excluded.cabalVersion, \
+            \category = excluded.category, \
+            \contents = excluded.contents, \
+            \copyright = excluded.copyright, \
+            \description = excluded.description, \
+            \hash = excluded.hash, \
+            \homepage = excluded.homepage, \
+            \license = excluded.license, \
+            \maintainer = excluded.maintainer, \
+            \pkgUrl = excluded.pkgUrl, \
+            \stability = excluded.stability, \
+            \synopsis = excluded.synopsis, \
+            \uploadedAt = excluded.uploadedAt")
+        package
+    fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 select
     :: Sql.Connection
     -> PackageName.PackageName
     -> Version.Version
     -> Revision.Revision
-    -> IO (Maybe Package)
+    -> IO (Maybe (Model.Model Package))
 select c n v r = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
-    "select author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
     \from package \
     \where name = ? \
     \and version = ? \
     \and revision = ?") (n, v, r)
 
-selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Package]
+selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Model.Model Package]
 selectByName c n = Sql.query c (into @Sql.Query
-    "select author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
     \from package \
     \where name = ?") [n]
 
@@ -157,16 +165,16 @@ selectByNameAndVersion
     :: Sql.Connection
     -> PackageName.PackageName
     -> Version.Version
-    -> IO [Package]
+    -> IO [Model.Model Package]
 selectByNameAndVersion c n v = Sql.query c (into @Sql.Query
-    "select author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
     \from package \
     \where name = ? \
     \and version = ?") (n, v)
 
-selectRecent :: Sql.Connection -> IO [Package]
+selectRecent :: Sql.Connection -> IO [Model.Model Package]
 selectRecent c = Sql.query_ c $ into @Sql.Query
-    "select author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, version \
     \from package \
     \order by uploadedAt desc \
     \limit 10"

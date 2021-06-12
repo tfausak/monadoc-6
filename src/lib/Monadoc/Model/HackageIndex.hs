@@ -41,7 +41,7 @@ select connection = fmap Maybe.listToMaybe
     . Sql.query_ connection
     $ into @Sql.Query "select key, contents, size from hackageIndex limit 1"
 
-insert :: Sql.Connection -> HackageIndex -> IO Int64
+insert :: Sql.Connection -> HackageIndex -> IO Key.Key
 insert connection hackageIndex = do
     rows <- Sql.query_ connection $ into @Sql.Query "select count(*) from hackageIndex"
     when (rows /= [[0 :: Int]]) $ throwM DuplicateHackageIndex.new
@@ -49,7 +49,7 @@ insert connection hackageIndex = do
         connection
         (into @Sql.Query "insert into hackageIndex (contents, size) values (?, ?)")
         hackageIndex
-    Sql.lastInsertRowId connection
+    fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 update :: Sql.Connection -> Key.Key -> HackageIndex -> IO ()
 update connection key hackageIndex = Sql.execute connection
