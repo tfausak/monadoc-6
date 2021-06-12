@@ -7,7 +7,7 @@ import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Type.Key as Key
-import qualified Monadoc.Type.Migration as Migration
+import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Model as Model
 
 data User = User

@@ -108,6 +108,7 @@ library
         Monadoc.Handler.PostLogOut
         Monadoc.Handler.PostRevoke
         Monadoc.Model.HackageIndex
+        Monadoc.Model.Migration
         Monadoc.Model.Package
         Monadoc.Model.PreferredVersions
         Monadoc.Model.Session
@@ -130,7 +131,6 @@ library
         Monadoc.Type.Handler
         Monadoc.Type.Key
         Monadoc.Type.License
-        Monadoc.Type.Migration
         Monadoc.Type.Model
         Monadoc.Type.OAuthResponse
         Monadoc.Type.PackageName

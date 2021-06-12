@@ -7,10 +7,8 @@ import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
 import qualified Data.Pool as Pool
-import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified GHC.Conc as Ghc
-import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
@@ -21,7 +19,6 @@ import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Flag as Flag
-import qualified Monadoc.Type.Migration as Migration
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Log as Log
@@ -30,6 +27,7 @@ import qualified Paths_monadoc as This
 import qualified System.Console.GetOpt as Console
 import qualified System.Environment as Environment
 import qualified System.Exit as Exit
+import qualified Monadoc.Model.Migration as MMigration
 
 defaultMain :: IO ()
 defaultMain = do
@@ -43,8 +41,8 @@ mainWith name arguments = do
     context <- getContext name arguments
     Pool.withResource (Context.pool context) $ \ connection -> do
         enableWriteAheadLog connection
-        createMigrationTable connection
-        traverse_ (runMigration connection) migrations
+        MMigration.createTable connection
+        traverse_ (MMigration.run connection) migrations
     Exception.onException
         (Async.race_ (Server.run context) (Worker.run context))
         . Pool.destroyAllResources $ Context.pool context
@@ -85,38 +83,8 @@ enableWriteAheadLog :: Sql.Connection -> IO ()
 enableWriteAheadLog c = Sql.execute_ c $ into @Sql.Query
     "pragma journal_mode = wal"
 
-createMigrationTable :: Sql.Connection -> IO ()
-createMigrationTable c = Sql.execute_ c $ into @Sql.Query
-    "create table if not exists migration \
-    \(migratedAt text not null, \
-    \sql text not null, \
-    \time text not null primary key) \
-    \without rowid"
-
-runMigration :: Sql.Connection -> Migration.Migration -> IO ()
-runMigration connection migration = Sql.withTransaction connection $ do
-    rows <- Sql.query connection
-        (into @Sql.Query "select sql from migration where time = ?")
-        [Migration.time migration]
-    case rows of
-        [] -> do
-            Sql.execute_ connection $ Migration.sql migration
-            now <- Time.getCurrentTime
-            Sql.execute
-                connection
-                (into @Sql.Query "insert into migration (migratedAt, sql, time) values (?, ?, ?)")
-                ( now
-                , into @String $ Migration.sql migration
-                , Migration.time migration
-                )
-        Sql.Only sql : _ -> do
-            let
-                actual = from @Text @Sql.Query sql
-                expected = Migration.sql migration
-            when (actual /= expected) . throwM $ Mismatch.new expected actual
-
-migrations :: [Migration.Migration]
-migrations = List.sortOn Migration.time $ mconcat
+migrations :: [MMigration.Migration]
+migrations = List.sortOn MMigration.time $ mconcat
     [ HackageIndex.migrations
     , Package.migrations
     , PreferredVersions.migrations

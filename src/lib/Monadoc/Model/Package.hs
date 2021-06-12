@@ -10,7 +10,7 @@ import qualified Monadoc.Type.BuildType as BuildType
 import qualified Monadoc.Type.CabalVersion as CabalVersion
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.License as License
-import qualified Monadoc.Type.Migration as Migration
+import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
