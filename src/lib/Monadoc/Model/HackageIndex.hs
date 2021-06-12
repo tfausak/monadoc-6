@@ -7,7 +7,9 @@ import qualified Data.Maybe as Maybe
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Exception.DuplicateHackageIndex as DuplicateHackageIndex
+import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Migration as Migration
+import qualified Monadoc.Type.Model as Model
 
 data HackageIndex = HackageIndex
     { contents :: ByteString
@@ -29,15 +31,17 @@ migrations :: [Migration.Migration]
 migrations =
     [ Migration.new 2021 5 29 14 45 0
         "create table hackageIndex \
-        \(contents blob not null, \
+        \(key integer not null primary key, \
+        \contents blob not null, \
         \size integer not null)"
     ]
 
-select :: Sql.Connection -> IO (Maybe HackageIndex)
-select c = fmap Maybe.listToMaybe . Sql.query_ c $ into @Sql.Query
-    "select contents, size from hackageIndex limit 1"
+select :: Sql.Connection -> IO (Maybe (Model.Model HackageIndex))
+select connection = fmap Maybe.listToMaybe
+    . Sql.query_ connection
+    $ into @Sql.Query "select key, contents, size from hackageIndex limit 1"
 
-insert :: Sql.Connection -> HackageIndex -> IO ()
+insert :: Sql.Connection -> HackageIndex -> IO Int64
 insert connection hackageIndex = do
     rows <- Sql.query_ connection $ into @Sql.Query "select count(*) from hackageIndex"
     when (rows /= [[0 :: Int]]) $ throwM DuplicateHackageIndex.new
@@ -45,10 +49,12 @@ insert connection hackageIndex = do
         connection
         (into @Sql.Query "insert into hackageIndex (contents, size) values (?, ?)")
         hackageIndex
+    Sql.lastInsertRowId connection
 
-update :: Sql.Connection -> HackageIndex -> IO ()
-update c = Sql.execute c $ into @Sql.Query
-    "update hackageIndex set contents = ?, size = ?"
+update :: Sql.Connection -> Key.Key -> HackageIndex -> IO ()
+update connection key hackageIndex = Sql.execute connection
+    (into @Sql.Query "update hackageIndex set contents = ?, size = ? where key = ?")
+    (contents hackageIndex, size hackageIndex, key)
 
 -- The Hackage index has this many null bytes at the end.
 offset :: Int

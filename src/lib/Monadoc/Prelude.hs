@@ -29,7 +29,7 @@ module Monadoc.Prelude (
     Data.Int.Int8,
     Data.List.NonEmpty.NonEmpty,
     Data.Map.Map,
-    Data.Proxy.Proxy,
+    Data.Proxy.Proxy(Proxy),
     Data.Ratio.Ratio,
     Data.Set.Set,
     Data.Text.Text,
