@@ -1,0 +1,55 @@
+module Monadoc.Model.Component where
+
+import Monadoc.Prelude
+
+import qualified Data.Maybe as Maybe
+import qualified Database.SQLite.Simple as Sql
+import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Model.Migration as Migration
+import qualified Monadoc.Type.ComponentTag as ComponentTag
+import qualified Monadoc.Type.Key as Key
+import qualified Monadoc.Type.Model as Model
+
+data Component = Component
+    { name :: String
+    , package :: Key.Key
+    , tag :: ComponentTag.ComponentTag
+    } deriving (Eq, Show)
+
+instance Sql.FromRow Component where
+    fromRow = Component
+        <$> Sql.field
+        <*> Sql.field
+        <*> Sql.field
+
+instance Sql.ToRow Component where
+    toRow component =
+        [ Sql.toField $ name component
+        , Sql.toField $ package component
+        , Sql.toField $ tag component
+        ]
+
+migrations :: [Migration.Migration]
+migrations =
+    [ Migration.new 2021 6 12 17 32 0
+        "create table component \
+        \(key integer not null primary key, \
+        \name text not null, \
+        \package integer not null, \
+        \tag text not null, \
+        \unique (package, tag, name))"
+    ]
+
+select :: Sql.Connection -> Key.Key -> ComponentTag.ComponentTag -> String -> IO (Maybe (Model.Model Component))
+select connection package tag name = fmap Maybe.listToMaybe $ Sql.query
+    connection
+    (into @Sql.Query "select key, name, package, tag from component where package = ? and tag = ? and name = ?")
+    (package, tag, name)
+
+insert :: Sql.Connection -> Component -> IO Key.Key
+insert connection component = do
+    Sql.execute
+        connection
+        (into @Sql.Query "insert into component (name, package, tag) values (?, ?, ?)")
+        component
+    fmap (from @Int64) $ Sql.lastInsertRowId connection

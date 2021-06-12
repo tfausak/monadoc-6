@@ -107,6 +107,7 @@ library
         Monadoc.Handler.GetVersion
         Monadoc.Handler.PostLogOut
         Monadoc.Handler.PostRevoke
+        Monadoc.Model.Component
         Monadoc.Model.HackageIndex
         Monadoc.Model.HackageUser
         Monadoc.Model.Migration
@@ -124,6 +125,7 @@ library
         Monadoc.Server.Settings
         Monadoc.Type.BuildType
         Monadoc.Type.CabalVersion
+        Monadoc.Type.ComponentTag
         Monadoc.Type.Config
         Monadoc.Type.Context
         Monadoc.Type.Flag

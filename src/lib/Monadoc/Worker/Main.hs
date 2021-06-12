@@ -21,6 +21,7 @@ import qualified Distribution.Parsec as Cabal
 import qualified Distribution.System as Cabal
 import qualified Distribution.Types.Benchmark as Cabal
 import qualified Distribution.Types.Component as Cabal
+import qualified Distribution.Types.ComponentName as Cabal
 import qualified Distribution.Types.ComponentRequestedSpec as Cabal
 import qualified Distribution.Types.Dependency as Cabal
 import qualified Distribution.Types.Executable as Cabal
@@ -40,12 +41,14 @@ import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.MissingHackageIndex as MissingHackageIndex
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
+import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Type.BuildType as BuildType
 import qualified Monadoc.Type.CabalVersion as CabalVersion
+import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.License as License
@@ -296,11 +299,31 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
                         , Package.uploadedBy = Model.key hackageUser
                         , Package.version
                         }
-                Pool.withResource (Context.pool context) $ \ connection ->
-                    void $ Package.insertOrUpdate connection package
+                key <- Pool.withResource (Context.pool context) $ \ connection ->
+                    Package.insertOrUpdate connection package
                 pd -- TODO
                     & Cabal.pkgComponents
-                    & traverse_ (\ component -> Log.info $ "[component] " <> into @String packageName <> ":" <> componentName component)
+                    & traverse_ (\ component -> do
+                        let
+                            tag = case component of
+                                Cabal.CLib _ -> ComponentTag.Library
+                                Cabal.CFLib _ -> ComponentTag.ForeignLibrary
+                                Cabal.CExe _ -> ComponentTag.Executable
+                                Cabal.CTest _ -> ComponentTag.TestSuite
+                                Cabal.CBench _ -> ComponentTag.Benchmark
+                            name = maybe (into @String packageName) Cabal.unUnqualComponentName
+                                . Cabal.componentNameString
+                                $ Cabal.componentName component
+                        maybeComponent <- Pool.withResource (Context.pool context) $ \ connection ->
+                            Component.select connection key tag name
+                        case maybeComponent of
+                            Just _ -> pure ()
+                            Nothing -> Pool.withResource (Context.pool context) $ \ connection ->
+                                void $ Component.insert connection Component.Component
+                                    { Component.name
+                                    , Component.package = key
+                                    , Component.tag
+                                    })
 
 epochTimeToUtcTime :: Tar.EpochTime -> Time.UTCTime
 epochTimeToUtcTime = into @Time.UTCTime
