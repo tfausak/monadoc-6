@@ -36,7 +36,7 @@ handler packageName version revision context request = do
         Package.selectByName connection packageName
     maybePreferredVersions <- Pool.withResource (Context.pool context) $ \ connection ->
         PreferredVersions.selectByPackageName connection packageName
-    let versionRange = maybe VersionRange.any PreferredVersions.versionRange maybePreferredVersions
+    let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =

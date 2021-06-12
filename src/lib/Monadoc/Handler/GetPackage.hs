@@ -23,7 +23,7 @@ handler packageName context _ = do
         Package.selectByName connection packageName
     maybePreferredVersions <- Pool.withResource (Context.pool context) $ \ connection ->
         PreferredVersions.selectByPackageName connection packageName
-    let versionRange = maybe VersionRange.any PreferredVersions.versionRange maybePreferredVersions
+    let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions
     package <- packages
         & fmap Model.value
         & filter (\ p -> VersionRange.contains (Package.version p) versionRange)
