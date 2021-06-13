@@ -95,8 +95,9 @@ handler context request = do
                     , Cookie.setCookieSecure = Config.isSecure config
                     , Cookie.setCookieValue = Uuid.toASCIIBytes $ into @Uuid.UUID guid
                     }
-                -- TODO: Redirect to where the user was originally.
-                location = into @ByteString $ baseUrl <> Route.toString Route.Index
+                location = case lookup (into @ByteString "state") $ Wai.queryString request of
+                    Just (Just x) -> into @ByteString baseUrl <> x
+                    _ -> into @ByteString $ baseUrl <> Route.toString Route.Index
             pure $ Response.status Http.found302
                 [ (Http.hLocation, location)
                 , (Http.hSetCookie, into @ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
