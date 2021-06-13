@@ -5,6 +5,7 @@ import Monadoc.Prelude
 import qualified Data.CaseInsensitive as CI
 import qualified GHC.Clock as Clock
 import qualified Monadoc.Server.Settings as Settings
+import qualified Monadoc.Type.RequestId as RequestId
 import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
@@ -15,14 +16,20 @@ import qualified Text.Printf as Printf
 -- first, then it will go to @b@, then the application will handle it, then @b@
 -- will get the response, then it will go to @a@.
 middleware :: Wai.Middleware
-middleware = logRequests . addSecurityHeaders . handleExceptions
+middleware = addRequestId . logRequests . addSecurityHeaders . handleExceptions
+
+addRequestId :: Wai.Middleware
+addRequestId f request respond = do
+    requestId <- RequestId.random
+    f (RequestId.set requestId request) respond
 
 logRequests :: Wai.Middleware
 logRequests f request respond = do
     before <- Clock.getMonotonicTime
     f request $ \ response -> do
         after <- Clock.getMonotonicTime
-        Log.info $ Printf.printf "%s %s%s %d %.3f"
+        Log.info $ Printf.printf "[%04x] %s %s%s %d %.3f"
+            (maybe 0 (into @Word16) $ RequestId.get request)
             (unsafeInto @Text $ Wai.requestMethod request)
             (unsafeInto @Text $ Wai.rawPathInfo request)
             (unsafeInto @Text $ Wai.rawQueryString request)

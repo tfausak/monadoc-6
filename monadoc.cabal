@@ -78,6 +78,7 @@ library
         , text ^>= 1.2.4
         , time ^>= 1.11.1
         , uuid ^>= 1.3.15
+        , vault ^>= 0.3.1
         , wai ^>= 3.2.3
         , warp ^>= 3.3.15
         , witch ^>= 0.3.3
@@ -142,6 +143,7 @@ library
         Monadoc.Type.OAuthResponse
         Monadoc.Type.PackageName
         Monadoc.Type.Port
+        Monadoc.Type.RequestId
         Monadoc.Type.Revision
         Monadoc.Type.Route
         Monadoc.Type.Sha256
