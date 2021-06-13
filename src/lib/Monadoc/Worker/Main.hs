@@ -48,6 +48,7 @@ import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Type.BuildType as BuildType
 import qualified Monadoc.Type.CabalVersion as CabalVersion
+import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
@@ -311,7 +312,7 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
                                 Cabal.CExe _ -> ComponentTag.Executable
                                 Cabal.CTest _ -> ComponentTag.TestSuite
                                 Cabal.CBench _ -> ComponentTag.Benchmark
-                            name = maybe (into @String packageName) Cabal.unUnqualComponentName
+                            name = maybe (into @ComponentName.ComponentName packageName) (into @ComponentName.ComponentName)
                                 . Cabal.componentNameString
                                 $ Cabal.componentName component
                         maybeComponent <- Pool.withResource (Context.pool context) $ \ connection ->

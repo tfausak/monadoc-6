@@ -99,6 +99,7 @@ library
         Monadoc.Handler.Common
         Monadoc.Handler.GetAccount
         Monadoc.Handler.GetCallback
+        Monadoc.Handler.GetComponent
         Monadoc.Handler.GetFavicon
         Monadoc.Handler.GetIndex
         Monadoc.Handler.GetPackage
@@ -125,6 +126,8 @@ library
         Monadoc.Server.Settings
         Monadoc.Type.BuildType
         Monadoc.Type.CabalVersion
+        Monadoc.Type.ComponentId
+        Monadoc.Type.ComponentName
         Monadoc.Type.ComponentTag
         Monadoc.Type.Config
         Monadoc.Type.Context

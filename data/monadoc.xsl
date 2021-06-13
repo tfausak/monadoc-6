@@ -171,11 +171,13 @@
                 <xsl:variable name="componentName" select="normalize-space(name)"/>
 
                 <li>
-                    <xsl:value-of select="normalize-space(tag)"/>
-                    <xsl:if test="$componentName">
-                        <xsl:text>:</xsl:text>
-                        <xsl:value-of select="$componentName"/>
-                    </xsl:if>
+                    <a href="{$baseUrl}{normalize-space(route)}">
+                        <xsl:value-of select="normalize-space(tag)"/>
+                        <xsl:if test="$componentName">
+                            <xsl:text>:</xsl:text>
+                            <xsl:value-of select="$componentName"/>
+                        </xsl:if>
+                    </a>
                 </li>
             </xsl:for-each>
         </ul>
@@ -254,5 +256,9 @@
                 </li>
             </xsl:for-each>
         </ul>
+    </xsl:template>
+
+    <xsl:template match="component">
+        TODO
     </xsl:template>
 </xsl:stylesheet>

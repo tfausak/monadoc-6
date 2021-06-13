@@ -12,6 +12,8 @@ import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.User as User
+import qualified Monadoc.Type.ComponentId as ComponentId
+import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
@@ -72,7 +74,7 @@ handler packageName version revision context request = do
             , revision_components = components
                 & fmap Model.value
                 & List.sortOn (\ c -> (Component.tag c, Component.name c))
-                & fmap (toComponent packageName)
+                & fmap (toComponent $ Model.value package)
             }
         }
 
@@ -133,20 +135,28 @@ instance ToXml.ToXml Version where
 
 data Component = Component
     { component_tag :: ComponentTag.ComponentTag
-    , component_name :: Maybe String
+    , component_name :: Maybe ComponentName.ComponentName
+    , component_route :: Route.Route
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Component where
     toXml component = Xml.node "component" []
         [ Xml.node "tag" [] [ToXml.toXml $ component_tag component]
         , Xml.node "name" [] [ToXml.toXml $ component_name component]
+        , Xml.node "route" [] [ToXml.toXml $ component_route component]
         ]
 
-toComponent :: PackageName.PackageName -> Component.Component -> Component
-toComponent p c =
+toComponent :: Package.Package -> Component.Component -> Component
+toComponent package component =
     let
-        t = Component.tag c
-        n = Component.name c
-    in if t == ComponentTag.Library && n == into @String p
-        then Component t Nothing
-        else Component t $ Just n
+        tag = Component.tag component
+        name = Component.name component
+        isLibrary = tag == ComponentTag.Library
+        namesMatch = into @PackageName.PackageName name == Package.name package
+        maybeName = if isLibrary && namesMatch then Nothing else Just name
+        route = Route.Component
+            (Package.name package)
+            (Package.version package)
+            (Package.revision package)
+            (ComponentId.ComponentId tag maybeName)
+    in Component tag maybeName route

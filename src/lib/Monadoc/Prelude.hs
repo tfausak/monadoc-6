@@ -64,6 +64,7 @@ module Monadoc.Prelude (
     Control.Monad.Catch.displayException,
     Control.Monad.Catch.handle,
     Control.Monad.Catch.throwM,
+    Control.Monad.guard,
     Control.Monad.unless,
     Control.Monad.void,
     Control.Monad.when,

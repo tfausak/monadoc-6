@@ -4,6 +4,7 @@ import Monadoc.Prelude
 
 import qualified Data.List as List
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Type.ComponentId as ComponentId
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Version as Version
@@ -13,6 +14,7 @@ data Route
     = Account
     | Bootstrap
     | Callback
+    | Component PackageName.PackageName Version.Version Revision.Revision ComponentId.ComponentId
     | Favicon
     | Index
     | LogOut
@@ -51,6 +53,11 @@ parse path query = case path of
     ["account"] -> Just Account
     ["account", "log-out"] -> Just LogOut
     ["account", "revoke"] -> Just Revoke
+    ["package", rawPackageName, rawVersion, rawRevision, rawComponentId] -> Component
+        <$> hush (tryInto @PackageName.PackageName rawPackageName)
+        <*> hush (tryInto @Version.Version rawVersion)
+        <*> hush (tryInto @Revision.Revision rawRevision)
+        <*> hush (tryInto @ComponentId.ComponentId rawComponentId)
     _ -> Nothing
 
 getQuery :: Http.Query -> Maybe (Maybe String)
@@ -70,6 +77,7 @@ render route = case route of
     Account -> (["account"], [])
     Bootstrap -> (["static", "bootstrap.css"], [])
     Callback -> (["account", "callback"], [])
+    Component packageName version revision componentId -> (["package", into @String packageName, into @String version, into @String revision, into @String componentId], [])
     Favicon -> (["favicon.ico"], [])
     Index -> ([], [])
     LogOut -> (["account", "log-out"], [])
