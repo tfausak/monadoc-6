@@ -4,11 +4,11 @@ import Monadoc.Prelude
 
 import qualified Data.Pool as Pool
 import qualified Monadoc.Exception.Forbidden as Forbidden
+import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
-import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
@@ -41,5 +41,5 @@ handler context request = do
     let
         config = Context.config context
         baseUrl = Config.baseUrl config
-        location = into @ByteString $ baseUrl <> Route.toString Route.Account
-    pure $ Response.status Http.found302 [(Http.hLocation, location)]
+        location = baseUrl <> Route.toString Route.Account
+    throwM $ Found.new location

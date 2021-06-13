@@ -89,6 +89,7 @@ library
         Monadoc.Exception.BadHackageIndexSize
         Monadoc.Exception.DuplicateHackageIndex
         Monadoc.Exception.Forbidden
+        Monadoc.Exception.Found
         Monadoc.Exception.InvalidJson
         Monadoc.Exception.Mismatch
         Monadoc.Exception.MissingCode
