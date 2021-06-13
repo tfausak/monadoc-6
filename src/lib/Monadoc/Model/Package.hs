@@ -17,6 +17,8 @@ import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
 
+-- TODO: add source repositories
+
 data Package = Package
     { author :: Text
     -- ^ This is a free form text field. It is usually empty. Often it matches

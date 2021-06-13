@@ -2,10 +2,10 @@ module Monadoc.Type.ComponentTag where
 
 import Monadoc.Prelude
 
-import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.FromField as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Utility.Sql as Sql
 
 data ComponentTag
     = Benchmark
@@ -33,11 +33,7 @@ instance From ComponentTag String where
         TestSuite -> "test"
 
 instance Sql.FromField ComponentTag where
-    fromField field = do
-        string <- Sql.fromField field
-        case tryFrom @String string of
-            Left _-> Sql.returnError Sql.ConversionFailed field "invalid ComponentTag"
-            Right componentTag -> pure componentTag
+    fromField = Sql.defaultFromField @String Proxy
 
 instance Sql.ToField ComponentTag where
     toField = Sql.toField . into @String

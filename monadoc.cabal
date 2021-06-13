@@ -151,6 +151,7 @@ library
         Monadoc.Utility.Convert
         Monadoc.Utility.Foldable
         Monadoc.Utility.Log
+        Monadoc.Utility.Sql
         Monadoc.Utility.Xml
         Monadoc.Worker.Main
         Paths_monadoc

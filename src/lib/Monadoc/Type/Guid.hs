@@ -3,10 +3,10 @@ module Monadoc.Type.Guid where
 import Monadoc.Prelude
 
 import qualified Data.UUID as Uuid
-import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.FromField as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Utility.Sql as Sql
 import qualified System.Random.Stateful as Random
 
 newtype Guid
@@ -14,11 +14,7 @@ newtype Guid
     deriving (Eq, Show)
 
 instance Sql.FromField Guid where
-    fromField field = do
-        text <- Sql.fromField field
-        case tryFrom @Text text of
-            Left _ -> Sql.returnError Sql.ConversionFailed field "invalid Guid"
-            Right guid -> pure guid
+    fromField = Sql.defaultFromField @Text Proxy
 
 instance Sql.ToField Guid where
     toField = Sql.toField . into @Text

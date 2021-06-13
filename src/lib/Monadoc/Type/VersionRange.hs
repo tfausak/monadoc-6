@@ -9,6 +9,7 @@ import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Distribution.Types.VersionRange as Cabal
 import qualified Monadoc.Type.Version as Version
+import qualified Monadoc.Utility.Sql as Sql
 
 newtype VersionRange
     = VersionRange Cabal.VersionRange
@@ -25,11 +26,7 @@ instance TryFrom String VersionRange where
     tryFrom = maybeTryFrom $ fmap (from @Cabal.VersionRange) . Cabal.simpleParsec
 
 instance Sql.FromField VersionRange where
-    fromField field = do
-        string <- Sql.fromField field
-        case tryFrom @String string of
-            Left _ -> Sql.returnError Sql.ConversionFailed field "invalid VersionRange"
-            Right versionRange -> pure versionRange
+    fromField = Sql.defaultFromField @String Proxy
 
 instance Sql.ToField VersionRange where
     toField = Sql.toField . into @String

@@ -8,6 +8,7 @@ import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.BuildType as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Utility.Sql as Sql
 
 newtype BuildType
     = BuildType Cabal.BuildType
@@ -24,11 +25,7 @@ instance From BuildType String where
     from = Cabal.prettyShow . into @Cabal.BuildType
 
 instance Sql.FromField BuildType where
-    fromField field = do
-        string <- Sql.fromField field
-        case tryFrom @String string of
-            Left _-> Sql.returnError Sql.ConversionFailed field "invalid BuildType"
-            Right buildType -> pure buildType
+    fromField = Sql.defaultFromField @String Proxy
 
 instance Sql.ToField BuildType where
     toField = Sql.toField . into @String

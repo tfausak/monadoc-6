@@ -8,6 +8,7 @@ import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.SPDX.License as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Utility.Sql as Sql
 
 newtype License
     = License Cabal.License
@@ -24,11 +25,7 @@ instance From License String where
     from = Cabal.prettyShow . into @Cabal.License
 
 instance Sql.FromField License where
-    fromField field = do
-        string <- Sql.fromField field
-        case tryFrom @String string of
-            Left _-> Sql.returnError Sql.ConversionFailed field "invalid License"
-            Right license -> pure license
+    fromField = Sql.defaultFromField @String Proxy
 
 instance Sql.ToField License where
     toField = Sql.toField . into @String

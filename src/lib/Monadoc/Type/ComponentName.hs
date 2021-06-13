@@ -9,6 +9,7 @@ import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.UnqualComponentName as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Utility.Sql as Sql
 
 newtype ComponentName
     = ComponentName Cabal.UnqualComponentName
@@ -25,11 +26,7 @@ instance From ComponentName String where
     from = Cabal.unUnqualComponentName . into @Cabal.UnqualComponentName
 
 instance Sql.FromField ComponentName where
-    fromField field = do
-        string <- Sql.fromField field
-        case tryFrom @String string of
-            Left _ -> Sql.returnError Sql.ConversionFailed field "invalid ComponentName"
-            Right componentName -> pure componentName
+    fromField = Sql.defaultFromField @String Proxy
 
 instance Sql.ToField ComponentName where
     toField = Sql.toField . into @String

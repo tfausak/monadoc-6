@@ -7,6 +7,7 @@ import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Distribution.CabalSpecVersion as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Version as Version
+import qualified Monadoc.Utility.Sql as Sql
 
 newtype CabalVersion
     = CabalVersion Cabal.CabalSpecVersion
@@ -29,11 +30,7 @@ instance From CabalVersion Version.Version where
     from = into @Version.Version . into @[Int]
 
 instance Sql.FromField CabalVersion where
-    fromField field = do
-        version <- Sql.fromField field
-        case tryFrom @Version.Version version of
-            Left _ -> Sql.returnError Sql.ConversionFailed field "invalid CabalVersion"
-            Right cabalVersion -> pure cabalVersion
+    fromField = Sql.defaultFromField @Version.Version Proxy
 
 instance Sql.ToField CabalVersion where
     toField = Sql.toField . into @Version.Version
