@@ -72,7 +72,7 @@ handler packageName version revision context request = do
             , revision_components = components
                 & fmap Model.value
                 & List.sortOn (\ c -> (Component.tag c, Component.name c))
-                & fmap (\ c -> Component (Component.tag c) (Component.name c))
+                & fmap (toComponent packageName)
             }
         }
 
@@ -133,7 +133,7 @@ instance ToXml.ToXml Version where
 
 data Component = Component
     { component_tag :: ComponentTag.ComponentTag
-    , component_name :: String
+    , component_name :: Maybe String
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Component where
@@ -141,3 +141,12 @@ instance ToXml.ToXml Component where
         [ Xml.node "tag" [] [ToXml.toXml $ component_tag component]
         , Xml.node "name" [] [ToXml.toXml $ component_name component]
         ]
+
+toComponent :: PackageName.PackageName -> Component.Component -> Component
+toComponent p c =
+    let
+        t = Component.tag c
+        n = Component.name c
+    in if t == ComponentTag.Library && n == into @String p
+        then Component t Nothing
+        else Component t $ Just n
