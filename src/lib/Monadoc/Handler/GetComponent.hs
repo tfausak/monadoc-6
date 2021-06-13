@@ -2,15 +2,21 @@ module Monadoc.Handler.GetComponent where
 
 import Monadoc.Prelude
 
+import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
+import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
+import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.ComponentId as ComponentId
+import qualified Monadoc.Type.ComponentName as ComponentName
+import qualified Monadoc.Type.ComponentTag as ComponentTag
+import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Model as Model
@@ -18,6 +24,7 @@ import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
+import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Log as Log
 
 handler
@@ -27,6 +34,18 @@ handler
     -> ComponentId.ComponentId
     -> Handler.Handler
 handler packageName version revision componentId context request = do
+    let
+        config = Context.config context
+        baseUrl = Config.baseUrl config
+        componentTag = ComponentId.tag componentId
+        isLibrary = componentTag == ComponentTag.Library
+        maybeComponentName = ComponentId.name componentId
+        namesMatch = maybeComponentName == Just (into @ComponentName.ComponentName packageName)
+
+    -- Redirect foo:lib:foo to foo:lib.
+    when (isLibrary && namesMatch) . throwM . Found.new $ baseUrl <> Route.toString
+        (Route.Component packageName version revision $ ComponentId.ComponentId componentTag Nothing)
+
     let route = Route.Component packageName version revision componentId
     maybeUser <- Common.getUser context request
     maybePackage <- Pool.withResource (Context.pool context) $ \ connection ->
@@ -34,11 +53,30 @@ handler packageName version revision componentId context request = do
     package <- maybe (throwM NotFound.new) pure maybePackage
     allComponents <- Pool.withResource (Context.pool context) $ \ connection ->
         Component.selectByPackage connection $ Model.key package
-    let componentsByTag = groupBy (Component.tag . Model.value) allComponents
+    let componentsByTag = Foldable.groupBy (Component.tag . Model.value) allComponents
     components <- case Map.lookup (ComponentId.tag componentId) componentsByTag of
         Nothing -> throwM NotFound.new
         Just components -> pure components
-    Log.info $ show components -- TODO
+
+    -- Redirect foo:exe to foo:exe:bar when there is only one executable. Same
+    -- for all component types except library.
+    when (not isLibrary && Maybe.isNothing maybeComponentName)
+        $ case NonEmpty.toList components of
+            [component] -> throwM . Found.new $ baseUrl <> Route.toString
+                ( Route.Component packageName version revision
+                . ComponentId.ComponentId componentTag
+                . Just
+                . Component.name
+                $ Model.value component
+                )
+            _ -> pure ()
+
+    let componentName = Maybe.fromMaybe (into @ComponentName.ComponentName packageName) maybeComponentName
+    component <- components
+        & List.find ((== componentName) . Component.name . Model.value)
+        & maybe (throwM NotFound.new) pure
+
+    Log.info $ show component -- TODO
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
@@ -67,10 +105,3 @@ handler packageName version revision componentId context request = do
             }
         , Common.monadoc_page = "TODO"
         }
-
-groupBy :: (Ord k, Foldable t) => (v -> k) -> t v -> Map k (NonEmpty v)
-groupBy f = foldr
-    (\ v -> Map.alter
-        (Just . maybe (NonEmpty.singleton v) (NonEmpty.cons v))
-        (f v))
-    Map.empty
