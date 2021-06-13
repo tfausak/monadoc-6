@@ -14,9 +14,7 @@ newtype PackageName
     deriving (Eq, Ord, Show)
 
 instance TryFrom String PackageName where
-    tryFrom = maybeTryFrom $ \ s -> case Cabal.simpleParsec s of
-        Nothing -> Nothing
-        Just n -> Just $ from @Cabal.PackageName n
+    tryFrom = eitherTryFrom $ bimap userError (from @Cabal.PackageName) . Cabal.eitherParsec
 
 instance From PackageName String where
     from = Cabal.unPackageName . into @Cabal.PackageName

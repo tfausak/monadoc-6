@@ -20,7 +20,7 @@ instance From Cabal.UnqualComponentName ComponentName
 instance From ComponentName Cabal.UnqualComponentName
 
 instance TryFrom String ComponentName where
-    tryFrom = maybeTryFrom $ fmap (from @Cabal.UnqualComponentName) . Cabal.simpleParsec
+    tryFrom = eitherTryFrom $ bimap userError (from @Cabal.UnqualComponentName) . Cabal.eitherParsec
 
 instance From ComponentName String where
     from = Cabal.unUnqualComponentName . into @Cabal.UnqualComponentName

@@ -19,7 +19,7 @@ instance From Cabal.License License
 instance From License Cabal.License
 
 instance TryFrom String License where
-    tryFrom = maybeTryFrom $ fmap (from @Cabal.License) . Cabal.simpleParsec
+    tryFrom = eitherTryFrom $ bimap userError (from @Cabal.License) . Cabal.eitherParsec
 
 instance From License String where
     from = Cabal.prettyShow . into @Cabal.License

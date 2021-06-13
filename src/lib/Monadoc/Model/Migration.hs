@@ -47,12 +47,12 @@ new
     -> Fixed.Pico
     -> String
     -> Migration
-new year month day hour minute second q = Migration
+new year month day hour minute sec q = Migration
     { migratedAt = Nothing
     , sql = into @Text q
     , time = Time.UTCTime (Time.fromGregorian year month day)
         . Time.timeOfDayToTime
-        $ Time.TimeOfDay hour minute second
+        $ Time.TimeOfDay hour minute sec
     }
 
 selectByTime :: Sql.Connection -> Time.UTCTime -> IO (Maybe (Model.Model Migration))

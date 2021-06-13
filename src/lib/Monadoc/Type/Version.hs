@@ -35,7 +35,7 @@ instance From Version Version.Version where
     from = Version.makeVersion . into @[Int]
 
 instance TryFrom String Version where
-    tryFrom = maybeTryFrom $ fmap (from @Cabal.Version) . Cabal.simpleParsec
+    tryFrom = eitherTryFrom $ bimap userError (from @Cabal.Version) . Cabal.eitherParsec
 
 instance Sql.FromField Version where
     fromField = Sql.defaultFromField @String Proxy
