@@ -354,7 +354,7 @@ toPackageDescription
     -> Either [Cabal.Dependency] (Cabal.PackageDescription, Cabal.FlagAssignment)
 toPackageDescription = Cabal.finalizePD
     (Cabal.mkFlagAssignment [])
-    Cabal.defaultComponentRequestedSpec
+    Cabal.ComponentRequestedSpec { Cabal.testsRequested = True, Cabal.benchmarksRequested = True }
     (always True)
     (Cabal.Platform Cabal.X86_64 Cabal.Linux)
     (Cabal.unknownCompilerInfo (Cabal.CompilerId Cabal.GHC (Cabal.mkVersion [9, 0, 1])) Cabal.NoAbiTag)

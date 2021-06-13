@@ -5,6 +5,7 @@ import Monadoc.Prelude
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.FromField as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Class.ToXml as ToXml
 
 data ComponentTag
     = Benchmark
@@ -12,7 +13,7 @@ data ComponentTag
     | ForeignLibrary
     | Library
     | TestSuite
-    deriving (Eq, Show)
+    deriving (Eq, Ord, Show)
 
 instance TryFrom String ComponentTag where
     tryFrom = maybeTryFrom $ \ string -> case string of
@@ -40,3 +41,6 @@ instance Sql.FromField ComponentTag where
 
 instance Sql.ToField ComponentTag where
     toField = Sql.toField . into @String
+
+instance ToXml.ToXml ComponentTag where
+    toXml = ToXml.toXml . into @String

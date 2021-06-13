@@ -8,9 +8,11 @@ import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
+import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.User as User
+import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Model as Model
@@ -37,6 +39,8 @@ handler packageName version revision context request = do
     maybePreferredVersions <- Pool.withResource (Context.pool context) $ \ connection ->
         PreferredVersions.selectByPackageName connection packageName
     let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions
+    components <- Pool.withResource (Context.pool context) $ \ connection ->
+        Component.selectByPackage connection $ Model.key package
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
@@ -65,18 +69,24 @@ handler packageName version revision context request = do
                 & fmap Model.value
                 & List.sortOn (\ p -> Ord.Down (Package.version p, Package.revision p))
                 & fmap (\ p -> Version p (VersionRange.contains (Package.version p) versionRange))
+            , revision_components = components
+                & fmap Model.value
+                & List.sortOn (\ c -> (Component.tag c, Component.name c))
+                & fmap (\ c -> Component (Component.tag c) (Component.name c))
             }
         }
 
 data Revision = Revision
     { revision_package :: Package
     , revision_versions :: [Version]
+    , revision_components :: [Component]
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Revision where
     toXml revision = Xml.node "revision" []
         [ ToXml.toXml $ revision_package revision
         , Xml.node "versions" [] . fmap ToXml.toXml $ revision_versions revision
+        , Xml.node "components" [] . fmap ToXml.toXml $ revision_components revision
         ]
 
 data Package = Package
@@ -119,4 +129,15 @@ instance ToXml.ToXml Version where
         , Xml.node "revision" [] [ToXml.toXml $ Package.revision package]
         , Xml.node "route" [] [ToXml.toXml $ Route.Revision (Package.name package) (Package.version package) (Package.revision package)]
         , Xml.node "uploadedAt" [] [ToXml.toXml $ Package.uploadedAt package]
+        ]
+
+data Component = Component
+    { component_tag :: ComponentTag.ComponentTag
+    , component_name :: String
+    } deriving (Eq, Show)
+
+instance ToXml.ToXml Component where
+    toXml component = Xml.node "component" []
+        [ Xml.node "tag" [] [ToXml.toXml $ component_tag component]
+        , Xml.node "name" [] [ToXml.toXml $ component_name component]
         ]

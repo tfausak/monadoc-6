@@ -38,6 +38,8 @@ migrations =
         \package integer not null, \
         \tag text not null, \
         \unique (package, tag, name))"
+    , Migration.new 2021 6 12 22 21 0
+        "create index component_package on component (package)"
     ]
 
 select :: Sql.Connection -> Key.Key -> ComponentTag.ComponentTag -> String -> IO (Maybe (Model.Model Component))
@@ -45,6 +47,12 @@ select connection package tag name = fmap Maybe.listToMaybe $ Sql.query
     connection
     (into @Sql.Query "select key, name, package, tag from component where package = ? and tag = ? and name = ?")
     (package, tag, name)
+
+selectByPackage :: Sql.Connection -> Key.Key -> IO [Model.Model Component]
+selectByPackage connection package = Sql.query
+    connection
+    (into @Sql.Query "select key, name, package, tag from component where package = ?")
+    [package]
 
 insert :: Sql.Connection -> Component -> IO Key.Key
 insert connection component = do

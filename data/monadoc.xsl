@@ -144,6 +144,18 @@
             <li> version: <xsl:value-of select="package/version"/> </li>
         </ul>
         <h3>
+            Components
+        </h3>
+        <ul>
+            <xsl:for-each select="components/component">
+                <li>
+                    <xsl:value-of select="normalize-space(tag)"/>
+                    <xsl:text>:</xsl:text>
+                    <xsl:value-of select="normalize-space(name)"/>
+                </li>
+            </xsl:for-each>
+        </ul>
+        <h3>
             Versions
         </h3>
         <ul>
