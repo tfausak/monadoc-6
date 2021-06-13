@@ -107,7 +107,7 @@ config_fromContext context self = Config
         , routes_favicon = Route.Favicon
         , routes_logOut = Route.LogOut
         , routes_revoke = Route.Revoke
-        , routes_search = Route.Search
+        , routes_search = Route.Search Nothing
         , routes_self = self
         }
     , config_user = Nothing

@@ -45,7 +45,7 @@ getHandler request = do
         (Http.GET, Route.Package packageName) -> Just $ GetPackage.handler packageName
         (Http.GET, Route.Version packageName version) -> Just $ GetVersion.handler packageName version
         (Http.GET, Route.Revision packageName version revision) -> Just $ GetRevision.handler packageName version revision
-        (Http.GET, Route.Search) -> Just GetSearch.handler
+        (Http.GET, Route.Search query) -> Just $ GetSearch.handler query
         (Http.GET, Route.Account) -> Just GetAccount.handler
         (Http.POST, Route.LogOut) -> Just PostLogOut.handler
         (Http.POST, Route.Revoke) -> Just PostRevoke.handler
@@ -55,7 +55,11 @@ getMethod :: Wai.Request -> Maybe Http.StdMethod
 getMethod = either (always Nothing) Just . Http.parseMethod . Wai.requestMethod
 
 getRoute :: Wai.Request -> Maybe Route.Route
-getRoute = Route.fromStrings . fmap (into @String) . Wai.pathInfo
+getRoute request =
+    let
+        path = fmap (into @String) $ Wai.pathInfo request
+        query = Wai.queryString request
+    in Route.parse path query
 
 fileHandler :: FilePath -> String -> Handler.Handler
 fileHandler relative mime context _ = do

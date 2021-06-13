@@ -3,6 +3,7 @@ module Monadoc.Handler.GetSearch where
 import Monadoc.Prelude
 
 import qualified Data.Containers.ListUtils as Containers
+import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
@@ -14,14 +15,12 @@ import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml
-import qualified Network.Wai as Wai
 
-handler :: Handler.Handler
-handler context request = do
-    let route = Route.Search
-    query <- case lookup (into @ByteString "query") $ Wai.queryString request of
-        Just (Just q) -> either throwM pure $ tryInto @String q
-        _ -> pure $ into @String ""
+handler :: Maybe String -> Handler.Handler
+handler maybeQuery context request = do
+    let
+        route = Route.Search maybeQuery
+        query = Maybe.fromMaybe "" maybeQuery
     exactMatches <- Pool.withResource (Context.pool context) $ \ connection ->
         Package.selectNamesLike connection $ Package.escapeLike query
     partialMatches <- Pool.withResource (Context.pool context) $ \ connection ->

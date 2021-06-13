@@ -301,7 +301,7 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
                         }
                 key <- Pool.withResource (Context.pool context) $ \ connection ->
                     Package.insertOrUpdate connection package
-                pd -- TODO
+                pd
                     & Cabal.pkgComponents
                     & traverse_ (\ component -> do
                         let

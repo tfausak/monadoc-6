@@ -7,6 +7,7 @@ import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Version as Version
+import qualified Network.HTTP.Types as Http
 
 data Route
     = Account
@@ -20,7 +21,7 @@ data Route
     | Revision PackageName.PackageName Version.Version Revision.Revision
     | Revoke
     | Robots
-    | Search -- TODO: Include query
+    | Search (Maybe String)
     | Template
     | Version PackageName.PackageName Version.Version
     deriving (Eq, Show)
@@ -28,8 +29,8 @@ data Route
 instance ToXml.ToXml Route where
     toXml = ToXml.toXml . toString
 
-fromStrings :: [String] -> Maybe Route
-fromStrings path = case path of
+parse :: [String] -> Http.Query -> Maybe Route
+parse path query = case path of
     [] -> Just Index
     ["static", "bootstrap.css"] -> Just Bootstrap
     ["favicon.ico"] -> Just Favicon
@@ -46,28 +47,37 @@ fromStrings path = case path of
         <$> hush (tryInto @PackageName.PackageName rawPackageName)
         <*> hush (tryInto @Version.Version rawVersion)
         <*> hush (tryInto @Revision.Revision rawRevision)
-    ["search"] -> Just Search
+    ["search"] -> Search <$> getQuery query
     ["account"] -> Just Account
     ["account", "log-out"] -> Just LogOut
     ["account", "revoke"] -> Just Revoke
     _ -> Nothing
 
-toString :: Route -> String
-toString = cons '/' . List.intercalate "/" . toStrings
+getQuery :: Http.Query -> Maybe (Maybe String)
+getQuery query = case lookup (into @ByteString "query") query of
+    Just (Just x) -> case tryInto @String x of
+        Left _ -> Nothing
+        Right y -> Just $ Just y
+    _ -> Just Nothing
 
-toStrings :: Route -> [String]
-toStrings route = case route of
-    Account -> ["account"]
-    Bootstrap -> ["static", "bootstrap.css"]
-    Callback -> ["account", "callback"]
-    Favicon -> ["favicon.ico"]
-    Index -> []
-    LogOut -> ["account", "log-out"]
-    Logo -> ["static", "monadoc.svg"]
-    Package packageName -> ["package", into @String packageName]
-    Revision packageName version revision -> ["package", into @String packageName, into @String version, into @String revision]
-    Revoke -> ["account", "revoke"]
-    Robots -> ["robots.txt"]
-    Search -> ["search"]
-    Template -> ["static", "monadoc.xsl"]
-    Version packageName version -> ["package", into @String packageName, into @String version]
+toString :: Route -> String
+toString route =
+    let (path, query) = render route
+    in cons '/' (List.intercalate "/" path) <> unsafeInto @String (Http.renderQuery True query)
+
+render :: Route -> ([String], Http.Query)
+render route = case route of
+    Account -> (["account"], [])
+    Bootstrap -> (["static", "bootstrap.css"], [])
+    Callback -> (["account", "callback"], [])
+    Favicon -> (["favicon.ico"], [])
+    Index -> ([], [])
+    LogOut -> (["account", "log-out"], [])
+    Logo -> (["static", "monadoc.svg"], [])
+    Package packageName -> (["package", into @String packageName], [])
+    Revision packageName version revision -> (["package", into @String packageName, into @String version, into @String revision], [])
+    Revoke -> (["account", "revoke"], [])
+    Robots -> (["robots.txt"], [])
+    Search maybeQuery -> (["search"], maybe [] (\ query -> [(into @ByteString "query", Just $ into @ByteString query)]) maybeQuery)
+    Template -> (["static", "monadoc.xsl"], [])
+    Version packageName version -> (["package", into @String packageName, into @String version], [])
