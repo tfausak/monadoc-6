@@ -260,5 +260,10 @@
 
     <xsl:template match="component">
         TODO
+        <xsl:value-of select="package"/>
+        <xsl:value-of select="version"/>
+        <xsl:value-of select="revision"/>
+        <xsl:value-of select="tag"/>
+        <xsl:value-of select="name"/>
     </xsl:template>
 </xsl:stylesheet>

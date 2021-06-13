@@ -7,6 +7,7 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Data.Pool as Pool
+import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
@@ -25,7 +26,7 @@ import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Foldable as Foldable
-import qualified Monadoc.Utility.Log as Log
+import qualified Monadoc.Utility.Xml as Xml
 
 handler
     :: PackageName.PackageName
@@ -76,7 +77,6 @@ handler packageName version revision componentId context request = do
         & List.find ((== componentName) . Component.name . Model.value)
         & maybe (throwM NotFound.new) pure
 
-    Log.info $ show component -- TODO
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
@@ -103,5 +103,22 @@ handler packageName version revision componentId context request = do
                 ]
             , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Common.monadoc_page = "TODO"
+        , Common.monadoc_page = Component
+            { component_package = Model.value package
+            , component_component = Model.value component
+            }
         }
+
+data Component = Component
+    { component_package :: Package.Package
+    , component_component :: Component.Component
+    } deriving (Eq, Show)
+
+instance ToXml.ToXml Component where
+    toXml component = Xml.node "component" []
+        [ Xml.node "package" [] [ToXml.toXml . Package.name $ component_package component]
+        , Xml.node "version" [] [ToXml.toXml . Package.version $ component_package component]
+        , Xml.node "revision" [] [ToXml.toXml . Package.revision $ component_package component]
+        , Xml.node "tag" [] [ToXml.toXml . Component.tag $ component_component component]
+        , Xml.node "name" [] [ToXml.toXml . Component.name $ component_component component]
+        ]
