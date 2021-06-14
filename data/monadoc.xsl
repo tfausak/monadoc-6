@@ -96,6 +96,8 @@
         </h2>
         <ul>
             <xsl:for-each select="packages/package">
+                <xsl:variable name="revision" select="normalize-space(revision)"/>
+
                 <li>
                     <code>
                         <xsl:value-of select="normalize-space(uploadedAt)"/>
@@ -105,8 +107,10 @@
                         <xsl:value-of select="normalize-space(name)"/>
                         <xsl:text>-</xsl:text>
                         <xsl:value-of select="normalize-space(version)"/>
-                        <xsl:text>-</xsl:text>
-                        <xsl:value-of select="normalize-space(revision)"/>
+                        <xsl:if test="$revision != 0">
+                            <xsl:text>-</xsl:text>
+                            <xsl:value-of select="$revision"/>
+                        </xsl:if>
                     </a>
                 </li>
             </xsl:for-each>
@@ -116,6 +120,7 @@
     <xsl:template match="revision">
         <xsl:variable name="name" select="normalize-space(package/name)"/>
         <xsl:variable name="version" select="normalize-space(package/version)"/>
+        <xsl:variable name="revision" select="normalize-space(package/revision)"/>
         <xsl:variable name="preferred" select="boolean(normalize-space(package/preferred))"/>
 
         <xsl:if test="not($preferred)">
@@ -133,16 +138,16 @@
             <small class="text-muted">
                 <xsl:value-of select="$version"/>
                 <xsl:text>-</xsl:text>
-                <xsl:value-of select="normalize-space(package/revision)"/>
+                <xsl:value-of select="$revision"/>
             </small>
         </h2>
         <p>
             View this package <a href="https://hackage.haskell.org/package/{$name}-{$version}">on Hackage</a>.
         </p>
         <ul>
-            <li> name: <xsl:value-of select="package/name"/> </li>
-            <li> version: <xsl:value-of select="package/version"/> </li>
-            <li> revision: <xsl:value-of select="package/revision"/> </li>
+            <li> name: <xsl:value-of select="$name"/> </li>
+            <li> version: <xsl:value-of select="$version"/> </li>
+            <li> revision: <xsl:value-of select="$revision"/> </li>
             <li> preferred: <xsl:value-of select="$preferred"/> </li>
             <li> uploadedAt: <xsl:value-of select="package/uploadedAt"/> </li>
             <li> uploadedBy: <xsl:value-of select="package/uploadedBy"/> </li>
@@ -186,6 +191,7 @@
         </h3>
         <ul>
             <xsl:for-each select="versions/version">
+                <xsl:variable name="versionRevision" select="normalize-space(revision)"/>
                 <xsl:variable name="versionPreferred" select="boolean(normalize-space(preferred))"/>
 
                 <li>
@@ -195,8 +201,10 @@
                     <xsl:text>: </xsl:text>
                     <a href="{$baseUrl}{normalize-space(route)}">
                         <xsl:value-of select="normalize-space(number)"/>
-                        <xsl:text>-</xsl:text>
-                        <xsl:value-of select="normalize-space(revision)"/>
+                        <xsl:if test="$versionRevision != 0">
+                            <xsl:text>-</xsl:text>
+                            <xsl:value-of select="$versionRevision"/>
+                        </xsl:if>
                     </a>
                     <xsl:if test="not($versionPreferred)">
                         (deprecated)
