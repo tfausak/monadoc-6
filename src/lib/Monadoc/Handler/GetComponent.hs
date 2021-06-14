@@ -59,10 +59,10 @@ handler packageName version revision componentId context request = do
         Nothing -> throwM NotFound.new
         Just components -> pure components
 
-    -- Redirect foo:exe to foo:exe:bar when there is only one executable. Same
-    -- for all component types except library.
     when (not isLibrary && Maybe.isNothing maybeComponentName)
         $ case NonEmpty.toList components of
+            -- Redirect foo:exe to foo:exe:bar when there is only one
+            -- executable. Same for all component types except library.
             [component] -> throwM . Found.new $ baseUrl <> Route.toString
                 ( Route.Component packageName version revision
                 . ComponentId.ComponentId componentTag
@@ -70,7 +70,8 @@ handler packageName version revision componentId context request = do
                 . Component.name
                 $ Model.value component
                 )
-            _ -> pure ()
+            -- Otherwise this route is ambiguous.
+            _ -> throwM NotFound.new
 
     let componentName = Maybe.fromMaybe (into @ComponentName.ComponentName packageName) maybeComponentName
     component <- components
