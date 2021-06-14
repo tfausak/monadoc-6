@@ -8,11 +8,11 @@ import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Utility.Sql as Sql
 
 data ComponentTag
-    = Benchmark
-    | Executable
+    = Library
     | ForeignLibrary
-    | Library
+    | Executable
     | TestSuite
+    | Benchmark
     deriving (Eq, Ord, Show)
 
 instance TryFrom String ComponentTag where
