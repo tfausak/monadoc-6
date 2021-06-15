@@ -12,6 +12,7 @@ import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Component as Component
+import qualified Monadoc.Model.Dependency as Dependency
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.ComponentId as ComponentId
@@ -77,6 +78,8 @@ handler packageName version revision componentId context request = do
     component <- components
         & List.find ((== componentName) . Component.name . Model.value)
         & maybe (throwM NotFound.new) pure
+    dependencies <- Pool.withResource (Context.pool context) $ \ connection ->
+        Dependency.selectByComponent connection $ Model.key component
 
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
@@ -107,12 +110,14 @@ handler packageName version revision componentId context request = do
         , Common.monadoc_page = Component
             { component_package = Model.value package
             , component_component = Model.value component
+            , component_dependencies = fmap Model.value dependencies
             }
         }
 
 data Component = Component
     { component_package :: Package.Package
     , component_component :: Component.Component
+    , component_dependencies :: [Dependency.Dependency]
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Component where
@@ -122,4 +127,9 @@ instance ToXml.ToXml Component where
         , Xml.node "revision" [] [ToXml.toXml . Package.revision $ component_package component]
         , Xml.node "tag" [] [ToXml.toXml . Component.tag $ component_component component]
         , Xml.node "name" [] [ToXml.toXml . Component.name $ component_component component]
+        , Xml.node "dependencies" [] . fmap (\ dependency -> Xml.node "dependency" []
+            [ Xml.node "packageName" [] [ToXml.toXml $ Dependency.packageName dependency]
+            , Xml.node "libraryName" [] [ToXml.toXml $ Dependency.libraryName dependency]
+            , Xml.node "versionRange" [] [ToXml.toXml $ Dependency.versionRange dependency]
+            ]) $ component_dependencies component
         ]

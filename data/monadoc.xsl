@@ -273,5 +273,19 @@
         <xsl:value-of select="revision"/>
         <xsl:value-of select="tag"/>
         <xsl:value-of select="name"/>
+        <h3>
+            Dependencies
+        </h3>
+        <ul>
+            <xsl:for-each select="dependencies/dependency">
+                <li>
+                    <xsl:value-of select="packageName"/>
+                    <xsl:if test="libraryName != packageName">
+                        <xsl:value-of select="libraryName"/>
+                    </xsl:if>
+                    <xsl:value-of select="versionRange"/>
+                </li>
+            </xsl:for-each>
+        </ul>
     </xsl:template>
 </xsl:stylesheet>

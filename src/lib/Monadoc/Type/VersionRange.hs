@@ -8,6 +8,7 @@ import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Distribution.Types.VersionRange as Cabal
+import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Sql as Sql
 
@@ -30,6 +31,9 @@ instance Sql.FromField VersionRange where
 
 instance Sql.ToField VersionRange where
     toField = Sql.toField . into @String
+
+instance ToXml.ToXml VersionRange where
+    toXml = ToXml.toXml . into @String
 
 any :: VersionRange
 any = from Cabal.anyVersion

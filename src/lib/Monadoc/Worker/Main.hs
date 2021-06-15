@@ -14,12 +14,16 @@ import qualified Data.Map as Map
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Data.Time.Clock.POSIX as Time
+import qualified Database.SQLite.Simple as Sql
+import qualified Distribution.Compat.Lens as Lens
+import qualified Distribution.Compat.NonEmptySet as NonEmptySet
 import qualified Distribution.Compiler as Cabal
 import qualified Distribution.PackageDescription.Configuration as Cabal
 import qualified Distribution.PackageDescription.Parsec as Cabal
 import qualified Distribution.Parsec as Cabal
 import qualified Distribution.System as Cabal
 import qualified Distribution.Types.Benchmark as Cabal
+import qualified Distribution.Types.BuildInfo.Lens as Cabal
 import qualified Distribution.Types.Component as Cabal
 import qualified Distribution.Types.ComponentName as Cabal
 import qualified Distribution.Types.ComponentRequestedSpec as Cabal
@@ -42,6 +46,7 @@ import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.MissingHackageIndex as MissingHackageIndex
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.Component as Component
+import qualified Monadoc.Model.Dependency as Dependency
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.Package as Package
@@ -230,10 +235,10 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
             revision = Map.findWithDefault Revision.zero key revisions
             newRevisions = Map.insert key (Revision.increment revision) revisions
         in (revision, newRevisions)
-    maybePackage <- Pool.withResource (Context.pool context) $ \ connection ->
-        Package.select connection packageName version revision
+    maybeHash <- Pool.withResource (Context.pool context) $ \ connection ->
+        Package.selectHash connection packageName version revision
     let hash = Sha256.hash contents
-    when (fmap (Package.hash . Model.value) maybePackage /= Just hash) $ do
+    when (maybeHash /= Just hash) $ do
         Log.info
             $ into @String hash
             <> " "
@@ -317,14 +322,31 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
                                 $ Cabal.componentName component
                         maybeComponent <- Pool.withResource (Context.pool context) $ \ connection ->
                             Component.select connection key tag name
-                        case maybeComponent of
-                            Just _ -> pure ()
+                        componentKey <- case maybeComponent of
+                            Just model -> pure $ Model.key model
                             Nothing -> Pool.withResource (Context.pool context) $ \ connection ->
-                                void $ Component.insert connection Component.Component
+                                Component.insert connection Component.Component
                                     { Component.name
                                     , Component.package = key
                                     , Component.tag
-                                    })
+                                    }
+                        let
+                            dependencies = component
+                                & Lens.view Cabal.targetBuildDepends
+                                & foldMap (\ d -> d
+                                    & Cabal.depLibraries
+                                    & NonEmptySet.toList
+                                    & fmap (\ l -> Dependency.Dependency
+                                        { Dependency.component = componentKey
+                                        , Dependency.packageName = into @PackageName.PackageName $ Cabal.depPkgName d
+                                        , Dependency.libraryName = case l of
+                                            Cabal.LMainLibName -> via @PackageName.PackageName $ Cabal.depPkgName d
+                                            Cabal.LSubLibName n -> into @ComponentName.ComponentName n
+                                        , Dependency.versionRange = into @VersionRange.VersionRange $ Cabal.depVerRange d
+                                        }))
+                        Pool.withResource (Context.pool context) $ \ connection -> Sql.withTransaction connection $ do
+                            Dependency.deleteByComponent connection key
+                            traverse_ (Dependency.insert connection) dependencies)
 
 epochTimeToUtcTime :: Tar.EpochTime -> Time.UTCTime
 epochTimeToUtcTime = into @Time.UTCTime

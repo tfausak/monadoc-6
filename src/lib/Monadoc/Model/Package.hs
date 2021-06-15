@@ -192,7 +192,10 @@ insertOrUpdate connection package = do
             \uploadedAt = excluded.uploadedAt, \
             \uploadedBy = excluded.uploadedBy")
         package
-    fmap (from @Int64) $ Sql.lastInsertRowId connection
+    [Sql.Only key] <- Sql.query connection
+        (into @Sql.Query "select key from package where name = ? and version = ? and revision = ?")
+        (name package, version package, revision package)
+    pure key
 
 select
     :: Sql.Connection
@@ -202,6 +205,19 @@ select
     -> IO (Maybe (Model.Model Package))
 select c n v r = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
+    \from package \
+    \where name = ? \
+    \and version = ? \
+    \and revision = ?") (n, v, r)
+
+selectHash
+    :: Sql.Connection
+    -> PackageName.PackageName
+    -> Version.Version
+    -> Revision.Revision
+    -> IO (Maybe Sha256.Sha256)
+selectHash c n v r = fmap (fmap Sql.fromOnly . Maybe.listToMaybe) $ Sql.query c (into @Sql.Query
+    "select hash \
     \from package \
     \where name = ? \
     \and version = ? \

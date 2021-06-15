@@ -67,6 +67,7 @@ insertOrUpdate connection user = do
             \githubToken = excluded.githubToken, \
             \updatedAt = excluded.updatedAt")
         user
+    -- TODO: Figure out why the last inserted row ID is sometimes wrong?
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 selectByGithubId :: Sql.Connection -> Int -> IO (Maybe (Model.Model User))
