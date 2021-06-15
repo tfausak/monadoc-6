@@ -2,6 +2,7 @@ module Monadoc.Handler.GetComponent where
 
 import Monadoc.Prelude
 
+import qualified Data.CaseInsensitive as CI
 import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
@@ -131,5 +132,5 @@ instance ToXml.ToXml Component where
             [ Xml.node "packageName" [] [ToXml.toXml $ Dependency.packageName dependency]
             , Xml.node "libraryName" [] [ToXml.toXml $ Dependency.libraryName dependency]
             , Xml.node "versionRange" [] [ToXml.toXml $ Dependency.versionRange dependency]
-            ]) $ component_dependencies component
+            ]) . List.sortOn (CI.mk . into @String . Dependency.packageName) $ component_dependencies component
         ]
