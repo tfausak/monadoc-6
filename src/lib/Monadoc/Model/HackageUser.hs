@@ -8,6 +8,7 @@ import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
+import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model HackageUser
 
@@ -45,15 +46,15 @@ migrations =
     ]
 
 selectByName :: Sql.Connection -> String -> IO (Maybe Model)
-selectByName connection name = fmap Maybe.listToMaybe $ Sql.query
+selectByName connection name = fmap Maybe.listToMaybe $ Sql.query2
     connection
-    (into @Sql.Query "select key, id, name from hackageUser where name = ?")
+    "select key, id, name from hackageUser where name = ?"
     [name]
 
 insert :: Sql.Connection -> HackageUser -> IO Key
 insert connection hackageUser = do
-    Sql.execute
+    Sql.execute2
         connection
-        (into @Sql.Query "insert into hackageUser (id, name) values (?, ?)")
+        "insert into hackageUser (id, name) values (?, ?)"
         hackageUser
     fmap (from @Int64) $ Sql.lastInsertRowId connection

@@ -10,6 +10,7 @@ import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
+import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model Migration
 
@@ -35,12 +36,13 @@ instance Sql.ToRow Migration where
         ]
 
 createTable :: Sql.Connection -> IO ()
-createTable connection = Sql.execute_ connection $ into @Sql.Query
+createTable connection = void $ Sql.execute2 connection
     "create table if not exists migration \
     \(key integer not null primary key, \
     \migratedAt text, \
     \sql text not null, \
     \time text not null unique)"
+    ()
 
 new
     :: Time.Year
@@ -60,16 +62,16 @@ new year month day hour minute sec q = Migration
     }
 
 selectByTime :: Sql.Connection -> Time.UTCTime -> IO (Maybe Model)
-selectByTime connection time = fmap Maybe.listToMaybe $ Sql.query
+selectByTime connection time = fmap Maybe.listToMaybe $ Sql.query2
     connection
-    (into @Sql.Query "select key, migratedAt, sql, time from migration where time = ?")
+    "select key, migratedAt, sql, time from migration where time = ?"
     [time]
 
 insert :: Sql.Connection -> Migration -> IO Key
 insert connection migration = do
-    Sql.execute
+    Sql.execute2
         connection
-        (into @Sql.Query "insert into migration (migratedAt, sql, time) values (?, ?, ?)")
+        "insert into migration (migratedAt, sql, time) values (?, ?, ?)"
         migration
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
@@ -84,12 +86,12 @@ run connection migration = Sql.withTransaction connection $ do
             when (actual /= expected) . throwM $ Mismatch.new expected actual
             pure model
         Nothing -> do
-            Sql.execute_ connection . into @Sql.Query $ sql migration
+            void $ Sql.execute2 connection (into @String $ sql migration) ()
             now <- Time.getCurrentTime
             let newMigration = migration { migratedAt = Just now }
-            Sql.execute
+            Sql.execute2
                 connection
-                (into @Sql.Query "insert into migration (migratedAt, sql, time) values (?, ?, ?)")
+                "insert into migration (migratedAt, sql, time) values (?, ?, ?)"
                 newMigration
             key <- fmap (from @Int64) $ Sql.lastInsertRowId connection
             pure Model.Model { Model.key, Model.value = newMigration }

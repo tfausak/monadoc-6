@@ -17,6 +17,7 @@ import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
+import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model Package
 
@@ -173,9 +174,8 @@ migrations =
 
 insertOrUpdate :: Sql.Connection -> Package -> IO Key
 insertOrUpdate connection package = do
-    Sql.execute
+    Sql.execute2
         connection
-        (into @Sql.Query
             "insert into package (author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version) \
             \values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \
             \on conflict (name, version, revision) \
@@ -195,10 +195,10 @@ insertOrUpdate connection package = do
             \stability = excluded.stability, \
             \synopsis = excluded.synopsis, \
             \uploadedAt = excluded.uploadedAt, \
-            \uploadedBy = excluded.uploadedBy")
+            \uploadedBy = excluded.uploadedBy"
         package
-    [Sql.Only key] <- Sql.query connection
-        (into @Sql.Query "select key from package where name = ? and version = ? and revision = ?")
+    [Sql.Only key] <- Sql.query2 connection
+        "select key from package where name = ? and version = ? and revision = ?"
         (name package, version package, revision package)
     pure key
 
@@ -208,12 +208,12 @@ select
     -> Version.Version
     -> Revision.Revision
     -> IO (Maybe Model)
-select c n v r = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
+select c n v r = fmap Maybe.listToMaybe $ Sql.query2 c
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ? \
     \and version = ? \
-    \and revision = ?") (n, v, r)
+    \and revision = ?" (n, v, r)
 
 selectHash
     :: Sql.Connection
@@ -221,44 +221,44 @@ selectHash
     -> Version.Version
     -> Revision.Revision
     -> IO (Maybe Sha256.Sha256)
-selectHash c n v r = fmap (fmap Sql.fromOnly . Maybe.listToMaybe) $ Sql.query c (into @Sql.Query
+selectHash c n v r = fmap (fmap Sql.fromOnly . Maybe.listToMaybe) $ Sql.query2 c
     "select hash \
     \from package \
     \where name = ? \
     \and version = ? \
-    \and revision = ?") (n, v, r)
+    \and revision = ?" (n, v, r)
 
 selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Model]
-selectByName c n = Sql.query c (into @Sql.Query
+selectByName c n = Sql.query2 c
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
-    \where name = ?") [n]
+    \where name = ?" [n]
 
 selectByNameAndVersion
     :: Sql.Connection
     -> PackageName.PackageName
     -> Version.Version
     -> IO [Model]
-selectByNameAndVersion c n v = Sql.query c (into @Sql.Query
+selectByNameAndVersion c n v = Sql.query2 c
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ? \
-    \and version = ?") (n, v)
+    \and version = ?" (n, v)
 
 selectRecent :: Sql.Connection -> IO [Model]
-selectRecent c = Sql.query_ c $ into @Sql.Query
+selectRecent c = Sql.query2 c
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \order by uploadedAt desc \
-    \limit 10"
+    \limit 10" ()
 
 selectNamesLike :: Sql.Connection -> String -> IO [PackageName.PackageName]
-selectNamesLike c x = fmap (fmap Sql.fromOnly) $ Sql.query c (into @Sql.Query
+selectNamesLike c x = fmap (fmap Sql.fromOnly) $ Sql.query2 c
     "select distinct name \
     \from package \
     \where name like ? escape ? \
     \order by uploadedAt desc \
-    \limit 10") (x, "\\")
+    \limit 10" (x, "\\")
 
 escapeLike :: String -> String
 escapeLike = foldMap $ \ c -> case c of

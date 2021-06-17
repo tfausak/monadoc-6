@@ -11,6 +11,7 @@ import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
+import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model Component
 
@@ -49,21 +50,21 @@ migrations =
     ]
 
 select :: Sql.Connection -> Package.Key -> ComponentTag.ComponentTag -> ComponentName.ComponentName -> IO (Maybe Model)
-select connection package tag name = fmap Maybe.listToMaybe $ Sql.query
+select connection package tag name = fmap Maybe.listToMaybe $ Sql.query2
     connection
-    (into @Sql.Query "select key, name, package, tag from component where package = ? and tag = ? and name = ?")
+    "select key, name, package, tag from component where package = ? and tag = ? and name = ?"
     (package, tag, name)
 
 selectByPackage :: Sql.Connection -> Package.Key -> IO [Model]
-selectByPackage connection package = Sql.query
+selectByPackage connection package = Sql.query2
     connection
-    (into @Sql.Query "select key, name, package, tag from component where package = ?")
+    "select key, name, package, tag from component where package = ?"
     [package]
 
 insert :: Sql.Connection -> Component -> IO Key
 insert connection component = do
-    Sql.execute
+    Sql.execute2
         connection
-        (into @Sql.Query "insert into component (name, package, tag) values (?, ?, ?)")
+        "insert into component (name, package, tag) values (?, ?, ?)"
         component
     fmap (from @Int64) $ Sql.lastInsertRowId connection

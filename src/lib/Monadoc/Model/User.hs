@@ -9,6 +9,7 @@ import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Model as Model
+import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model User
 
@@ -59,9 +60,8 @@ migrations =
 
 insertOrUpdate :: Sql.Connection -> User -> IO Key
 insertOrUpdate connection user = do
-    Sql.execute
+    Sql.execute2
         connection
-        (into @Sql.Query
             "insert into user \
             \(createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt) \
             \values (?, ?, ?, ?, ?, ?) \
@@ -69,15 +69,15 @@ insertOrUpdate connection user = do
             \set deletedAt = excluded.deletedAt, \
             \githubLogin = excluded.githubLogin, \
             \githubToken = excluded.githubToken, \
-            \updatedAt = excluded.updatedAt")
+            \updatedAt = excluded.updatedAt"
         user
     -- TODO: Figure out why the last inserted row ID is sometimes wrong?
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 selectByGithubId :: Sql.Connection -> Int -> IO (Maybe Model)
-selectByGithubId c i = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
+selectByGithubId c i = fmap Maybe.listToMaybe $ Sql.query2 c
     "select key, createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt \
     \from user \
     \where deletedAt is null \
     \and githubId = ? \
-    \limit 1") [i]
+    \limit 1" [i]

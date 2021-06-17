@@ -25,6 +25,7 @@ import qualified Monadoc.Type.Flag as Flag
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Log as Log
+import qualified Monadoc.Utility.Sql as Sql
 import qualified Monadoc.Worker.Main as Worker
 import qualified Paths_monadoc as This
 import qualified System.Console.GetOpt as Console
@@ -83,8 +84,7 @@ getContext name arguments = do
     Context.fromConfig config
 
 enableWriteAheadLog :: Sql.Connection -> IO ()
-enableWriteAheadLog c = Sql.execute_ c $ into @Sql.Query
-    "pragma journal_mode = wal"
+enableWriteAheadLog c = void $ Sql.execute2 c "pragma journal_mode = wal" ()
 
 migrations :: [MMigration.Migration]
 migrations = List.sortOn MMigration.time $ mconcat

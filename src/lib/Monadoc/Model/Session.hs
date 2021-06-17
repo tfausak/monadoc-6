@@ -10,6 +10,7 @@ import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Model as Model
+import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model Session
 
@@ -60,33 +61,32 @@ migrations =
 
 insert :: Sql.Connection -> Session -> IO Key
 insert connection session = do
-    Sql.execute
+    Sql.execute2
         connection
-        (into @Sql.Query
             "insert into session \
             \(createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId) \
-            \values (?, ?, ?, ?, ?, ?)")
+            \values (?, ?, ?, ?, ?, ?)"
         session
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 selectByGuid :: Sql.Connection -> Guid.Guid -> IO (Maybe Model)
-selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
+selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query2 c
     "select key, createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
     \from session \
     \where deletedAt is null \
     \and guid = ? \
-    \limit 1") [g]
+    \limit 1" [g]
 
 selectByGithubId :: Sql.Connection -> Int -> IO [Model]
-selectByGithubId c i = Sql.query c (into @Sql.Query
+selectByGithubId c i = Sql.query2 c
     "select key, createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
     \from session \
-    \where userGithubId = ?") [i]
+    \where userGithubId = ?" [i]
 
 delete :: Sql.Connection -> Key -> IO ()
 delete connection key = do
     now <- Time.getCurrentTime
-    Sql.execute
+    Sql.execute2
         connection
-        (into @Sql.Query "update session set deletedAt = ? where key = ?")
+        "update session set deletedAt = ? where key = ?"
         (now, key)

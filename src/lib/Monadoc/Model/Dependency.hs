@@ -11,6 +11,7 @@ import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.VersionRange as VersionRange
+import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model Dependency
 
@@ -61,20 +62,20 @@ migrations =
     ]
 
 selectByComponent :: Sql.Connection -> Component.Key -> IO [Model]
-selectByComponent connection component = Sql.query
+selectByComponent connection component = Sql.query2
     connection
-    (into @Sql.Query "select key, component, packageName, libraryName, versionRange from dependency where component = ?")
+    "select key, component, packageName, libraryName, versionRange from dependency where component = ?"
     [component]
 
 deleteByComponent :: Sql.Connection -> Component.Key -> IO ()
-deleteByComponent connection component = Sql.execute
+deleteByComponent connection component = Sql.execute2
     connection
-    (into @Sql.Query "delete from dependency where component = ?")
+    "delete from dependency where component = ?"
     [component]
 
 insert :: Sql.Connection -> Dependency -> IO Key
 insert connection dependency = do
-    Sql.execute connection (into @Sql.Query
+    Sql.execute2 connection
         "insert into dependency (component, packageName, libraryName, versionRange) \
-        \values (?, ?, ?, ?)") dependency
+        \values (?, ?, ?, ?)" dependency
     fmap (from @Int64) $ Sql.lastInsertRowId connection

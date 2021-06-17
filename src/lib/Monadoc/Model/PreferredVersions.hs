@@ -10,6 +10,7 @@ import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.VersionRange as VersionRange
+import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model PreferredVersions
 
@@ -47,18 +48,17 @@ new = PreferredVersions
 
 upsert :: Sql.Connection -> PreferredVersions -> IO Key
 upsert connection preferredVersions = do
-    Sql.execute
+    Sql.execute2
         connection
-        (into @Sql.Query
             "insert into preferredVersions (packageName, versionRange) \
             \values (?, ?) \
             \on conflict (packageName) \
-            \do update set versionRange = excluded.versionRange")
+            \do update set versionRange = excluded.versionRange"
         preferredVersions
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 selectByPackageName :: Sql.Connection -> PackageName.PackageName -> IO (Maybe Model)
-selectByPackageName c n = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
+selectByPackageName c n = fmap Maybe.listToMaybe $ Sql.query2 c
     "select key, packageName, versionRange \
     \from preferredVersions \
-    \where packageName = ?") [n]
+    \where packageName = ?" [n]

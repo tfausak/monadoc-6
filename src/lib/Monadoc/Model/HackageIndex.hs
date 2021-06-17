@@ -10,6 +10,7 @@ import qualified Monadoc.Exception.DuplicateHackageIndex as DuplicateHackageInde
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Model as Model
+import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model HackageIndex
 
@@ -42,22 +43,21 @@ migrations =
 
 select :: Sql.Connection -> IO (Maybe Model)
 select connection = fmap Maybe.listToMaybe
-    . Sql.query_ connection
-    $ into @Sql.Query "select key, contents, size from hackageIndex limit 1"
+    $ Sql.query2 connection "select key, contents, size from hackageIndex limit 1" ()
 
 insert :: Sql.Connection -> HackageIndex -> IO Key
 insert connection hackageIndex = do
-    rows <- Sql.query_ connection $ into @Sql.Query "select count(*) from hackageIndex"
+    rows <- Sql.query2 connection "select count(*) from hackageIndex" ()
     when (rows /= [[0 :: Int]]) $ throwM DuplicateHackageIndex.new
-    Sql.execute
+    Sql.execute2
         connection
-        (into @Sql.Query "insert into hackageIndex (contents, size) values (?, ?)")
+        "insert into hackageIndex (contents, size) values (?, ?)"
         hackageIndex
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 update :: Sql.Connection -> Key -> HackageIndex -> IO ()
-update connection key hackageIndex = Sql.execute connection
-    (into @Sql.Query "update hackageIndex set contents = ?, size = ? where key = ?")
+update connection key hackageIndex = Sql.execute2 connection
+    "update hackageIndex set contents = ?, size = ? where key = ?"
     (contents hackageIndex, size hackageIndex, key)
 
 -- The Hackage index has this many null bytes at the end.
