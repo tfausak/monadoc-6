@@ -6,8 +6,8 @@ import qualified Data.Pool as Pool
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Model.Package as Package
-import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Config as Config
+import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName

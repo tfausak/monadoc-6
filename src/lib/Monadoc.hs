@@ -13,6 +13,7 @@ import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
+import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.Session as Session
@@ -31,7 +32,6 @@ import qualified Paths_monadoc as This
 import qualified System.Console.GetOpt as Console
 import qualified System.Environment as Environment
 import qualified System.Exit as Exit
-import qualified Monadoc.Model.Migration as MMigration
 
 defaultMain :: IO ()
 defaultMain = do
@@ -45,8 +45,8 @@ mainWith name arguments = do
     context <- getContext name arguments
     Pool.withResource (Context.pool context) $ \ connection -> do
         enableWriteAheadLog connection
-        MMigration.createTable connection
-        traverse_ (MMigration.run connection) migrations
+        Migration.createTable connection
+        traverse_ (Migration.run connection) migrations
     Exception.onException
         (Async.race_ (Server.run context) (Worker.run context))
         . Pool.destroyAllResources $ Context.pool context
@@ -86,8 +86,8 @@ getContext name arguments = do
 enableWriteAheadLog :: Sql.Connection -> IO ()
 enableWriteAheadLog c = void $ Sql.execute2 c "pragma journal_mode = wal" ()
 
-migrations :: [MMigration.Migration]
-migrations = List.sortOn MMigration.time $ mconcat
+migrations :: [Migration.Migration]
+migrations = List.sortOn Migration.time $ mconcat
     [ Component.migrations
     , Dependency.migrations
     , HackageIndex.migrations

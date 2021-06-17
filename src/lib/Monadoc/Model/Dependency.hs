@@ -7,8 +7,8 @@ import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.ComponentName as ComponentName
-import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Key as Key
+import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.VersionRange as VersionRange
 import qualified Monadoc.Utility.Sql as Sql

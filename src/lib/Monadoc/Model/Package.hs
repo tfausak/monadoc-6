@@ -6,12 +6,12 @@ import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Model.HackageUser as HackageUser
+import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.BuildType as BuildType
 import qualified Monadoc.Type.CabalVersion as CabalVersion
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.License as License
-import qualified Monadoc.Model.HackageUser as HackageUser
-import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision

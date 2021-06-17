@@ -4,9 +4,9 @@ import Monadoc.Prelude
 
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.GetAccount as GetAccount
+import qualified Monadoc.Handler.GetCallback as GetCallback
 import qualified Monadoc.Handler.GetComponent as GetComponent
 import qualified Monadoc.Handler.GetFavicon as GetFavicon
-import qualified Monadoc.Handler.GetCallback as GetCallback
 import qualified Monadoc.Handler.GetIndex as GetIndex
 import qualified Monadoc.Handler.GetPackage as GetPackage
 import qualified Monadoc.Handler.GetRevision as GetRevision

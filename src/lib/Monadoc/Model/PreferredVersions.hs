@@ -5,8 +5,8 @@ import Monadoc.Prelude
 import qualified Data.Maybe as Maybe
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
-import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Model.Migration as Migration
+import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.VersionRange as VersionRange

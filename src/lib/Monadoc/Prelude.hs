@@ -57,6 +57,7 @@ module Monadoc.Prelude (
     Prelude.Rational,
     Prelude.String,
     Prelude.Word,
+    Witch.TryFromException(..),
 
     -- * Functions
     Control.Monad.Catch.bracket,
@@ -143,7 +144,6 @@ module Monadoc.Prelude (
     Prelude.userError,
     Prelude.zip,
     Prelude.zipWith,
-    Witch.TryFromException(..),
     Witch.as,
     Witch.eitherTryFrom,
     Witch.from,
