@@ -6,14 +6,19 @@ import qualified Data.Maybe as Maybe
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Model.Migration as Migration
+import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 
+type Model = Model.Model Component
+
+type Key = Key.Key Component
+
 data Component = Component
     { name :: ComponentName.ComponentName
-    , package :: Key.Key
+    , package :: Package.Key
     , tag :: ComponentTag.ComponentTag
     } deriving (Eq, Show)
 
@@ -43,19 +48,19 @@ migrations =
         "create index component_package on component (package)"
     ]
 
-select :: Sql.Connection -> Key.Key -> ComponentTag.ComponentTag -> ComponentName.ComponentName -> IO (Maybe (Model.Model Component))
+select :: Sql.Connection -> Package.Key -> ComponentTag.ComponentTag -> ComponentName.ComponentName -> IO (Maybe Model)
 select connection package tag name = fmap Maybe.listToMaybe $ Sql.query
     connection
     (into @Sql.Query "select key, name, package, tag from component where package = ? and tag = ? and name = ?")
     (package, tag, name)
 
-selectByPackage :: Sql.Connection -> Key.Key -> IO [Model.Model Component]
+selectByPackage :: Sql.Connection -> Package.Key -> IO [Model]
 selectByPackage connection package = Sql.query
     connection
     (into @Sql.Query "select key, name, package, tag from component where package = ?")
     [package]
 
-insert :: Sql.Connection -> Component -> IO Key.Key
+insert :: Sql.Connection -> Component -> IO Key
 insert connection component = do
     Sql.execute
         connection

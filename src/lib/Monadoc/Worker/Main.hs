@@ -345,7 +345,7 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
                                         , Dependency.versionRange = into @VersionRange.VersionRange $ Cabal.depVerRange d
                                         }))
                         Pool.withResource (Context.pool context) $ \ connection -> Sql.withTransaction connection $ do
-                            Dependency.deleteByComponent connection key
+                            Dependency.deleteByComponent connection componentKey
                             traverse_ (Dependency.insert connection) dependencies)
 
 epochTimeToUtcTime :: Tar.EpochTime -> Time.UTCTime

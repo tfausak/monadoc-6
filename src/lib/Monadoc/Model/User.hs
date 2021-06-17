@@ -10,6 +10,10 @@ import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Model as Model
 
+type Model = Model.Model User
+
+type Key = Key.Key User
+
 data User = User
     { createdAt :: Time.UTCTime
     , deletedAt :: Maybe Time.UTCTime
@@ -53,7 +57,7 @@ migrations =
         "create unique index user_githubId on user (githubId)"
     ]
 
-insertOrUpdate :: Sql.Connection -> User -> IO Key.Key
+insertOrUpdate :: Sql.Connection -> User -> IO Key
 insertOrUpdate connection user = do
     Sql.execute
         connection
@@ -70,7 +74,7 @@ insertOrUpdate connection user = do
     -- TODO: Figure out why the last inserted row ID is sometimes wrong?
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
-selectByGithubId :: Sql.Connection -> Int -> IO (Maybe (Model.Model User))
+selectByGithubId :: Sql.Connection -> Int -> IO (Maybe Model)
 selectByGithubId c i = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
     "select key, createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt \
     \from user \

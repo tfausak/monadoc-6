@@ -10,12 +10,17 @@ import qualified Monadoc.Type.BuildType as BuildType
 import qualified Monadoc.Type.CabalVersion as CabalVersion
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.License as License
+import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
+
+type Model = Model.Model Package
+
+type Key = Key.Key Package
 
 -- TODO: add source repositories
 
@@ -83,7 +88,7 @@ data Package = Package
     -- set of stabilities, but people often pick "experimental" or "stable".
     , synopsis :: Text
     , uploadedAt :: Time.UTCTime
-    , uploadedBy :: Key.Key
+    , uploadedBy :: HackageUser.Key
     , version :: Version.Version
     } deriving (Eq, Show)
 
@@ -166,7 +171,7 @@ migrations =
         "create index package_name on package (name)"
     ]
 
-insertOrUpdate :: Sql.Connection -> Package -> IO Key.Key
+insertOrUpdate :: Sql.Connection -> Package -> IO Key
 insertOrUpdate connection package = do
     Sql.execute
         connection
@@ -202,7 +207,7 @@ select
     -> PackageName.PackageName
     -> Version.Version
     -> Revision.Revision
-    -> IO (Maybe (Model.Model Package))
+    -> IO (Maybe Model)
 select c n v r = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
@@ -223,7 +228,7 @@ selectHash c n v r = fmap (fmap Sql.fromOnly . Maybe.listToMaybe) $ Sql.query c 
     \and version = ? \
     \and revision = ?") (n, v, r)
 
-selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Model.Model Package]
+selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Model]
 selectByName c n = Sql.query c (into @Sql.Query
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
@@ -233,14 +238,14 @@ selectByNameAndVersion
     :: Sql.Connection
     -> PackageName.PackageName
     -> Version.Version
-    -> IO [Model.Model Package]
+    -> IO [Model]
 selectByNameAndVersion c n v = Sql.query c (into @Sql.Query
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ? \
     \and version = ?") (n, v)
 
-selectRecent :: Sql.Connection -> IO [Model.Model Package]
+selectRecent :: Sql.Connection -> IO [Model]
 selectRecent c = Sql.query_ c $ into @Sql.Query
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \

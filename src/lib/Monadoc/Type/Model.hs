@@ -7,7 +7,7 @@ import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Type.Key as Key
 
 data Model a = Model
-    { key :: Key.Key
+    { key :: Key.Key a
     , value :: a
     } deriving (Eq, Show)
 

@@ -11,6 +11,10 @@ import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 
+type Model = Model.Model Migration
+
+type Key = Key.Key Migration
+
 data Migration = Migration
     { migratedAt :: Maybe Time.UTCTime
     , sql :: Text
@@ -55,13 +59,13 @@ new year month day hour minute sec q = Migration
         $ Time.TimeOfDay hour minute sec
     }
 
-selectByTime :: Sql.Connection -> Time.UTCTime -> IO (Maybe (Model.Model Migration))
+selectByTime :: Sql.Connection -> Time.UTCTime -> IO (Maybe Model)
 selectByTime connection time = fmap Maybe.listToMaybe $ Sql.query
     connection
     (into @Sql.Query "select key, migratedAt, sql, time from migration where time = ?")
     [time]
 
-insert :: Sql.Connection -> Migration -> IO Key.Key
+insert :: Sql.Connection -> Migration -> IO Key
 insert connection migration = do
     Sql.execute
         connection
@@ -69,7 +73,7 @@ insert connection migration = do
         migration
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
-run :: Sql.Connection -> Migration -> IO (Model.Model Migration)
+run :: Sql.Connection -> Migration -> IO Model
 run connection migration = Sql.withTransaction connection $ do
     maybeModel <- selectByTime connection $ time migration
     case maybeModel of

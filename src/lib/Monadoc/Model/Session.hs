@@ -11,6 +11,10 @@ import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Model as Model
 
+type Model = Model.Model Session
+
+type Key = Key.Key Session
+
 data Session = Session
     { createdAt :: Time.UTCTime
     , deletedAt :: Maybe Time.UTCTime
@@ -54,7 +58,7 @@ migrations =
         "create unique index session_guid on session (guid)"
     ]
 
-insert :: Sql.Connection -> Session -> IO Key.Key
+insert :: Sql.Connection -> Session -> IO Key
 insert connection session = do
     Sql.execute
         connection
@@ -65,7 +69,7 @@ insert connection session = do
         session
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
-selectByGuid :: Sql.Connection -> Guid.Guid -> IO (Maybe (Model.Model Session))
+selectByGuid :: Sql.Connection -> Guid.Guid -> IO (Maybe Model)
 selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
     "select key, createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
     \from session \
@@ -73,13 +77,13 @@ selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
     \and guid = ? \
     \limit 1") [g]
 
-selectByGithubId :: Sql.Connection -> Int -> IO [Model.Model Session]
+selectByGithubId :: Sql.Connection -> Int -> IO [Model]
 selectByGithubId c i = Sql.query c (into @Sql.Query
     "select key, createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
     \from session \
     \where userGithubId = ?") [i]
 
-delete :: Sql.Connection -> Key.Key -> IO ()
+delete :: Sql.Connection -> Key -> IO ()
 delete connection key = do
     now <- Time.getCurrentTime
     Sql.execute

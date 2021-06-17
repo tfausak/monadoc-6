@@ -11,6 +11,10 @@ import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.VersionRange as VersionRange
 
+type Model = Model.Model PreferredVersions
+
+type Key = Key.Key PreferredVersions
+
 data PreferredVersions = PreferredVersions
     { packageName :: PackageName.PackageName
     , versionRange :: VersionRange.VersionRange
@@ -41,7 +45,7 @@ migrations =
 new :: PackageName.PackageName -> VersionRange.VersionRange -> PreferredVersions
 new = PreferredVersions
 
-upsert :: Sql.Connection -> PreferredVersions -> IO Key.Key
+upsert :: Sql.Connection -> PreferredVersions -> IO Key
 upsert connection preferredVersions = do
     Sql.execute
         connection
@@ -53,7 +57,7 @@ upsert connection preferredVersions = do
         preferredVersions
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
-selectByPackageName :: Sql.Connection -> PackageName.PackageName -> IO (Maybe (Model.Model PreferredVersions))
+selectByPackageName :: Sql.Connection -> PackageName.PackageName -> IO (Maybe Model)
 selectByPackageName c n = fmap Maybe.listToMaybe $ Sql.query c (into @Sql.Query
     "select key, packageName, versionRange \
     \from preferredVersions \

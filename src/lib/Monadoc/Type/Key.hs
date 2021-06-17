@@ -6,19 +6,19 @@ import qualified Database.SQLite.Simple.FromField as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Class.ToXml as ToXml
 
-newtype Key
+newtype Key a
     = Key Int64
     deriving (Eq, Show)
 
-instance From Int64 Key
+instance From Int64 (Key a)
 
-instance From Key Int64
+instance From (Key a) Int64
 
-instance Sql.FromField Key where
+instance Sql.FromField (Key a) where
     fromField = fmap (from @Int64) . Sql.fromField
 
-instance Sql.ToField Key where
+instance Sql.ToField (Key a) where
     toField = Sql.toField . into @Int64
 
-instance ToXml.ToXml Key where
+instance ToXml.ToXml (Key a) where
     toXml = ToXml.toXml . into @Int64

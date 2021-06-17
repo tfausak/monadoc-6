@@ -9,6 +9,10 @@ import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 
+type Model = Model.Model HackageUser
+
+type Key = Key.Key HackageUser
+
 -- | This model represents a user on Hackage. You can find a user on Hackage at
 -- @https:\/\/hackage.haskell.org\/user\/:name@.
 data HackageUser = HackageUser
@@ -40,13 +44,13 @@ migrations =
         \name text not null unique)"
     ]
 
-selectByName :: Sql.Connection -> String -> IO (Maybe (Model.Model HackageUser))
+selectByName :: Sql.Connection -> String -> IO (Maybe Model)
 selectByName connection name = fmap Maybe.listToMaybe $ Sql.query
     connection
     (into @Sql.Query "select key, id, name from hackageUser where name = ?")
     [name]
 
-insert :: Sql.Connection -> HackageUser -> IO Key.Key
+insert :: Sql.Connection -> HackageUser -> IO Key
 insert connection hackageUser = do
     Sql.execute
         connection
