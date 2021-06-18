@@ -94,7 +94,6 @@ library
         Monadoc.Exception.InvalidJson
         Monadoc.Exception.Mismatch
         Monadoc.Exception.MissingCode
-        Monadoc.Exception.MissingHackageIndex
         Monadoc.Exception.NotFound
         Monadoc.Exception.OptionError
         Monadoc.Exception.UnexpectedTarEntry

@@ -43,7 +43,6 @@ import qualified Distribution.Types.UnqualComponentName as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
-import qualified Monadoc.Exception.MissingHackageIndex as MissingHackageIndex
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
@@ -76,12 +75,12 @@ run context = do
     Log.info "starting worker"
     Monad.forever $ do
         Log.info "beginning worker loop"
-        upsertHackageIndex context
-        processHackageIndex context
+        hackageIndex <- upsertHackageIndex context
+        processHackageIndex context $ Model.value hackageIndex
         Log.info "finished worker loop"
         Concurrent.threadDelay 60000000
 
-upsertHackageIndex :: Context.Context -> IO ()
+upsertHackageIndex :: Context.Context -> IO HackageIndex.Model
 upsertHackageIndex context = do
     Log.info "refreshing Hackage index"
     maybeHackageIndex <- Pool.withResource (Context.pool context) HackageIndex.select
@@ -89,7 +88,7 @@ upsertHackageIndex context = do
         Nothing -> insertHackageIndex context
         Just hackageIndex -> updateHackageIndex context hackageIndex
 
-insertHackageIndex :: Context.Context -> IO ()
+insertHackageIndex :: Context.Context -> IO HackageIndex.Model
 insertHackageIndex context = do
     Log.info "requesting initial Hackage index"
     request <- Client.parseUrlThrow $ Config.hackageUrl (Context.config context) <> "/01-index.tar.gz"
@@ -101,10 +100,11 @@ insertHackageIndex context = do
         size = ByteString.length contents
         hackageIndex = HackageIndex.HackageIndex { HackageIndex.contents, HackageIndex.size }
     Log.info $ "got initial Hackage index (size: " <> pluralize "byte" size <> ")"
-    Pool.withResource (Context.pool context) $ \ connection ->
-        void $ HackageIndex.insert connection hackageIndex
+    key <- Pool.withResource (Context.pool context) $ \ connection ->
+        HackageIndex.insert connection hackageIndex
+    pure $ Model.Model key hackageIndex
 
-updateHackageIndex :: Context.Context -> Model.Model HackageIndex.HackageIndex -> IO ()
+updateHackageIndex :: Context.Context -> Model.Model HackageIndex.HackageIndex -> IO HackageIndex.Model
 updateHackageIndex context model = do
     let
         oldHackageIndex = Model.value model
@@ -123,7 +123,9 @@ updateHackageIndex context model = do
         Nothing -> throwM $ BadHackageIndexSize.new oldSize maybeNewSize
         Just newSize
             | newSize < oldSize -> throwM $ BadHackageIndexSize.new oldSize maybeNewSize
-            | newSize == oldSize -> Log.info "Hackage index has not changed"
+            | newSize == oldSize -> do
+                Log.info "Hackage index has not changed"
+                pure model
             | otherwise -> do
                 Log.info $ "got new Hackage index size: " <> pluralize "byte" newSize
                 let
@@ -141,14 +143,14 @@ updateHackageIndex context model = do
                     after = into @ByteString $ Client.responseBody rangeResponse
                     contents = before <> after
                     newHackageIndex = HackageIndex.fromByteString contents
+                    key = Model.key model
                 Pool.withResource (Context.pool context) $ \ connection ->
-                    HackageIndex.update connection (Model.key model) newHackageIndex
+                    HackageIndex.update connection key newHackageIndex
+                pure $ Model.Model key newHackageIndex
 
-processHackageIndex :: Context.Context -> IO ()
-processHackageIndex context = do
+processHackageIndex :: Context.Context -> HackageIndex.HackageIndex -> IO ()
+processHackageIndex context hackageIndex = do
     Log.info "processing Hackage index"
-    maybeHackageIndex <- Pool.withResource (Context.pool context) HackageIndex.select
-    hackageIndex <- maybe (throwM MissingHackageIndex.new) (pure . Model.value) maybeHackageIndex
     revisionsVar <- Stm.newTVarIO Map.empty
     preferredVersionsVar <- Stm.newTVarIO Map.empty
     hashes <- Pool.withResource (Context.pool context) Package.selectHashes
