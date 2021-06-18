@@ -46,7 +46,7 @@ mainWith name arguments = do
     Pool.withResource (Context.pool context) $ \ connection -> do
         enableWriteAheadLog connection
         Migration.createTable connection
-        traverse_ (Migration.run connection) migrations
+        Migration.runAll connection migrations
     Exception.onException
         (Async.race_ (Server.run context) (Worker.run context))
         . Pool.destroyAllResources $ Context.pool context

@@ -13,6 +13,9 @@ groupBy f = foldr
         (f v))
     Map.empty
 
+indexBy :: (Ord k, Foldable t) => (v -> k) -> t v -> Map k v
+indexBy f = foldr (\ v -> Map.insert (f v) v) Map.empty
+
 maximum :: (Foldable t, Ord a) => t a -> Maybe a
 maximum = maximumOn identity
 

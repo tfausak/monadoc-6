@@ -3,6 +3,7 @@ module Monadoc.Model.Migration where
 import Monadoc.Prelude
 
 import qualified Data.Fixed as Fixed
+import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
@@ -10,6 +11,7 @@ import qualified Database.SQLite.Simple.ToField as Sql
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
+import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model Migration
@@ -61,6 +63,10 @@ new year month day hour minute sec q = Migration
         $ Time.TimeOfDay hour minute sec
     }
 
+selectAll :: Sql.Connection -> IO [Model]
+selectAll connection =
+    Sql.query2 connection "select key, migratedAt, sql, time from migration" ()
+
 selectByTime :: Sql.Connection -> Time.UTCTime -> IO (Maybe Model)
 selectByTime connection time = fmap Maybe.listToMaybe $ Sql.query2
     connection
@@ -75,17 +81,22 @@ insert connection migration = do
         migration
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
-run :: Sql.Connection -> Migration -> IO Model
-run connection migration = Sql.withTransaction connection $ do
-    maybeModel <- selectByTime connection $ time migration
-    case maybeModel of
+runAll :: Sql.Connection -> [Migration] -> IO ()
+runAll connection toRun = do
+    migrations <- selectAll connection
+    let migrationsByTime = Foldable.indexBy (time . Model.value) migrations
+    traverse_ (runOne connection migrationsByTime) toRun
+
+runOne :: Sql.Connection -> Map Time.UTCTime Model -> Migration -> IO Model
+runOne connection migrations migration =
+    case Map.lookup (time migration) migrations of
         Just model -> do
             let
                 actual = sql $ Model.value model
                 expected = sql migration
             when (actual /= expected) . throwM $ Mismatch.new expected actual
             pure model
-        Nothing -> do
+        Nothing -> Sql.withTransaction connection $ do
             void $ Sql.execute2 connection (into @String $ sql migration) ()
             now <- Time.getCurrentTime
             let newMigration = migration { migratedAt = Just now }
