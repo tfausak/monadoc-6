@@ -151,12 +151,13 @@ processHackageIndex context = do
     hackageIndex <- maybe (throwM MissingHackageIndex.new) (pure . Model.value) maybeHackageIndex
     revisionsVar <- Stm.newTVarIO Map.empty
     preferredVersionsVar <- Stm.newTVarIO Map.empty
+    hashes <- Pool.withResource (Context.pool context) Package.selectHashes
     hackageIndex
         & HackageIndex.contents
         & into @LazyByteString
         & Tar.read
         & Tar.foldEntries (:) [] (Unsafe.unsafePerformIO . throwM)
-        & traverse_ (processTarEntry context revisionsVar preferredVersionsVar)
+        & traverse_ (processTarEntry context revisionsVar preferredVersionsVar hashes)
     preferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
     preferredVersions
         & Map.toAscList
@@ -178,9 +179,10 @@ processTarEntry
     :: Context.Context
     -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
     -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
+    -> Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256
     -> Tar.Entry
     -> IO ()
-processTarEntry context revisionsVar preferredVersionsVar entry = do
+processTarEntry context revisionsVar preferredVersionsVar hashes entry = do
     unless (isValidTarEntry entry) . throwM $ UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
         Tar.NormalFile x _ -> pure $ into @ByteString x
@@ -189,7 +191,7 @@ processTarEntry context revisionsVar preferredVersionsVar entry = do
         ([rawPackageName, "preferred-versions"], "") ->
             processPreferredVersions preferredVersionsVar rawPackageName contents
         ([rawPackageName, rawVersion, otherRawPackageName], ".cabal") ->
-            processPackageDescription context revisionsVar entry rawPackageName rawVersion otherRawPackageName contents
+            processPackageDescription context revisionsVar hashes entry rawPackageName rawVersion otherRawPackageName contents
         ([_, _, "package"], ".json") -> pure ()
         _ -> throwM $ UnexpectedTarEntry.new entry
 
@@ -217,13 +219,14 @@ processPreferredVersions preferredVersionsVar rawPackageName contents = do
 processPackageDescription
     :: Context.Context
     -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    -> Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256
     -> Tar.Entry
     -> String
     -> String
     -> String
     -> ByteString
     -> IO ()
-processPackageDescription context revisionsVar entry rawPackageName rawVersion otherRawPackageName contents = do
+processPackageDescription context revisionsVar hashes entry rawPackageName rawVersion otherRawPackageName contents = do
     when (otherRawPackageName /= rawPackageName)
         . throwM
         $ Mismatch.new rawPackageName otherRawPackageName
@@ -235,8 +238,7 @@ processPackageDescription context revisionsVar entry rawPackageName rawVersion o
             revision = Map.findWithDefault Revision.zero key revisions
             newRevisions = Map.insert key (Revision.increment revision) revisions
         in (revision, newRevisions)
-    maybeHash <- Pool.withResource (Context.pool context) $ \ connection ->
-        Package.selectHash connection packageName version revision
+    let maybeHash = Map.lookup (packageName, version, revision) hashes
     let hash = Sha256.hash contents
     when (maybeHash /= Just hash) $ do
         Log.info

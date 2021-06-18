@@ -2,6 +2,7 @@ module Monadoc.Model.Package where
 
 import Monadoc.Prelude
 
+import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
 import qualified Database.SQLite.Simple as Sql
@@ -215,18 +216,12 @@ select c n v r = fmap Maybe.listToMaybe $ Sql.query2 c
     \and version = ? \
     \and revision = ?" (n, v, r)
 
-selectHash
+selectHashes
     :: Sql.Connection
-    -> PackageName.PackageName
-    -> Version.Version
-    -> Revision.Revision
-    -> IO (Maybe Sha256.Sha256)
-selectHash c n v r = fmap (fmap Sql.fromOnly . Maybe.listToMaybe) $ Sql.query2 c
-    "select hash \
-    \from package \
-    \where name = ? \
-    \and version = ? \
-    \and revision = ?" (n, v, r)
+    -> IO (Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256)
+selectHashes connection = do
+    rows <- Sql.query2 connection "select name, version, revision, hash from package" ()
+    pure $ foldr (\ (n, v, r, h) -> Map.insert (n, v, r) h) Map.empty rows
 
 selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Model]
 selectByName c n = Sql.query2 c
