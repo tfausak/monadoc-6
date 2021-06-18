@@ -158,12 +158,15 @@ processHackageIndex context = do
         & Tar.read
         & Tar.foldEntries (:) [] (Unsafe.unsafePerformIO . throwM)
         & traverse_ (processTarEntry context revisionsVar preferredVersionsVar hashes)
-    preferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
-    preferredVersions
+    oldPreferredVersions <- Pool.withResource (Context.pool context) PreferredVersions.selectAll
+    newPreferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
+    newPreferredVersions
         & Map.toAscList
         & fmap (uncurry PreferredVersions.new)
-        & traverse_ (\ pv -> Pool.withResource (Context.pool context) $ \ connection ->
-            PreferredVersions.upsert connection pv)
+        & traverse_ (\ pv -> case Map.lookup (PreferredVersions.packageName pv) oldPreferredVersions of
+            Just v | v == PreferredVersions.versionRange pv -> pure ()
+            _ -> Pool.withResource (Context.pool context) $ \ connection ->
+                void $ PreferredVersions.upsert connection pv)
 
 -- Possible Hackage index tar entry paths:
 --

@@ -2,6 +2,7 @@ module Monadoc.Model.PreferredVersions where
 
 import Monadoc.Prelude
 
+import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.ToField as Sql
@@ -62,3 +63,8 @@ selectByPackageName c n = fmap Maybe.listToMaybe $ Sql.query2 c
     "select key, packageName, versionRange \
     \from preferredVersions \
     \where packageName = ?" [n]
+
+selectAll :: Sql.Connection -> IO (Map PackageName.PackageName VersionRange.VersionRange)
+selectAll connection = do
+    rows <- Sql.query2 connection "select packageName, versionRange from preferredVersions" ()
+    pure $ Map.fromList rows
