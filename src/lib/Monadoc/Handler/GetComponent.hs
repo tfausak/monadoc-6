@@ -94,11 +94,7 @@ handler packageName version revision componentId context request = do
                     , Common.breadcrumb_route = Just $ Route.Package packageName
                     }
                 , Common.Breadcrumb
-                    { Common.breadcrumb_name = into @String version
-                    , Common.breadcrumb_route = Just $ Route.Version packageName version
-                    }
-                , Common.Breadcrumb
-                    { Common.breadcrumb_name = into @String revision
+                    { Common.breadcrumb_name = into @String version <> if revision == Revision.zero then "" else "-" <> into @String revision
                     , Common.breadcrumb_route = Just $ Route.Revision packageName version revision
                     }
                 , Common.Breadcrumb

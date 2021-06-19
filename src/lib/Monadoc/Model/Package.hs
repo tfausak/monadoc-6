@@ -66,7 +66,7 @@ data Package = Package
     -- - (c) 1970 Jane Doe
     -- - 1970 Jane Doe
     -- - 1970-2021 Jane Doe
-    , description :: Text -- TODO: Parse as ... Haddock?
+    , description :: Text
     , hash :: Sha256.Sha256
     , homepage :: Text
     -- ^ This is a free form text field. It is usually empty. Often it matches

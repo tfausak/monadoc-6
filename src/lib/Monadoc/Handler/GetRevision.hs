@@ -5,6 +5,8 @@ import Monadoc.Prelude
 import qualified Data.List as List
 import qualified Data.Ord as Ord
 import qualified Data.Pool as Pool
+import qualified Documentation.Haddock.Parser as Haddock
+import qualified Documentation.Haddock.Types as Haddock
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
@@ -100,7 +102,16 @@ instance ToXml.ToXml Package where
         , Xml.node "cabalVersion" [] [ToXml.toXml $ Package.cabalVersion package]
         , Xml.node "category" [] [ToXml.toXml $ Package.category package]
         , Xml.node "copyright" [] [ToXml.toXml $ Package.copyright package]
-        , Xml.node "description" [] [ToXml.toXml $ Package.description package]
+        , Xml.node "description" []
+            [ ToXml.toXml
+            . show -- TODO: Render this better.
+            . as @(Haddock.DocH Void String)
+            . Haddock.toRegular
+            . Haddock._doc
+            . Haddock.parseParas (Just . into @String $ Package.name package)
+            . into @String
+            $ Package.description package
+            ]
         , Xml.node "homepage" [] [ToXml.toXml $ Package.homepage package]
         , Xml.node "license" [] [ToXml.toXml $ Package.license package]
         , Xml.node "maintainer" [] [ToXml.toXml $ Package.maintainer package]

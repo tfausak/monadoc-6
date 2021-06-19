@@ -37,6 +37,13 @@ source-repository-package
     tag: 779594b9ff34164362c6549b7ebf61f4ed44fa66
     type: git
 
+-- https://github.com/haskell/haddock/pull/1378
+source-repository-package
+    location: https://github.com/haskell/haddock
+    subdir: haddock-library
+    tag: 6cff0555f13e72bbf53e68e215e3aa7aa97cd866
+    type: git
+
 -- https://github.com/jacobstanley/unix-compat/pull/47
 source-repository-package
     location: https://github.com/tfausak/unix-compat
