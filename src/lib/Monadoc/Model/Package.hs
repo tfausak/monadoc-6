@@ -24,8 +24,6 @@ type Model = Model.Model Package
 
 type Key = Key.Key Package
 
--- TODO: add source repositories
-
 data Package = Package
     { author :: Text
     -- ^ This is a free form text field. It is usually empty. Often it matches

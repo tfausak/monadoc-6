@@ -38,6 +38,7 @@ import qualified Distribution.Types.PackageDescription as Cabal
 import qualified Distribution.Types.PackageId as Cabal
 import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.PackageVersionConstraint as Cabal
+import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Distribution.Types.TestSuite as Cabal
 import qualified Distribution.Types.UnqualComponentName as Cabal
 import qualified Distribution.Types.Version as Cabal
@@ -50,6 +51,7 @@ import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
+import qualified Monadoc.Model.SourceRepository as SourceRepository
 import qualified Monadoc.Type.BuildType as BuildType
 import qualified Monadoc.Type.CabalVersion as CabalVersion
 import qualified Monadoc.Type.ComponentName as ComponentName
@@ -258,7 +260,7 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
             Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
             Just gpd -> do
                 pd <- case toPackageDescription gpd of
-                    Left dependencies -> throwM $ userError $ "invalid package description: " <> show dependencies
+                    Left _ -> throwM $ TryFromException @_ @Cabal.PackageDescription gpd Nothing
                     Right (pd, _) -> pure pd
                 let
                     otherPackageName = pd
@@ -314,6 +316,23 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                         }
                 key <- Pool.withResource (Context.pool context) $ \ connection ->
                     Package.insertOrUpdate connection package
+                Pool.withResource (Context.pool context) $ \ connection -> Sql.withTransaction connection $ do
+                    SourceRepository.deleteByPackage connection key
+                    pd
+                        & Cabal.sourceRepos
+                        & traverse_ (\ sourceRepo -> do
+                            let
+                                sourceRepository = SourceRepository.SourceRepository
+                                    { SourceRepository.branch = Cabal.repoBranch sourceRepo
+                                    , SourceRepository.kind = from $ Cabal.repoKind sourceRepo
+                                    , SourceRepository.location = Cabal.repoLocation sourceRepo
+                                    , SourceRepository.module_ = Cabal.repoModule sourceRepo
+                                    , SourceRepository.package = key
+                                    , SourceRepository.subdir = Cabal.repoSubdir sourceRepo
+                                    , SourceRepository.tag = Cabal.repoTag sourceRepo
+                                    , SourceRepository.type_ = fmap from $ Cabal.repoType sourceRepo
+                                    }
+                            SourceRepository.insert connection sourceRepository)
                 pd
                     & Cabal.pkgComponents
                     & traverse_ (\ component -> do

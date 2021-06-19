@@ -118,6 +118,7 @@ library
         Monadoc.Model.Package
         Monadoc.Model.PreferredVersions
         Monadoc.Model.Session
+        Monadoc.Model.SourceRepository
         Monadoc.Model.User
         Monadoc.Prelude
         Monadoc.Prelude.Extra
@@ -144,6 +145,8 @@ library
         Monadoc.Type.OAuthResponse
         Monadoc.Type.PackageName
         Monadoc.Type.Port
+        Monadoc.Type.RepositoryKind
+        Monadoc.Type.RepositoryType
         Monadoc.Type.RequestId
         Monadoc.Type.Revision
         Monadoc.Type.Route

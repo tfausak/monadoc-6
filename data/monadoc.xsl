@@ -170,6 +170,23 @@
             <li> category: <xsl:value-of select="package/category"/> </li>
             <li> stability: <xsl:value-of select="package/stability"/> </li>
         </ul>
+        <h3>Source Repositories</h3>
+        <ul>
+            <!-- TODO -->
+            <xsl:for-each select="sourceRepositories/sourceRepository">
+                <li>
+                    <dl>
+                        <dt>branch</dt> <dd><xsl:value-of select="branch"/></dd>
+                        <dt>kind</dt> <dd><xsl:value-of select="kind"/></dd>
+                        <dt>location</dt> <dd><xsl:value-of select="location"/></dd>
+                        <dt>module</dt> <dd><xsl:value-of select="module"/></dd>
+                        <dt>subdir</dt> <dd><xsl:value-of select="subdir"/></dd>
+                        <dt>tag</dt> <dd><xsl:value-of select="tag"/></dd>
+                        <dt>type</dt> <dd><xsl:value-of select="type"/></dd>
+                    </dl>
+                </li>
+            </xsl:for-each>
+        </ul>
         <h3>
             Components
         </h3>
@@ -273,7 +290,7 @@
     </xsl:template>
 
     <xsl:template match="component">
-        TODO
+        <!-- TODO -->
         <xsl:value-of select="package"/>
         <xsl:value-of select="version"/>
         <xsl:value-of select="revision"/>

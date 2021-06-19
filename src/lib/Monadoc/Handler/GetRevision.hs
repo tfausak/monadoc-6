@@ -13,6 +13,7 @@ import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
+import qualified Monadoc.Model.SourceRepository as SourceRepository
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.ComponentId as ComponentId
 import qualified Monadoc.Type.ComponentName as ComponentName
@@ -45,6 +46,8 @@ handler packageName version revision context request = do
     let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions
     components <- Pool.withResource (Context.pool context) $ \ connection ->
         Component.selectByPackage connection $ Model.key package
+    sourceRepositories <- Pool.withResource (Context.pool context) $ \ connection ->
+        SourceRepository.selectByPackage connection $ Model.key package
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
@@ -73,6 +76,8 @@ handler packageName version revision context request = do
                 & fmap Model.value
                 & List.sortOn (\ c -> (Component.tag c, Component.name c))
                 & fmap (toComponent $ Model.value package)
+            , revision_sourceRepositories = sourceRepositories
+                & fmap Model.value
             }
         }
 
@@ -80,6 +85,7 @@ data Revision = Revision
     { revision_package :: Package
     , revision_versions :: [Version]
     , revision_components :: [Component]
+    , revision_sourceRepositories :: [SourceRepository.SourceRepository]
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Revision where
@@ -87,6 +93,15 @@ instance ToXml.ToXml Revision where
         [ ToXml.toXml $ revision_package revision
         , Xml.node "versions" [] . fmap ToXml.toXml $ revision_versions revision
         , Xml.node "components" [] . fmap ToXml.toXml $ revision_components revision
+        , Xml.node "sourceRepositories" [] . fmap (\ sourceRepository -> Xml.node "sourceRepository" []
+            [ Xml.node "branch" [] [ToXml.toXml $ SourceRepository.branch sourceRepository]
+            , Xml.node "kind" [] [ToXml.toXml $ SourceRepository.kind sourceRepository]
+            , Xml.node "location" [] [ToXml.toXml $ SourceRepository.location sourceRepository]
+            , Xml.node "module" [] [ToXml.toXml $ SourceRepository.module_ sourceRepository]
+            , Xml.node "subdir" [] [ToXml.toXml $ SourceRepository.subdir sourceRepository]
+            , Xml.node "tag" [] [ToXml.toXml $ SourceRepository.tag sourceRepository]
+            , Xml.node "type" [] [ToXml.toXml $ SourceRepository.type_ sourceRepository]
+            ]) $ revision_sourceRepositories revision
         ]
 
 data Package = Package

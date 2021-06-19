@@ -17,6 +17,7 @@ import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.Session as Session
+import qualified Monadoc.Model.SourceRepository as SourceRepository
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Main as Server
 import qualified Monadoc.Server.Settings as Settings
@@ -95,5 +96,6 @@ migrations = List.sortOn Migration.time $ mconcat
     , Package.migrations
     , PreferredVersions.migrations
     , Session.migrations
+    , SourceRepository.migrations
     , User.migrations
     ]
