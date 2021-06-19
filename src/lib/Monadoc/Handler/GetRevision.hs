@@ -48,8 +48,8 @@ handler packageName version revision context request = do
         Component.selectByPackage connection $ Model.key package
     sourceRepositories <- Context.withConnection context $ \ connection ->
         SourceRepository.selectByPackage connection $ Model.key package
-    pure $ Common.makeResponse Common.Monadoc
-        { Common.monadoc_config = (Common.config_fromContext context route)
+    pure $ Common.makeResponse Common.Root
+        { Common.root_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
@@ -66,7 +66,7 @@ handler packageName version revision context request = do
                 ]
             , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Common.monadoc_page = Revision
+        , Common.root_page = Revision
             { revision_package = Package (Model.value package) (VersionRange.contains (Package.version $ Model.value package) versionRange)
             , revision_versions = packages
                 & fmap Model.value

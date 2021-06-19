@@ -82,8 +82,8 @@ handler packageName version revision componentId context request = do
     dependencies <- Context.withConnection context $ \ connection ->
         Dependency.selectByComponent connection $ Model.key component
 
-    pure $ Common.makeResponse Common.Monadoc
-        { Common.monadoc_config = (Common.config_fromContext context route)
+    pure $ Common.makeResponse Common.Root
+        { Common.root_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
@@ -104,7 +104,7 @@ handler packageName version revision componentId context request = do
                 ]
             , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Common.monadoc_page = Component
+        , Common.root_page = Component
             { component_package = Model.value package
             , component_component = Model.value component
             , component_dependencies = fmap Model.value dependencies

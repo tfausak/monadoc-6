@@ -6,10 +6,10 @@
         media-type="text/html"
         method="html"/>
 
-    <xsl:variable name="baseUrl" select="normalize-space(/monadoc/config/baseUrl)"/>
-    <xsl:variable name="clientId" select="normalize-space(/monadoc/config/clientId)"/>
+    <xsl:variable name="baseUrl" select="normalize-space(/root/config/baseUrl)"/>
+    <xsl:variable name="clientId" select="normalize-space(/root/config/clientId)"/>
 
-    <xsl:template match="/monadoc">
+    <xsl:template match="/root">
         <html lang="en-US">
             <head>
                 <meta content="initial-scale = 1, width = device-width" name="viewport"/>
@@ -241,7 +241,7 @@
         <h2>
             Search
         </h2>
-        <form action="{$baseUrl}{normalize-space(/monadoc/config/routes/search)}" class="d-flex mb-3">
+        <form action="{$baseUrl}{normalize-space(/root/config/routes/search)}" class="d-flex mb-3">
             <input class="form-control form-control-lg me-2" name="query" type="search" placeholder="Search" value="{normalize-space(query)}"/>
             <button class="btn btn-lg btn-primary" type="submit">Go</button>
         </form>
@@ -269,7 +269,7 @@
             Manage access
             <a href="https://github.com/settings/connections/applications/{$clientId}">on GitHub</a>.
         </p>
-        <form action="{$baseUrl}{normalize-space(/monadoc/config/routes/logOut)}" method="post">
+        <form action="{$baseUrl}{normalize-space(/root/config/routes/logOut)}" method="post">
             <button class="btn btn-outline-danger" type="submit">Log out</button>
         </form>
         <h3>
@@ -280,7 +280,7 @@
                 <li>
                     <xsl:value-of select="normalize-space(createdAt)"/>:
                     <xsl:value-of select="normalize-space(userAgent)"/>
-                    <form action="{$baseUrl}{normalize-space(/monadoc/config/routes/revoke)}" method="post">
+                    <form action="{$baseUrl}{normalize-space(/root/config/routes/revoke)}" method="post">
                         <input type="hidden" name="guid" value="{normalize-space(guid)}"/>
                         <button class="btn btn-outline-danger" type="submit">Revoke</button>
                     </form>

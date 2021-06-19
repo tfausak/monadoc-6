@@ -52,10 +52,10 @@ getSessionWith context guid =
     Context.withConnection context $ \ connection ->
         Session.selectByGuid connection guid
 
-makeResponse :: ToXml.ToXml page => Monadoc page -> Wai.Response
+makeResponse :: ToXml.ToXml page => Root page -> Wai.Response
 makeResponse monadoc =
     let
-        baseUrl = config_baseUrl $ monadoc_config monadoc
+        baseUrl = config_baseUrl $ root_config monadoc
         status = Http.ok200
         hLink = CI.mk $ into @ByteString "Link"
         link = into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style"
@@ -64,17 +64,17 @@ makeResponse monadoc =
             (into @Text "xml-stylesheet")
             (into @Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")
         prologue = Xml.Prologue [Xml.MiscInstruction instruction] Nothing []
-        root = Xml.element "monadoc" []
-            [ ToXml.toXml $ monadoc_config monadoc
-            , Xml.node "page" [] [ToXml.toXml $ monadoc_page monadoc]
+        root = Xml.element "root" []
+            [ ToXml.toXml $ root_config monadoc
+            , Xml.node "page" [] [ToXml.toXml $ root_page monadoc]
             ]
         epilogue = [] :: [Xml.Miscellaneous]
         document = Xml.Document prologue root epilogue
     in Response.xml status headers document
 
-data Monadoc page = Monadoc
-    { monadoc_config :: Config
-    , monadoc_page :: page
+data Root page = Root
+    { root_config :: Config
+    , root_page :: page
     } deriving (Eq, Show)
 
 data Config = Config

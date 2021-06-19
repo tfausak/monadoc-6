@@ -26,8 +26,8 @@ handler maybeQuery context request = do
     partialMatches <- Context.withConnection context $ \ connection ->
         Package.selectNamesLike connection $ "%" <> Package.escapeLike query <> "%"
     maybeUser <- Common.getUser context request
-    pure $ Common.makeResponse Common.Monadoc
-        { Common.monadoc_config = (Common.config_fromContext context route)
+    pure $ Common.makeResponse Common.Root
+        { Common.root_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
@@ -40,7 +40,7 @@ handler maybeQuery context request = do
                 ]
             , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Common.monadoc_page = Search
+        , Common.root_page = Search
             { search_query = query
             ,search_packages = fmap (\ packageName -> Package
                 { package_name = packageName

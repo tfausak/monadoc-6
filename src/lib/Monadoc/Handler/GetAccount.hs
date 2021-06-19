@@ -28,8 +28,8 @@ handler context request = do
         Just user -> pure user
     sessions <- Context.withConnection context $ \ connection ->
         Session.selectByGithubId connection . User.githubId $ Model.value user
-    pure $ Common.makeResponse Common.Monadoc
-        { Common.monadoc_config = (Common.config_fromContext context route)
+    pure $ Common.makeResponse Common.Root
+        { Common.root_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
@@ -42,7 +42,7 @@ handler context request = do
                 ]
             , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Common.monadoc_page = Account
+        , Common.root_page = Account
             { account_name = User.githubLogin $ Model.value user
             , account_sessions = fmap (\ session -> Session
                 { session_createdAt = Session.createdAt session

@@ -22,8 +22,8 @@ handler context request = do
     let route = Route.Index
     maybeUser <- Common.getUser context request
     packages <- Context.withConnection context Package.selectRecent
-    pure $ Common.makeResponse Common.Monadoc
-        { Common.monadoc_config = (Common.config_fromContext context route)
+    pure $ Common.makeResponse Common.Root
+        { Common.root_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
@@ -32,7 +32,7 @@ handler context request = do
                 ]
             , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Common.monadoc_page = Index
+        , Common.root_page = Index
             { index_packages = fmap
                 (\ package -> Package
                     { package_name = Package.name $ Model.value package
