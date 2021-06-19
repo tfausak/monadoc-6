@@ -8,18 +8,14 @@ import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
-import qualified Monadoc.Type.Breadcrumb as Breadcrumb
-import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
+import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Route as Route
-import qualified Monadoc.Type.Routes as Routes
-import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
-import qualified Paths_monadoc as This
 import qualified Text.XML as Xml
 import qualified Web.Cookie as Cookie
 
@@ -55,7 +51,7 @@ getSessionWith context guid =
 makeResponse :: ToXml.ToXml page => Root page -> Wai.Response
 makeResponse monadoc =
     let
-        baseUrl = meta_baseUrl $ root_meta monadoc
+        baseUrl = Meta.baseUrl $ root_meta monadoc
         status = Http.ok200
         hLink = CI.mk $ into @ByteString "Link"
         link = into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style"
@@ -73,44 +69,6 @@ makeResponse monadoc =
     in Response.xml status headers document
 
 data Root page = Root
-    { root_meta :: Meta
+    { root_meta :: Meta.Meta
     , root_page :: page
     } deriving (Eq, Show)
-
-data Meta = Meta
-    { meta_baseUrl :: String
-    , meta_breadcrumbs :: [Breadcrumb.Breadcrumb]
-    , meta_clientId :: String
-    , meta_routes :: Routes.Routes
-    , meta_user :: Maybe String
-    , meta_version :: Version.Version
-    } deriving (Eq, Show)
-
-instance ToXml.ToXml Meta where
-    toXml config = Xml.node "meta" []
-        [ Xml.node "baseUrl" [] [ToXml.toXml $ meta_baseUrl config]
-        , Xml.node "breadcrumbs" [] . fmap ToXml.toXml $ meta_breadcrumbs config
-        , Xml.node "clientId" [] [ToXml.toXml $ meta_clientId config]
-        , ToXml.toXml $ meta_routes config
-        , Xml.node "user" [] [ToXml.toXml $ meta_user config]
-        , Xml.node "version" [] [ToXml.toXml $ meta_version config]
-        ]
-
-meta_fromContext :: Context.Context -> Route.Route -> Meta
-meta_fromContext context self = Meta
-    { meta_baseUrl = Config.baseUrl $ Context.config context
-    , meta_breadcrumbs = []
-    , meta_clientId = Config.clientId $ Context.config context
-    , meta_routes = Routes.Routes
-        { Routes.account = Route.Account
-        , Routes.bootstrap = Route.Bootstrap
-        , Routes.callback = Route.Callback
-        , Routes.favicon = Route.Favicon
-        , Routes.logOut = Route.LogOut
-        , Routes.revoke = Route.Revoke
-        , Routes.search = Route.Search Nothing
-        , Routes.self = self
-        }
-    , meta_user = Nothing
-    , meta_version = into @Version.Version This.version
-    }

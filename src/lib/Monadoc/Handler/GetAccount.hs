@@ -15,6 +15,7 @@ import qualified Monadoc.Type.Breadcrumb as Breadcrumb
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Handler as Handler
+import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml
@@ -29,8 +30,8 @@ handler context request = do
     sessions <- Context.withConnection context $ \ connection ->
         Session.selectByGithubId connection . User.githubId $ Model.value user
     pure $ Common.makeResponse Common.Root
-        { Common.root_meta = (Common.meta_fromContext context route)
-            { Common.meta_breadcrumbs =
+        { Common.root_meta = (Meta.fromContext context route)
+            { Meta.breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
                     , Breadcrumb.route = Just Route.Index
@@ -40,7 +41,7 @@ handler context request = do
                     , Breadcrumb.route = Nothing
                     }
                 ]
-            , Common.meta_user = fmap (User.githubLogin . Model.value) maybeUser
+            , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Common.root_page = Account
             { account_name = User.githubLogin $ Model.value user

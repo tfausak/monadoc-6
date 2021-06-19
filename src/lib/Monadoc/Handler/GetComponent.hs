@@ -22,6 +22,7 @@ import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
+import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
@@ -83,8 +84,8 @@ handler packageName version revision componentId context request = do
         Dependency.selectByComponent connection $ Model.key component
 
     pure $ Common.makeResponse Common.Root
-        { Common.root_meta = (Common.meta_fromContext context route)
-            { Common.meta_breadcrumbs =
+        { Common.root_meta = (Meta.fromContext context route)
+            { Meta.breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
                     , Breadcrumb.route = Just Route.Index
@@ -102,7 +103,7 @@ handler packageName version revision componentId context request = do
                     , Breadcrumb.route = Nothing
                     }
                 ]
-            , Common.meta_user = fmap (User.githubLogin . Model.value) maybeUser
+            , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Common.root_page = Component
             { component_package = Model.value package
