@@ -24,6 +24,7 @@ import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
+import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
@@ -49,8 +50,8 @@ handler packageName version revision context request = do
         Component.selectByPackage connection $ Model.key package
     sourceRepositories <- Context.withConnection context $ \ connection ->
         SourceRepository.selectByPackage connection $ Model.key package
-    pure $ Common.makeResponse Common.Root
-        { Common.root_meta = (Meta.fromContext context route)
+    pure $ Common.makeResponse Root.Root
+        { Root.meta = (Meta.fromContext context route)
             { Meta.breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
@@ -67,7 +68,7 @@ handler packageName version revision context request = do
                 ]
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Common.root_page = Revision
+        , Root.page = Revision
             { revision_package = Package (Model.value package) (VersionRange.contains (Package.version $ Model.value package) versionRange)
             , revision_versions = packages
                 & fmap Model.value

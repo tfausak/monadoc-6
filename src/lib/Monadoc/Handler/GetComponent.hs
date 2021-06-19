@@ -26,6 +26,7 @@ import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
+import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Foldable as Foldable
@@ -83,8 +84,8 @@ handler packageName version revision componentId context request = do
     dependencies <- Context.withConnection context $ \ connection ->
         Dependency.selectByComponent connection $ Model.key component
 
-    pure $ Common.makeResponse Common.Root
-        { Common.root_meta = (Meta.fromContext context route)
+    pure $ Common.makeResponse Root.Root
+        { Root.meta = (Meta.fromContext context route)
             { Meta.breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
@@ -105,7 +106,7 @@ handler packageName version revision componentId context request = do
                 ]
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Common.root_page = Component
+        , Root.page = Component
             { component_package = Model.value package
             , component_component = Model.value component
             , component_dependencies = fmap Model.value dependencies

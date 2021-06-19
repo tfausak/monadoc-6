@@ -14,6 +14,7 @@ import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml
 
@@ -27,8 +28,8 @@ handler maybeQuery context request = do
     partialMatches <- Context.withConnection context $ \ connection ->
         Package.selectNamesLike connection $ "%" <> Package.escapeLike query <> "%"
     maybeUser <- Common.getUser context request
-    pure $ Common.makeResponse Common.Root
-        { Common.root_meta = (Meta.fromContext context route)
+    pure $ Common.makeResponse Root.Root
+        { Root.meta = (Meta.fromContext context route)
             { Meta.breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
@@ -41,7 +42,7 @@ handler maybeQuery context request = do
                 ]
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Common.root_page = Search
+        , Root.page = Search
             { search_query = query
             ,search_packages = fmap (\ packageName -> Package
                 { package_name = packageName
