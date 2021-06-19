@@ -129,6 +129,7 @@ instance ToXml.ToXml Component where
         , Xml.node "dependencies" [] . fmap (\ dependency -> Xml.node "dependency" []
             [ Xml.node "packageName" [] [ToXml.toXml $ Dependency.packageName dependency]
             , Xml.node "libraryName" [] [ToXml.toXml $ Dependency.libraryName dependency]
+            , Xml.node "route" [] [ToXml.toXml . Route.Package $ Dependency.packageName dependency]
             , Xml.node "versionRange" [] [ToXml.toXml $ Dependency.versionRange dependency]
             ]) . List.sortOn (CI.mk . into @String . Dependency.packageName) $ component_dependencies component
         ]

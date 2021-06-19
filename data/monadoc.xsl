@@ -302,7 +302,9 @@
         <ul>
             <xsl:for-each select="dependencies/dependency">
                 <li>
-                    <xsl:value-of select="packageName"/>
+                    <a href="{$baseUrl}{normalize-space(route)}">
+                        <xsl:value-of select="normalize-space(packageName)"/>
+                    </a>
                     <xsl:if test="libraryName != packageName">
                         <xsl:value-of select="libraryName"/>
                     </xsl:if>
