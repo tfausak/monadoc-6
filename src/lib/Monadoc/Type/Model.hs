@@ -2,8 +2,7 @@ module Monadoc.Type.Model where
 
 import Monadoc.Prelude
 
-import qualified Database.SQLite.Simple as Sql
-import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Type.Key as Key
 
 data Model a = Model

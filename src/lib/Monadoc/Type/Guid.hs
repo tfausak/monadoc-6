@@ -3,8 +3,7 @@ module Monadoc.Type.Guid where
 import Monadoc.Prelude
 
 import qualified Data.UUID as Uuid
-import qualified Database.SQLite.Simple.FromField as Sql
-import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Utility.Sql as Sql
 import qualified System.Random.Stateful as Random

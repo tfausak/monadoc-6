@@ -2,8 +2,7 @@ module Monadoc.Model.Dependency where
 
 import Monadoc.Prelude
 
-import qualified Database.SQLite.Simple as Sql
-import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.ComponentName as ComponentName

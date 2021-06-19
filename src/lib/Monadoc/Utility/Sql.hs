@@ -4,8 +4,7 @@ import Monadoc.Prelude
 
 import qualified Data.Proxy as Proxy
 import qualified Data.Typeable as Typeable
-import qualified Database.SQLite.Simple as Sql
-import qualified Database.SQLite.Simple.FromField as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Utility.Log as Log
 
 defaultFromField

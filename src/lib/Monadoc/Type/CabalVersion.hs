@@ -2,8 +2,7 @@ module Monadoc.Type.CabalVersion where
 
 import Monadoc.Prelude
 
-import qualified Database.SQLite.Simple.FromField as Sql
-import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Distribution.CabalSpecVersion as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Version as Version

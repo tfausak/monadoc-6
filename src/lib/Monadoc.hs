@@ -7,7 +7,7 @@ import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
 import qualified Data.Pool as Pool
-import qualified Database.SQLite.Simple as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified GHC.Conc as Ghc
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency

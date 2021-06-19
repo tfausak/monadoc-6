@@ -4,7 +4,7 @@ import Monadoc.Prelude
 
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
-import qualified Database.SQLite.Simple as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Type.Config as Config
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Client.TLS as Tls

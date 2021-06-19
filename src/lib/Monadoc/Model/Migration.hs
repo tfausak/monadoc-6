@@ -6,8 +6,7 @@ import qualified Data.Fixed as Fixed
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
-import qualified Database.SQLite.Simple as Sql
-import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model

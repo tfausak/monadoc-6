@@ -4,8 +4,7 @@ import Monadoc.Prelude
 
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
-import qualified Database.SQLite.Simple as Sql
-import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model

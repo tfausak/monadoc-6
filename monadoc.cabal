@@ -159,6 +159,7 @@ library
         Monadoc.Utility.Log
         Monadoc.Utility.Sql
         Monadoc.Utility.Xml
+        Monadoc.Vendor.Sql
         Monadoc.Worker.Main
         Paths_monadoc
     hs-source-dirs: src/lib

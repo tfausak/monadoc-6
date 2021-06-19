@@ -3,8 +3,7 @@ module Monadoc.Type.Version where
 import Monadoc.Prelude
 
 import qualified Data.Version as Version
-import qualified Database.SQLite.Simple.FromField as Sql
-import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.Version as Cabal

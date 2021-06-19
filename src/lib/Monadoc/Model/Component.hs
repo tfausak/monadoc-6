@@ -3,8 +3,7 @@ module Monadoc.Model.Component where
 import Monadoc.Prelude
 
 import qualified Data.Maybe as Maybe
-import qualified Database.SQLite.Simple as Sql
-import qualified Database.SQLite.Simple.ToField as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Type.ComponentName as ComponentName

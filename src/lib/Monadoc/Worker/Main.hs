@@ -14,7 +14,7 @@ import qualified Data.Map as Map
 import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Data.Time.Clock.POSIX as Time
-import qualified Database.SQLite.Simple as Sql
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified Distribution.Compat.Lens as Lens
 import qualified Distribution.Compat.NonEmptySet as NonEmptySet
 import qualified Distribution.Compiler as Cabal
