@@ -7,7 +7,6 @@ import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
-import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
@@ -51,10 +50,10 @@ handler packageName version revision componentId context request = do
 
     let route = Route.Component packageName version revision componentId
     maybeUser <- Common.getUser context request
-    maybePackage <- Pool.withResource (Context.pool context) $ \ connection ->
+    maybePackage <- Context.withConnection context $ \ connection ->
         Package.select connection packageName version revision
     package <- maybe (throwM NotFound.new) pure maybePackage
-    allComponents <- Pool.withResource (Context.pool context) $ \ connection ->
+    allComponents <- Context.withConnection context $ \ connection ->
         Component.selectByPackage connection $ Model.key package
     let componentsByTag = Foldable.groupBy (Component.tag . Model.value) allComponents
     components <- case Map.lookup (ComponentId.tag componentId) componentsByTag of
@@ -79,7 +78,7 @@ handler packageName version revision componentId context request = do
     component <- components
         & List.find ((== componentName) . Component.name . Model.value)
         & maybe (throwM NotFound.new) pure
-    dependencies <- Pool.withResource (Context.pool context) $ \ connection ->
+    dependencies <- Context.withConnection context $ \ connection ->
         Dependency.selectByComponent connection $ Model.key component
 
     pure $ Common.makeResponse Common.Monadoc

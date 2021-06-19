@@ -4,7 +4,6 @@ import Monadoc.Prelude
 
 import qualified Data.Containers.ListUtils as Containers
 import qualified Data.Maybe as Maybe
-import qualified Data.Pool as Pool
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Package as Package
@@ -21,9 +20,9 @@ handler maybeQuery context request = do
     let
         route = Route.Search maybeQuery
         query = Maybe.fromMaybe "" maybeQuery
-    exactMatches <- Pool.withResource (Context.pool context) $ \ connection ->
+    exactMatches <- Context.withConnection context $ \ connection ->
         Package.selectNamesLike connection $ Package.escapeLike query
-    partialMatches <- Pool.withResource (Context.pool context) $ \ connection ->
+    partialMatches <- Context.withConnection context $ \ connection ->
         Package.selectNamesLike connection $ "%" <> Package.escapeLike query <> "%"
     maybeUser <- Common.getUser context request
     pure $ Common.makeResponse Common.Monadoc

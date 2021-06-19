@@ -2,7 +2,6 @@ module Monadoc.Handler.GetVersion where
 
 import Monadoc.Prelude
 
-import qualified Data.Pool as Pool
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Model.Package as Package
@@ -17,7 +16,7 @@ import qualified Monadoc.Utility.Foldable as Foldable
 
 handler :: PackageName.PackageName -> Version.Version -> Handler.Handler
 handler packageName version context _ = do
-    packages <- Pool.withResource (Context.pool context) $ \ connection ->
+    packages <- Context.withConnection context $ \ connection ->
         Package.selectByNameAndVersion connection packageName version
     package <- case Foldable.maximumOn Package.revision $ fmap Model.value packages of
         Nothing -> throwM NotFound.new

@@ -3,7 +3,6 @@ module Monadoc.Handler.PostLogOut where
 import Monadoc.Prelude
 
 import qualified Data.ByteString.Builder as Builder
-import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Monadoc.Exception.Forbidden as Forbidden
 import qualified Monadoc.Handler.Common as Common
@@ -24,7 +23,7 @@ handler context request = do
     session <- case maybeSession of
         Nothing -> throwM Forbidden.new
         Just session -> pure session
-    Pool.withResource (Context.pool context) $ \ connection ->
+    Context.withConnection context $ \ connection ->
         Session.delete connection $ Model.key session
     let
         config = Context.config context

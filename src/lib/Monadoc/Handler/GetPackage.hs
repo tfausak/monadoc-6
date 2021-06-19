@@ -2,7 +2,6 @@ module Monadoc.Handler.GetPackage where
 
 import Monadoc.Prelude
 
-import qualified Data.Pool as Pool
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Model.Package as Package
@@ -18,9 +17,9 @@ import qualified Monadoc.Utility.Foldable as Foldable
 
 handler :: PackageName.PackageName -> Handler.Handler
 handler packageName context _ = do
-    packages <- Pool.withResource (Context.pool context) $ \ connection ->
+    packages <- Context.withConnection context $ \ connection ->
         Package.selectByName connection packageName
-    maybePreferredVersions <- Pool.withResource (Context.pool context) $ \ connection ->
+    maybePreferredVersions <- Context.withConnection context $ \ connection ->
         PreferredVersions.selectByPackageName connection packageName
     let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions
     package <- packages

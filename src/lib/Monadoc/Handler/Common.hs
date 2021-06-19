@@ -3,7 +3,6 @@ module Monadoc.Handler.Common where
 import Monadoc.Prelude
 
 import qualified Data.CaseInsensitive as CI
-import qualified Data.Pool as Pool
 import qualified Data.UUID as Uuid
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Model.Session as Session
@@ -31,7 +30,7 @@ getUser context request = do
 
 getUserWith :: Context.Context -> Model.Model Session.Session -> IO (Maybe (Model.Model User.User))
 getUserWith context session =
-    Pool.withResource (Context.pool context) $ \ connection ->
+    Context.withConnection context $ \ connection ->
         User.selectByGithubId connection . Session.userGithubId $ Model.value session
 
 getSession :: Context.Context -> Wai.Request -> IO (Maybe (Model.Model Session.Session))
@@ -48,7 +47,7 @@ getSessionGuid request = do
 
 getSessionWith :: Context.Context -> Guid.Guid -> IO (Maybe (Model.Model Session.Session))
 getSessionWith context guid =
-    Pool.withResource (Context.pool context) $ \ connection ->
+    Context.withConnection context $ \ connection ->
         Session.selectByGuid connection guid
 
 makeResponse :: ToXml.ToXml page => Monadoc page -> Wai.Response

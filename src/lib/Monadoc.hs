@@ -43,7 +43,7 @@ mainWith :: String -> [String] -> IO ()
 mainWith name arguments = do
     setDefaultExceptionHandler
     context <- getContext name arguments
-    Pool.withResource (Context.pool context) $ \ connection -> do
+    Context.withConnection context $ \ connection -> do
         enableWriteAheadLog connection
         Migration.createTable connection
         Migration.runAll connection migrations

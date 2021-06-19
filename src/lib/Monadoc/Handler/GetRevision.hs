@@ -4,7 +4,6 @@ import Monadoc.Prelude
 
 import qualified Data.List as List
 import qualified Data.Ord as Ord
-import qualified Data.Pool as Pool
 import qualified Documentation.Haddock.Parser as Haddock
 import qualified Documentation.Haddock.Types as Haddock
 import qualified Monadoc.Class.ToXml as ToXml
@@ -36,17 +35,17 @@ handler
 handler packageName version revision context request = do
     let route = Route.Revision packageName version revision
     maybeUser <- Common.getUser context request
-    maybePackage <- Pool.withResource (Context.pool context) $ \ connection ->
+    maybePackage <- Context.withConnection context $ \ connection ->
         Package.select connection packageName version revision
     package <- maybe (throwM NotFound.new) pure maybePackage
-    packages <- Pool.withResource (Context.pool context) $ \ connection ->
+    packages <- Context.withConnection context $ \ connection ->
         Package.selectByName connection packageName
-    maybePreferredVersions <- Pool.withResource (Context.pool context) $ \ connection ->
+    maybePreferredVersions <- Context.withConnection context $ \ connection ->
         PreferredVersions.selectByPackageName connection packageName
     let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions
-    components <- Pool.withResource (Context.pool context) $ \ connection ->
+    components <- Context.withConnection context $ \ connection ->
         Component.selectByPackage connection $ Model.key package
-    sourceRepositories <- Pool.withResource (Context.pool context) $ \ connection ->
+    sourceRepositories <- Context.withConnection context $ \ connection ->
         SourceRepository.selectByPackage connection $ Model.key package
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)

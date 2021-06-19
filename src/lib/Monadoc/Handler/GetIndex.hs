@@ -2,7 +2,6 @@ module Monadoc.Handler.GetIndex where
 
 import Monadoc.Prelude
 
-import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
@@ -21,7 +20,7 @@ handler :: Handler.Handler
 handler context request = do
     let route = Route.Index
     maybeUser <- Common.getUser context request
-    packages <- Pool.withResource (Context.pool context) Package.selectRecent
+    packages <- Context.withConnection context Package.selectRecent
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =

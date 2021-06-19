@@ -34,3 +34,6 @@ idleTime = 60
 
 resourceCount :: Int
 resourceCount = 16
+
+withConnection :: Context -> (Sql.Connection -> IO a) -> IO a
+withConnection = Pool.withResource . pool

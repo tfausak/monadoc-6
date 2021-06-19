@@ -5,7 +5,6 @@ import Monadoc.Prelude
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 import qualified Data.Ord as Ord
-import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.Forbidden as Forbidden
@@ -26,7 +25,7 @@ handler context request = do
     user <- case maybeUser of
         Nothing -> throwM Forbidden.new
         Just user -> pure user
-    sessions <- Pool.withResource (Context.pool context) $ \ connection ->
+    sessions <- Context.withConnection context $ \ connection ->
         Session.selectByGithubId connection . User.githubId $ Model.value user
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)

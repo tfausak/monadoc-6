@@ -4,7 +4,6 @@ import Monadoc.Prelude
 
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Builder as Builder
-import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Data.UUID as Uuid
 import qualified Monadoc.Exception.InvalidJson as InvalidJson
@@ -83,7 +82,7 @@ handler context request = do
                     , Session.userAgent = maybe "" (unsafeInto @String) $ Wai.requestHeaderUserAgent request
                     , Session.userGithubId = User.githubId user
                     }
-            Pool.withResource (Context.pool context) $ \ connection -> do
+            Context.withConnection context $ \ connection -> do
                 User.insertOrUpdate connection user
                 Session.insert connection session
             let

@@ -11,7 +11,6 @@ import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
 import qualified Data.Fixed as Fixed
 import qualified Data.Map as Map
-import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Data.Time.Clock.POSIX as Time
 import qualified Monadoc.Vendor.Sql as Sql
@@ -85,7 +84,7 @@ run context = do
 upsertHackageIndex :: Context.Context -> IO HackageIndex.HackageIndex
 upsertHackageIndex context = do
     Log.info "refreshing Hackage index"
-    maybeHackageIndex <- Pool.withResource (Context.pool context) HackageIndex.select
+    maybeHackageIndex <- Context.withConnection context HackageIndex.select
     case maybeHackageIndex of
         Nothing -> insertHackageIndex context
         Just hackageIndex -> updateHackageIndex context hackageIndex
@@ -102,7 +101,7 @@ insertHackageIndex context = do
         size = ByteString.length contents
         hackageIndex = HackageIndex.HackageIndex { HackageIndex.contents, HackageIndex.size }
     Log.info $ "got initial Hackage index (size: " <> pluralize "byte" size <> ")"
-    Pool.withResource (Context.pool context) $ \ connection ->
+    Context.withConnection context $ \ connection ->
         HackageIndex.insert connection hackageIndex
     pure hackageIndex
 
@@ -146,7 +145,7 @@ updateHackageIndex context model = do
                     contents = before <> after
                     newHackageIndex = HackageIndex.fromByteString contents
                     key = Model.key model
-                Pool.withResource (Context.pool context) $ \ connection ->
+                Context.withConnection context $ \ connection ->
                     HackageIndex.update connection key newHackageIndex
                 pure newHackageIndex
 
@@ -155,21 +154,21 @@ processHackageIndex context hackageIndex = do
     Log.info "processing Hackage index"
     revisionsVar <- Stm.newTVarIO Map.empty
     preferredVersionsVar <- Stm.newTVarIO Map.empty
-    hashes <- Pool.withResource (Context.pool context) Package.selectHashes
+    hashes <- Context.withConnection context Package.selectHashes
     hackageIndex
         & HackageIndex.contents
         & into @LazyByteString
         & Tar.read
         & Tar.foldEntries (:) [] (Unsafe.unsafePerformIO . throwM)
         & traverse_ (processTarEntry context revisionsVar preferredVersionsVar hashes)
-    oldPreferredVersions <- Pool.withResource (Context.pool context) PreferredVersions.selectAll
+    oldPreferredVersions <- Context.withConnection context PreferredVersions.selectAll
     newPreferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
     newPreferredVersions
         & Map.toAscList
         & fmap (uncurry PreferredVersions.new)
         & traverse_ (\ pv -> case Map.lookup (PreferredVersions.packageName pv) oldPreferredVersions of
             Just v | v == PreferredVersions.versionRange pv -> pure ()
-            _ -> Pool.withResource (Context.pool context) $ \ connection ->
+            _ -> Context.withConnection context $ \ connection ->
                 PreferredVersions.upsert connection pv)
 
 -- Possible Hackage index tar entry paths:
@@ -283,12 +282,12 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                         name = Tar.ownerName ownership
                         id = Tar.ownerId ownership
                         value = HackageUser.HackageUser { HackageUser.id, HackageUser.name }
-                    maybeModel <- Pool.withResource (Context.pool context) $ \ connection ->
+                    maybeModel <- Context.withConnection context $ \ connection ->
                         HackageUser.selectByName connection name
                     case maybeModel of
                         Just model -> pure model
                         Nothing -> do
-                            key <- Pool.withResource (Context.pool context) $ \ connection ->
+                            key <- Context.withConnection context $ \ connection ->
                                 HackageUser.insert connection value
                             pure Model.Model { Model.key, Model.value }
                 let
@@ -314,9 +313,9 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                         , Package.uploadedBy = Model.key hackageUser
                         , Package.version
                         }
-                key <- Pool.withResource (Context.pool context) $ \ connection ->
+                key <- Context.withConnection context $ \ connection ->
                     Package.insertOrUpdate connection package
-                Pool.withResource (Context.pool context) $ \ connection -> Sql.withTransaction connection $ do
+                Context.withConnection context $ \ connection -> Sql.withTransaction connection $ do
                     SourceRepository.deleteByPackage connection key
                     pd
                         & Cabal.sourceRepos
@@ -346,11 +345,11 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                             name = maybe (into @ComponentName.ComponentName packageName) (into @ComponentName.ComponentName)
                                 . Cabal.componentNameString
                                 $ Cabal.componentName component
-                        maybeComponent <- Pool.withResource (Context.pool context) $ \ connection ->
+                        maybeComponent <- Context.withConnection context $ \ connection ->
                             Component.select connection key tag name
                         componentKey <- case maybeComponent of
                             Just model -> pure $ Model.key model
-                            Nothing -> Pool.withResource (Context.pool context) $ \ connection ->
+                            Nothing -> Context.withConnection context $ \ connection ->
                                 Component.insert connection Component.Component
                                     { Component.name
                                     , Component.package = key
@@ -370,7 +369,7 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                                             Cabal.LSubLibName n -> into @ComponentName.ComponentName n
                                         , Dependency.versionRange = into @VersionRange.VersionRange $ Cabal.depVerRange d
                                         }))
-                        Pool.withResource (Context.pool context) $ \ connection -> Sql.withTransaction connection $ do
+                        Context.withConnection context $ \ connection -> Sql.withTransaction connection $ do
                             Dependency.deleteByComponent connection componentKey
                             traverse_ (Dependency.insert connection) dependencies)
 
