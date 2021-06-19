@@ -103,6 +103,7 @@ library
         Monadoc.Handler.GetCallback
         Monadoc.Handler.GetComponent
         Monadoc.Handler.GetFavicon
+        Monadoc.Handler.GetHealthCheck
         Monadoc.Handler.GetIndex
         Monadoc.Handler.GetPackage
         Monadoc.Handler.GetRevision

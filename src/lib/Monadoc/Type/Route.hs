@@ -16,6 +16,7 @@ data Route
     | Callback
     | Component PackageName.PackageName Version.Version Revision.Revision ComponentId.ComponentId
     | Favicon
+    | HealthCheck
     | Index
     | LogOut
     | Logo
@@ -58,6 +59,7 @@ parse path query = case path of
         <*> hush (tryInto @Version.Version rawVersion)
         <*> hush (tryInto @Revision.Revision rawRevision)
         <*> hush (tryInto @ComponentId.ComponentId rawComponentId)
+    ["health-check"] -> Just HealthCheck
     _ -> Nothing
 
 getQuery :: Http.Query -> Maybe (Maybe String)
@@ -79,6 +81,7 @@ render route = case route of
     Callback -> (["account", "callback"], [])
     Component packageName version revision componentId -> (["package", into @String packageName, into @String version, into @String revision, into @String componentId], [])
     Favicon -> (["favicon.ico"], [])
+    HealthCheck -> (["health-check"], [])
     Index -> ([], [])
     LogOut -> (["account", "log-out"], [])
     Logo -> (["static", "monadoc.svg"], [])

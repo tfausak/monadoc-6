@@ -7,6 +7,7 @@ import qualified Monadoc.Handler.GetAccount as GetAccount
 import qualified Monadoc.Handler.GetCallback as GetCallback
 import qualified Monadoc.Handler.GetComponent as GetComponent
 import qualified Monadoc.Handler.GetFavicon as GetFavicon
+import qualified Monadoc.Handler.GetHealthCheck as GetHealthCheck
 import qualified Monadoc.Handler.GetIndex as GetIndex
 import qualified Monadoc.Handler.GetPackage as GetPackage
 import qualified Monadoc.Handler.GetRevision as GetRevision
@@ -51,6 +52,7 @@ getHandler request = do
         (Http.POST, Route.LogOut) -> Just PostLogOut.handler
         (Http.POST, Route.Revoke) -> Just PostRevoke.handler
         (Http.GET, Route.Component packageName version revision componentId) -> Just $ GetComponent.handler packageName version revision componentId
+        (Http.GET, Route.HealthCheck) -> Just GetHealthCheck.handler
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod
