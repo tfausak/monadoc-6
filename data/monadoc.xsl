@@ -312,5 +312,17 @@
                 </li>
             </xsl:for-each>
         </ul>
+        <h3>
+            Reverse Dependencies
+        </h3>
+        <ul>
+            <xsl:for-each select="reverseDependencies/reverseDependency">
+                <li>
+                    <a href="{$baseUrl}{normalize-space(route)}">
+                        <xsl:value-of select="normalize-space(packageName)"/>
+                    </a>
+                </li>
+            </xsl:for-each>
+        </ul>
     </xsl:template>
 </xsl:stylesheet>

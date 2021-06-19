@@ -69,12 +69,18 @@ migrations =
         \unique (component, packageName, libraryName))"
     , Migration.new 2021 6 15 18 11 0
         "create index dependency_component on dependency (component)"
+    , Migration.new 2021 6 19 17 48 0
+        "create index dependency_packageName on dependency (packageName)"
+    , Migration.new 2021 6 19 17 49 0
+        "create index dependency_libraryName on dependency (libraryName)"
     ]
 
 selectByComponent :: Sql.Connection -> Component.Key -> IO [Model]
 selectByComponent connection component = Sql.query
     connection
-    "select key, component, packageName, libraryName, versionRange from dependency where component = ?"
+    "select key, component, packageName, libraryName, versionRange \
+    \from dependency \
+    \where component = ?"
     [component]
 
 deleteByComponent :: Sql.Connection -> Component.Key -> IO ()

@@ -31,6 +31,7 @@ import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Xml as Xml
+import qualified Monadoc.Vendor.Sql as Sql
 
 handler
     :: PackageName.PackageName
@@ -84,6 +85,20 @@ handler packageName version revision componentId context request = do
     dependencies <- Context.withConnection context $ \ connection ->
         Dependency.selectByComponent connection $ Model.key component
 
+    reverseDependencies <- Context.withConnection context $ \ connection -> Sql.query
+        connection
+        "select package.name \
+        \from dependency \
+        \inner join component \
+        \on component.key = dependency.component \
+        \inner join package \
+        \on package.key = component.package \
+        \where dependency.packageName = ? \
+        \and dependency.libraryName = ? \
+        \and package.name != dependency.packageName \
+        \group by package.name"
+        (packageName, componentName)
+
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
             { Meta.breadcrumbs =
@@ -110,6 +125,7 @@ handler packageName version revision componentId context request = do
             { component_package = Model.value package
             , component_component = Model.value component
             , component_dependencies = fmap Model.value dependencies
+            , component_reverseDependencies = fmap Sql.fromOnly reverseDependencies
             }
         }
 
@@ -117,6 +133,7 @@ data Component = Component
     { component_package :: Package.Package
     , component_component :: Component.Component
     , component_dependencies :: [Dependency.Dependency]
+    , component_reverseDependencies :: [PackageName.PackageName]
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Component where
@@ -132,4 +149,11 @@ instance ToXml.ToXml Component where
             , Xml.node "route" [] [ToXml.toXml . Route.Package $ Dependency.packageName dependency]
             , Xml.node "versionRange" [] [ToXml.toXml $ Dependency.versionRange dependency]
             ]) . List.sortOn (CI.mk . into @String . Dependency.packageName) $ component_dependencies component
+        , Xml.node "reverseDependencies" []
+        . fmap (\ x -> Xml.node "reverseDependency" []
+            [ Xml.node "packageName" [] [ToXml.toXml x]
+            , Xml.node "route" [] [ToXml.toXml $ Route.Package x]
+            ])
+        . List.sortOn (CI.mk . into @String)
+        $ component_reverseDependencies component
         ]
