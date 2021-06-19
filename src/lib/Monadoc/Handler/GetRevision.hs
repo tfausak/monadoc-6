@@ -43,6 +43,10 @@ handler packageName version revision context request = do
     package <- maybe (throwM NotFound.new) pure maybePackage
     packages <- Context.withConnection context $ \ connection ->
         Package.selectByName connection packageName
+    let
+        sortedPackages = packages
+            & fmap Model.value
+            & List.sortOn (\ p -> Ord.Down (Package.version p, Package.revision p))
     maybePreferredVersions <- Context.withConnection context $ \ connection ->
         PreferredVersions.selectByPackageName connection packageName
     let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions
@@ -69,11 +73,18 @@ handler packageName version revision context request = do
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Root.page = Revision
-            { revision_package = Package (Model.value package) (VersionRange.contains (Package.version $ Model.value package) versionRange)
-            , revision_versions = packages
-                & fmap Model.value
-                & List.sortOn (\ p -> Ord.Down (Package.version p, Package.revision p))
-                & fmap (\ p -> Version p (VersionRange.contains (Package.version p) versionRange))
+            { revision_package = Package
+                { package_package = Model.value package
+                , package_preferred = VersionRange.contains (Package.version $ Model.value package) versionRange
+                , package_latest = case sortedPackages of
+                    [] -> True
+                    p : _ -> Package.version p == Package.version (Model.value package) && Package.revision p == Package.revision (Model.value package)
+                }
+            , revision_versions = sortedPackages
+                & fmap (\ p -> Version
+                    { version_package = p
+                    , version_preferred = VersionRange.contains (Package.version p) versionRange
+                    })
             , revision_components = components
                 & fmap Model.value
                 & List.sortOn (\ c -> (Component.tag c, Component.name c))
@@ -109,10 +120,11 @@ instance ToXml.ToXml Revision where
 data Package = Package
     { package_package :: Package.Package
     , package_preferred :: Bool
+    , package_latest :: Bool
     } deriving (Eq, Show)
 
 instance ToXml.ToXml Package where
-    toXml (Package package preferred) = Xml.node "package" []
+    toXml (Package package preferred latest) = Xml.node "package" []
         [ Xml.node "author" [] [ToXml.toXml $ Package.author package]
         , Xml.node "bugReports" [] [ToXml.toXml $ Package.bugReports package]
         , Xml.node "buildType" [] [ToXml.toXml $ Package.buildType package]
@@ -128,6 +140,7 @@ instance ToXml.ToXml Package where
             $ Package.description package
             ]
         , Xml.node "homepage" [] [ToXml.toXml $ Package.homepage package]
+        , Xml.node "latest" [] [ToXml.toXml latest]
         , Xml.node "license" [] [ToXml.toXml $ Package.license package]
         , Xml.node "maintainer" [] [ToXml.toXml $ Package.maintainer package]
         , Xml.node "name" [] [ToXml.toXml $ Package.name package]
@@ -181,4 +194,4 @@ toComponent package component =
             (Package.version package)
             (Package.revision package)
             (ComponentId.ComponentId tag maybeName)
-    in Component tag maybeName route
+    in Component { component_tag = tag, component_name = maybeName, component_route = route }

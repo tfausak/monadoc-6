@@ -122,14 +122,24 @@
         <xsl:variable name="version" select="normalize-space(package/version)"/>
         <xsl:variable name="revision" select="normalize-space(package/revision)"/>
         <xsl:variable name="preferred" select="boolean(normalize-space(package/preferred))"/>
+        <xsl:variable name="latest" select="boolean(normalize-space(package/latest))"/>
 
         <xsl:if test="not($preferred)">
-            <div class="alert alert-warning">
+            <div class="alert alert-danger">
                 Version
                 <xsl:value-of select="$version"/>
                 of
                 <xsl:value-of select="$name"/>
                 is deprecated.
+            </div>
+        </xsl:if>
+        <xsl:if test="not($latest)">
+            <div class="alert alert-warning">
+                Version
+                <xsl:value-of select="$version"/>
+                of
+                <xsl:value-of select="$name"/>
+                is out of date.
             </div>
         </xsl:if>
         <h2>
