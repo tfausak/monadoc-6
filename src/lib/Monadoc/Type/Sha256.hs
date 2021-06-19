@@ -4,7 +4,6 @@ import Monadoc.Prelude
 
 import qualified Crypto.Hash as Crypto
 import qualified Monadoc.Vendor.Sql as Sql
-import qualified Monadoc.Utility.Sql as Sql
 import qualified Text.Read as Read
 
 newtype Sha256

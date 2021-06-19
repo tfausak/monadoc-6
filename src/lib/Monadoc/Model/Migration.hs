@@ -11,7 +11,6 @@ import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Utility.Foldable as Foldable
-import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model Migration
 

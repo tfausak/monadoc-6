@@ -10,7 +10,6 @@ import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
-import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model Component
 

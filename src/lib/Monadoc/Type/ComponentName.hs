@@ -7,7 +7,6 @@ import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.UnqualComponentName as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.PackageName as PackageName
-import qualified Monadoc.Utility.Sql as Sql
 
 newtype ComponentName
     = ComponentName Cabal.UnqualComponentName

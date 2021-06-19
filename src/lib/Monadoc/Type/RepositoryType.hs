@@ -7,7 +7,6 @@ import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
-import qualified Monadoc.Utility.Sql as Sql
 
 newtype RepositoryType
     = RepositoryType Cabal.RepoType

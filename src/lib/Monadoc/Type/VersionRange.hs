@@ -9,7 +9,6 @@ import qualified Distribution.Types.Version as Cabal
 import qualified Distribution.Types.VersionRange as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Version as Version
-import qualified Monadoc.Utility.Sql as Sql
 
 newtype VersionRange
     = VersionRange Cabal.VersionRange

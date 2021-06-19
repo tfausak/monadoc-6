@@ -10,7 +10,6 @@ import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.VersionRange as VersionRange
-import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model Dependency
 

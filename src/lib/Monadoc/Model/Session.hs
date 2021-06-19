@@ -9,7 +9,6 @@ import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
-import qualified Monadoc.Utility.Sql as Sql
 
 type Model = Model.Model Session
 

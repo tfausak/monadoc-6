@@ -4,7 +4,6 @@ import Monadoc.Prelude
 
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Class.ToXml as ToXml
-import qualified Monadoc.Utility.Sql as Sql
 
 data ComponentTag
     = Library

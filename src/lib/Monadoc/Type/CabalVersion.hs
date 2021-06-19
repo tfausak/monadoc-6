@@ -6,7 +6,6 @@ import qualified Monadoc.Vendor.Sql as Sql
 import qualified Distribution.CabalSpecVersion as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Version as Version
-import qualified Monadoc.Utility.Sql as Sql
 
 newtype CabalVersion
     = CabalVersion Cabal.CabalSpecVersion

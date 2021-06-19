@@ -6,7 +6,6 @@ import qualified Monadoc.Vendor.Sql as Sql
 import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Types.PackageName as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
-import qualified Monadoc.Utility.Sql as Sql
 
 newtype PackageName
     = PackageName Cabal.PackageName

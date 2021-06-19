@@ -8,7 +8,6 @@ import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
-import qualified Monadoc.Utility.Sql as Sql
 
 newtype Version
     = Version Cabal.Version

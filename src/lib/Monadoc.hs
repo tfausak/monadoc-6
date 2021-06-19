@@ -27,7 +27,6 @@ import qualified Monadoc.Type.Flag as Flag
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Log as Log
-import qualified Monadoc.Utility.Sql as Sql
 import qualified Monadoc.Worker.Main as Worker
 import qualified Paths_monadoc as This
 import qualified System.Console.GetOpt as Console
