@@ -19,11 +19,9 @@ instance TryFrom String PackageName where
 instance From PackageName String where
     from = Cabal.unPackageName . into @Cabal.PackageName
 
-instance From Cabal.PackageName PackageName where
-    from = PackageName
+instance From Cabal.PackageName PackageName
 
-instance From PackageName Cabal.PackageName where
-    from (PackageName x) = x
+instance From PackageName Cabal.PackageName
 
 instance Sql.FromField PackageName where
     fromField = Sql.defaultFromField @String Proxy
