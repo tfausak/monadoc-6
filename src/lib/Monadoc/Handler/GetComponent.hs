@@ -15,6 +15,7 @@ import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
+import qualified Monadoc.Type.Breadcrumb as Breadcrumb
 import qualified Monadoc.Type.ComponentId as ComponentId
 import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
@@ -84,21 +85,21 @@ handler packageName version revision componentId context request = do
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
-                [ Common.Breadcrumb
-                    { Common.breadcrumb_name = "Home"
-                    , Common.breadcrumb_route = Just Route.Index
+                [ Breadcrumb.Breadcrumb
+                    { Breadcrumb.name = "Home"
+                    , Breadcrumb.route = Just Route.Index
                     }
-                , Common.Breadcrumb
-                    { Common.breadcrumb_name = into @String packageName
-                    , Common.breadcrumb_route = Just $ Route.Package packageName
+                , Breadcrumb.Breadcrumb
+                    { Breadcrumb.name = into @String packageName
+                    , Breadcrumb.route = Just $ Route.Package packageName
                     }
-                , Common.Breadcrumb
-                    { Common.breadcrumb_name = into @String version <> if revision == Revision.zero then "" else "-" <> into @String revision
-                    , Common.breadcrumb_route = Just $ Route.Revision packageName version revision
+                , Breadcrumb.Breadcrumb
+                    { Breadcrumb.name = into @String version <> if revision == Revision.zero then "" else "-" <> into @String revision
+                    , Breadcrumb.route = Just $ Route.Revision packageName version revision
                     }
-                , Common.Breadcrumb
-                    { Common.breadcrumb_name = into @String componentId
-                    , Common.breadcrumb_route = Nothing
+                , Breadcrumb.Breadcrumb
+                    { Breadcrumb.name = into @String componentId
+                    , Breadcrumb.route = Nothing
                     }
                 ]
             , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser

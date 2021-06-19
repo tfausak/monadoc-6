@@ -8,6 +8,7 @@ import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
+import qualified Monadoc.Type.Breadcrumb as Breadcrumb
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
@@ -78,7 +79,7 @@ data Monadoc page = Monadoc
 
 data Config = Config
     { config_baseUrl :: String
-    , config_breadcrumbs :: [Breadcrumb]
+    , config_breadcrumbs :: [Breadcrumb.Breadcrumb]
     , config_clientId :: String
     , config_routes :: Routes.Routes
     , config_user :: Maybe String
@@ -113,14 +114,3 @@ config_fromContext context self = Config
     , config_user = Nothing
     , config_version = into @Version.Version This.version
     }
-
-data Breadcrumb = Breadcrumb
-    { breadcrumb_name :: String
-    , breadcrumb_route :: Maybe Route.Route
-    } deriving (Eq, Show)
-
-instance ToXml.ToXml Breadcrumb where
-    toXml breadcrumb = Xml.node "breadcrumb" []
-        [ Xml.node "name" [] [ToXml.toXml $ breadcrumb_name breadcrumb]
-        , Xml.node "route" [] [ToXml.toXml $ breadcrumb_route breadcrumb]
-        ]

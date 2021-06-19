@@ -8,6 +8,7 @@ import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
+import qualified Monadoc.Type.Breadcrumb as Breadcrumb
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Model as Model
@@ -28,13 +29,13 @@ handler maybeQuery context request = do
     pure $ Common.makeResponse Common.Monadoc
         { Common.monadoc_config = (Common.config_fromContext context route)
             { Common.config_breadcrumbs =
-                [ Common.Breadcrumb
-                    { Common.breadcrumb_name = "Home"
-                    , Common.breadcrumb_route = Just Route.Index
+                [ Breadcrumb.Breadcrumb
+                    { Breadcrumb.name = "Home"
+                    , Breadcrumb.route = Just Route.Index
                     }
-                , Common.Breadcrumb
-                    { Common.breadcrumb_name = "Search"
-                    , Common.breadcrumb_route = Nothing
+                , Breadcrumb.Breadcrumb
+                    { Breadcrumb.name = "Search"
+                    , Breadcrumb.route = Nothing
                     }
                 ]
             , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
