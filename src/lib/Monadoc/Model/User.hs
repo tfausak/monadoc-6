@@ -58,7 +58,7 @@ migrations =
         "create unique index user_githubId on user (githubId)"
     ]
 
-insertOrUpdate :: Sql.Connection -> User -> IO Key
+insertOrUpdate :: Sql.Connection -> User -> IO ()
 insertOrUpdate connection user = do
     Sql.execute2
         connection
@@ -71,8 +71,6 @@ insertOrUpdate connection user = do
             \githubToken = excluded.githubToken, \
             \updatedAt = excluded.updatedAt"
         user
-    -- TODO: Figure out why the last inserted row ID is sometimes wrong?
-    fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 selectByGithubId :: Sql.Connection -> Int -> IO (Maybe Model)
 selectByGithubId c i = fmap Maybe.listToMaybe $ Sql.query2 c

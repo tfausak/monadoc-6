@@ -59,7 +59,7 @@ migrations =
         "create unique index session_guid on session (guid)"
     ]
 
-insert :: Sql.Connection -> Session -> IO Key
+insert :: Sql.Connection -> Session -> IO ()
 insert connection session = do
     Sql.execute2
         connection
@@ -67,7 +67,6 @@ insert connection session = do
             \(createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId) \
             \values (?, ?, ?, ?, ?, ?)"
         session
-    fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 selectByGuid :: Sql.Connection -> Guid.Guid -> IO (Maybe Model)
 selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query2 c

@@ -84,8 +84,8 @@ handler context request = do
                     , Session.userGithubId = User.githubId user
                     }
             Pool.withResource (Context.pool context) $ \ connection -> do
-                void $ User.insertOrUpdate connection user
-                void $ Session.insert connection session
+                User.insertOrUpdate connection user
+                Session.insert connection session
             let
                 cookie = Cookie.defaultSetCookie
                     { Cookie.setCookieHttpOnly = True

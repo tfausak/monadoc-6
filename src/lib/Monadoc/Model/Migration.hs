@@ -87,7 +87,7 @@ runAll connection toRun = do
     let migrationsByTime = Foldable.indexBy (time . Model.value) migrations
     traverse_ (runOne connection migrationsByTime) toRun
 
-runOne :: Sql.Connection -> Map Time.UTCTime Model -> Migration -> IO Model
+runOne :: Sql.Connection -> Map Time.UTCTime Model -> Migration -> IO ()
 runOne connection migrations migration =
     case Map.lookup (time migration) migrations of
         Just model -> do
@@ -95,7 +95,6 @@ runOne connection migrations migration =
                 actual = sql $ Model.value model
                 expected = sql migration
             when (actual /= expected) . throwM $ Mismatch.new expected actual
-            pure model
         Nothing -> Sql.withTransaction connection $ do
             void $ Sql.execute2 connection (into @String $ sql migration) ()
             now <- Time.getCurrentTime
@@ -104,5 +103,3 @@ runOne connection migrations migration =
                 connection
                 "insert into migration (migratedAt, sql, time) values (?, ?, ?)"
                 newMigration
-            key <- fmap (from @Int64) $ Sql.lastInsertRowId connection
-            pure Model.Model { Model.key, Model.value = newMigration }

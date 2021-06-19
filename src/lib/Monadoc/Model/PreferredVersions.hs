@@ -47,7 +47,7 @@ migrations =
 new :: PackageName.PackageName -> VersionRange.VersionRange -> PreferredVersions
 new = PreferredVersions
 
-upsert :: Sql.Connection -> PreferredVersions -> IO Key
+upsert :: Sql.Connection -> PreferredVersions -> IO ()
 upsert connection preferredVersions = do
     Sql.execute2
         connection
@@ -56,7 +56,6 @@ upsert connection preferredVersions = do
             \on conflict (packageName) \
             \do update set versionRange = excluded.versionRange"
         preferredVersions
-    fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 selectByPackageName :: Sql.Connection -> PackageName.PackageName -> IO (Maybe Model)
 selectByPackageName c n = fmap Maybe.listToMaybe $ Sql.query2 c

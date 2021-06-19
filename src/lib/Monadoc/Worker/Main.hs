@@ -168,7 +168,7 @@ processHackageIndex context hackageIndex = do
         & traverse_ (\ pv -> case Map.lookup (PreferredVersions.packageName pv) oldPreferredVersions of
             Just v | v == PreferredVersions.versionRange pv -> pure ()
             _ -> Pool.withResource (Context.pool context) $ \ connection ->
-                void $ PreferredVersions.upsert connection pv)
+                PreferredVersions.upsert connection pv)
 
 -- Possible Hackage index tar entry paths:
 --

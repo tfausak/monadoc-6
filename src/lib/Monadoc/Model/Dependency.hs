@@ -20,6 +20,18 @@ type Key = Key.Key Dependency
 -- | This should be unique on 'component', 'packageName', and 'componentName'. A
 -- package description can of course define the same dependency multiple times,
 -- but those should be merged into a single dependency.
+--
+-- You might think that the target should be a component rather than a package
+-- along with a library name, but unfortunately that doesn't work for two
+-- reasons:
+--
+-- 1.  Dependencies don't have to exist. Any package can depend on any other
+--     package, regardless of whether or not the dependency exists. That means
+--     the component might not exist in our database.
+--
+-- 2.  A component is one specific version (really revision) of one part of a
+--     package. Dependencies cover version ranges, which can change as new
+--     components are added.
 data Dependency = Dependency
     { component :: Component.Key
     -- ^ This is the source component.
