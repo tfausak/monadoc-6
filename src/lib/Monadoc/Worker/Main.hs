@@ -78,11 +78,11 @@ run context = do
     Monad.forever $ do
         Log.info "beginning worker loop"
         hackageIndex <- upsertHackageIndex context
-        processHackageIndex context $ Model.value hackageIndex
+        processHackageIndex context hackageIndex
         Log.info "finished worker loop"
         Concurrent.threadDelay 60000000
 
-upsertHackageIndex :: Context.Context -> IO HackageIndex.Model
+upsertHackageIndex :: Context.Context -> IO HackageIndex.HackageIndex
 upsertHackageIndex context = do
     Log.info "refreshing Hackage index"
     maybeHackageIndex <- Pool.withResource (Context.pool context) HackageIndex.select
@@ -90,7 +90,7 @@ upsertHackageIndex context = do
         Nothing -> insertHackageIndex context
         Just hackageIndex -> updateHackageIndex context hackageIndex
 
-insertHackageIndex :: Context.Context -> IO HackageIndex.Model
+insertHackageIndex :: Context.Context -> IO HackageIndex.HackageIndex
 insertHackageIndex context = do
     Log.info "requesting initial Hackage index"
     request <- Client.parseUrlThrow $ Config.hackageUrl (Context.config context) <> "/01-index.tar.gz"
@@ -102,11 +102,11 @@ insertHackageIndex context = do
         size = ByteString.length contents
         hackageIndex = HackageIndex.HackageIndex { HackageIndex.contents, HackageIndex.size }
     Log.info $ "got initial Hackage index (size: " <> pluralize "byte" size <> ")"
-    key <- Pool.withResource (Context.pool context) $ \ connection ->
+    Pool.withResource (Context.pool context) $ \ connection ->
         HackageIndex.insert connection hackageIndex
-    pure $ Model.Model key hackageIndex
+    pure hackageIndex
 
-updateHackageIndex :: Context.Context -> Model.Model HackageIndex.HackageIndex -> IO HackageIndex.Model
+updateHackageIndex :: Context.Context -> Model.Model HackageIndex.HackageIndex -> IO HackageIndex.HackageIndex
 updateHackageIndex context model = do
     let
         oldHackageIndex = Model.value model
@@ -127,7 +127,7 @@ updateHackageIndex context model = do
             | newSize < oldSize -> throwM $ BadHackageIndexSize.new oldSize maybeNewSize
             | newSize == oldSize -> do
                 Log.info "Hackage index has not changed"
-                pure model
+                pure oldHackageIndex
             | otherwise -> do
                 Log.info $ "got new Hackage index size: " <> pluralize "byte" newSize
                 let
@@ -148,7 +148,7 @@ updateHackageIndex context model = do
                     key = Model.key model
                 Pool.withResource (Context.pool context) $ \ connection ->
                     HackageIndex.update connection key newHackageIndex
-                pure $ Model.Model key newHackageIndex
+                pure newHackageIndex
 
 processHackageIndex :: Context.Context -> HackageIndex.HackageIndex -> IO ()
 processHackageIndex context hackageIndex = do
