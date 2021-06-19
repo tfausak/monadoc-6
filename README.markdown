@@ -1,6 +1,6 @@
 # Monadoc
 
-:bookmark: Better Haskell documentation.
+:bookmark: Worse Haskell documentation.
 
 Previous attempts:
 

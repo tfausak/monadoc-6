@@ -75,7 +75,7 @@
                 <main class="container mt-3 mb-3">
                     <xsl:apply-templates select="page"/>
                 </main>
-                <footer class="container pt-3 mt-3 text-muted border-top">
+                <footer class="container pt-3 mt-3 text-muted border-top mb-5">
                     <p>
                         Powered by
                         <a href="https://github.com/tfausak/monadoc">Monadoc</a>
@@ -89,7 +89,7 @@
 
     <xsl:template match="index">
         <p>
-            &#x1f516; Better Haskell documentation.
+            &#x1f516; Worse Haskell documentation.
         </p>
         <h2>
             Recent Uploads
