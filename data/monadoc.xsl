@@ -137,8 +137,10 @@
             <xsl:text> </xsl:text>
             <small class="text-muted">
                 <xsl:value-of select="$version"/>
-                <xsl:text>-</xsl:text>
-                <xsl:value-of select="$revision"/>
+                <xsl:if test="$revision != 0">
+                    <xsl:text>-</xsl:text>
+                    <xsl:value-of select="$revision"/>
+                </xsl:if>
             </small>
         </h2>
         <p>
@@ -191,6 +193,7 @@
         </h3>
         <ul>
             <xsl:for-each select="versions/version">
+                <xsl:variable name="versionNumber" select="normalize-space(number)"/>
                 <xsl:variable name="versionRevision" select="normalize-space(revision)"/>
                 <xsl:variable name="versionPreferred" select="boolean(normalize-space(preferred))"/>
 
@@ -200,7 +203,7 @@
                     </code>
                     <xsl:text>: </xsl:text>
                     <a href="{$baseUrl}{normalize-space(route)}">
-                        <xsl:value-of select="normalize-space(number)"/>
+                        <xsl:value-of select="$versionNumber"/>
                         <xsl:if test="$versionRevision != 0">
                             <xsl:text>-</xsl:text>
                             <xsl:value-of select="$versionRevision"/>
@@ -208,6 +211,9 @@
                     </a>
                     <xsl:if test="not($versionPreferred)">
                         (deprecated)
+                    </xsl:if>
+                    <xsl:if test="$versionNumber = $version and $versionRevision = $revision">
+                        (this)
                     </xsl:if>
                 </li>
             </xsl:for-each>
