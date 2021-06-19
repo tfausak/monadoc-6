@@ -2,6 +2,8 @@ module Monadoc.Utility.Sql where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
+import qualified Control.Retry as Retry
 import qualified Data.Proxy as Proxy
 import qualified Data.Typeable as Typeable
 import qualified Database.SQLite.Simple as Sql
@@ -29,9 +31,7 @@ execute
     -> String
     -> i
     -> IO ()
-execute connection sql input = do
-    Log.info $ "[sql] " <> sql
-    Sql.execute connection (Sql.Query $ into @Text sql) input
+execute connection sql = void . query @_ @[Sql.SQLData] connection sql
 
 execute_ :: Sql.Connection -> String -> IO ()
 execute_ connection sql = execute connection sql ()
@@ -42,9 +42,13 @@ query
     -> String
     -> i
     -> IO [o]
-query connection sql input = do
-    Log.info $ "[sql] " <> sql
-    Sql.query connection (Sql.Query $ into @Text sql) input
+query connection sql input = Retry.recovering
+    Retry.retryPolicyDefault
+    [always . Exception.Handler $ pure . (== Sql.ErrorBusy) . Sql.sqlError]
+    (\ retryStatus -> do
+        Log.info $ "[sql] " <> sql
+        when (Retry.rsIterNumber retryStatus > 0) . Log.info $ "[retry] " <> show retryStatus
+        Sql.query connection (Sql.Query $ into @Text sql) input)
 
 query_ :: Sql.FromRow o => Sql.Connection -> String -> IO [o]
 query_ connection sql = query connection sql ()
