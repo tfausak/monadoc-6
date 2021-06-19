@@ -56,19 +56,27 @@ makeResponse monadoc =
         hLink = CI.mk $ into @ByteString "Link"
         link = into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style"
         headers = [(hLink, link)]
-        instruction = Xml.Instruction
-            (into @Text "xml-stylesheet")
-            (into @Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")
-        prologue = Xml.Prologue [Xml.MiscInstruction instruction] Nothing []
-        root = Xml.element "root" []
-            [ ToXml.toXml $ root_meta monadoc
-            , Xml.node "page" [] [ToXml.toXml $ root_page monadoc]
-            ]
-        epilogue = [] :: [Xml.Miscellaneous]
-        document = Xml.Document prologue root epilogue
-    in Response.xml status headers document
+    in Response.xml status headers $ root_toDocument monadoc
 
 data Root page = Root
     { root_meta :: Meta.Meta
     , root_page :: page
     } deriving (Eq, Show)
+
+root_toDocument :: ToXml.ToXml page => Root page -> Xml.Document
+root_toDocument root =
+    let
+        href = Xml.escape $ Meta.baseUrl (root_meta root) <> Route.toString Route.Template
+        instruction = Xml.Instruction
+            (into @Text "xml-stylesheet")
+            (into @Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> href <> "\"")
+    in Xml.Document
+        (Xml.Prologue [Xml.MiscInstruction instruction] Nothing [])
+        (root_toElement root)
+        []
+
+root_toElement :: ToXml.ToXml page => Root page -> Xml.Element
+root_toElement root = Xml.element "root" []
+    [ ToXml.toXml $ root_meta root
+    , Xml.node "page" [] [ToXml.toXml $ root_page root]
+    ]
