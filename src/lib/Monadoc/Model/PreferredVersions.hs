@@ -63,5 +63,5 @@ selectByPackageName c n = fmap Maybe.listToMaybe $ Sql.query c
 
 selectAll :: Sql.Connection -> IO (Map PackageName.PackageName VersionRange.VersionRange)
 selectAll connection = do
-    rows <- Sql.query connection "select packageName, versionRange from preferredVersions" ()
+    rows <- Sql.query_ connection "select packageName, versionRange from preferredVersions"
     pure $ Map.fromList rows

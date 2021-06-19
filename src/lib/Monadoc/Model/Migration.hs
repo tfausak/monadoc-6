@@ -62,7 +62,7 @@ new year month day hour minute sec q = Migration
 
 selectAll :: Sql.Connection -> IO [Model]
 selectAll connection =
-    Sql.query connection "select key, migratedAt, sql, time from migration" ()
+    Sql.query_ connection "select key, migratedAt, sql, time from migration"
 
 selectByTime :: Sql.Connection -> Time.UTCTime -> IO (Maybe Model)
 selectByTime connection time = fmap Maybe.listToMaybe $ Sql.query

@@ -45,3 +45,6 @@ query
 query connection sql input = do
     Log.info $ "[sql] " <> sql
     Sql.query connection (Sql.Query $ into @Text sql) input
+
+query_ :: Sql.FromRow o => Sql.Connection -> String -> IO [o]
+query_ connection sql = query connection sql ()

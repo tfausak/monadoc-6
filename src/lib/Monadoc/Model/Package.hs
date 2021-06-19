@@ -216,7 +216,7 @@ selectHashes
     :: Sql.Connection
     -> IO (Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256)
 selectHashes connection = do
-    rows <- Sql.query connection "select name, version, revision, hash from package" ()
+    rows <- Sql.query_ connection "select name, version, revision, hash from package"
     pure $ foldr (\ (n, v, r, h) -> Map.insert (n, v, r) h) Map.empty rows
 
 selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Model]
@@ -237,11 +237,11 @@ selectByNameAndVersion c n v = Sql.query c
     \and version = ?" (n, v)
 
 selectRecent :: Sql.Connection -> IO [Model]
-selectRecent c = Sql.query c
+selectRecent c = Sql.query_ c
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \order by uploadedAt desc \
-    \limit 10" ()
+    \limit 10"
 
 selectNamesLike :: Sql.Connection -> String -> IO [PackageName.PackageName]
 selectNamesLike c x = fmap (fmap Sql.fromOnly) $ Sql.query c
