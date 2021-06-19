@@ -72,20 +72,20 @@ migrations =
     ]
 
 selectByComponent :: Sql.Connection -> Component.Key -> IO [Model]
-selectByComponent connection component = Sql.query2
+selectByComponent connection component = Sql.query
     connection
     "select key, component, packageName, libraryName, versionRange from dependency where component = ?"
     [component]
 
 deleteByComponent :: Sql.Connection -> Component.Key -> IO ()
-deleteByComponent connection component = Sql.execute2
+deleteByComponent connection component = Sql.execute
     connection
     "delete from dependency where component = ?"
     [component]
 
 insert :: Sql.Connection -> Dependency -> IO Key
 insert connection dependency = do
-    Sql.execute2 connection
+    Sql.execute connection
         "insert into dependency (component, packageName, libraryName, versionRange) \
         \values (?, ?, ?, ?)" dependency
     fmap (from @Int64) $ Sql.lastInsertRowId connection

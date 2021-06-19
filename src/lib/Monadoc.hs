@@ -84,7 +84,7 @@ getContext name arguments = do
     Context.fromConfig config
 
 enableWriteAheadLog :: Sql.Connection -> IO ()
-enableWriteAheadLog c = void $ Sql.execute2 c "pragma journal_mode = wal" ()
+enableWriteAheadLog c = void $ Sql.execute c "pragma journal_mode = wal" ()
 
 migrations :: [Migration.Migration]
 migrations = List.sortOn Migration.time $ mconcat

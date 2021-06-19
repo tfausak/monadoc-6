@@ -59,7 +59,7 @@ migrations =
 
 insert :: Sql.Connection -> Session -> IO ()
 insert connection session = do
-    Sql.execute2
+    Sql.execute
         connection
             "insert into session \
             \(createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId) \
@@ -67,7 +67,7 @@ insert connection session = do
         session
 
 selectByGuid :: Sql.Connection -> Guid.Guid -> IO (Maybe Model)
-selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query2 c
+selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query c
     "select key, createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
     \from session \
     \where deletedAt is null \
@@ -75,7 +75,7 @@ selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query2 c
     \limit 1" [g]
 
 selectByGithubId :: Sql.Connection -> Int -> IO [Model]
-selectByGithubId c i = Sql.query2 c
+selectByGithubId c i = Sql.query c
     "select key, createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
     \from session \
     \where userGithubId = ?" [i]
@@ -83,7 +83,7 @@ selectByGithubId c i = Sql.query2 c
 delete :: Sql.Connection -> Key -> IO ()
 delete connection key = do
     now <- Time.getCurrentTime
-    Sql.execute2
+    Sql.execute
         connection
         "update session set deletedAt = ? where key = ?"
         (now, key)

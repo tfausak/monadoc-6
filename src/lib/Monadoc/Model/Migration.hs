@@ -36,7 +36,7 @@ instance Sql.ToRow Migration where
         ]
 
 createTable :: Sql.Connection -> IO ()
-createTable connection = void $ Sql.execute2 connection
+createTable connection = void $ Sql.execute connection
     "create table if not exists migration \
     \(key integer not null primary key, \
     \migratedAt text, \
@@ -63,17 +63,17 @@ new year month day hour minute sec q = Migration
 
 selectAll :: Sql.Connection -> IO [Model]
 selectAll connection =
-    Sql.query2 connection "select key, migratedAt, sql, time from migration" ()
+    Sql.query connection "select key, migratedAt, sql, time from migration" ()
 
 selectByTime :: Sql.Connection -> Time.UTCTime -> IO (Maybe Model)
-selectByTime connection time = fmap Maybe.listToMaybe $ Sql.query2
+selectByTime connection time = fmap Maybe.listToMaybe $ Sql.query
     connection
     "select key, migratedAt, sql, time from migration where time = ?"
     [time]
 
 insert :: Sql.Connection -> Migration -> IO Key
 insert connection migration = do
-    Sql.execute2
+    Sql.execute
         connection
         "insert into migration (migratedAt, sql, time) values (?, ?, ?)"
         migration
@@ -94,10 +94,10 @@ runOne connection migrations migration =
                 expected = sql migration
             when (actual /= expected) . throwM $ Mismatch.new expected actual
         Nothing -> Sql.withTransaction connection $ do
-            void $ Sql.execute2 connection (into @String $ sql migration) ()
+            void $ Sql.execute connection (into @String $ sql migration) ()
             now <- Time.getCurrentTime
             let newMigration = migration { migratedAt = Just now }
-            Sql.execute2
+            Sql.execute
                 connection
                 "insert into migration (migratedAt, sql, time) values (?, ?, ?)"
                 newMigration

@@ -48,20 +48,20 @@ migrations =
     ]
 
 select :: Sql.Connection -> Package.Key -> ComponentTag.ComponentTag -> ComponentName.ComponentName -> IO (Maybe Model)
-select connection package tag name = fmap Maybe.listToMaybe $ Sql.query2
+select connection package tag name = fmap Maybe.listToMaybe $ Sql.query
     connection
     "select key, name, package, tag from component where package = ? and tag = ? and name = ?"
     (package, tag, name)
 
 selectByPackage :: Sql.Connection -> Package.Key -> IO [Model]
-selectByPackage connection package = Sql.query2
+selectByPackage connection package = Sql.query
     connection
     "select key, name, package, tag from component where package = ?"
     [package]
 
 insert :: Sql.Connection -> Component -> IO Key
 insert connection component = do
-    Sql.execute2
+    Sql.execute
         connection
         "insert into component (name, package, tag) values (?, ?, ?)"
         component

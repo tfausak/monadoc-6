@@ -75,7 +75,7 @@ migrations =
 
 insert :: Sql.Connection -> SourceRepository -> IO Key
 insert connection sourceRepository = do
-    Sql.execute2
+    Sql.execute
         connection
         "insert into sourceRepository \
         \(branch, kind, location, module, package, subdir, tag, type) values \
@@ -84,13 +84,13 @@ insert connection sourceRepository = do
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
 deleteByPackage :: Sql.Connection -> Package.Key -> IO ()
-deleteByPackage connection package = Sql.execute2
+deleteByPackage connection package = Sql.execute
     connection
     "delete from sourceRepository where package = ?"
     [package]
 
 selectByPackage :: Sql.Connection -> Package.Key -> IO [Model]
-selectByPackage connection package = Sql.query2
+selectByPackage connection package = Sql.query
     connection
     "select key, branch, kind, location, module, package, subdir, tag, type \
     \from sourceRepository \

@@ -41,19 +41,19 @@ migrations =
 
 select :: Sql.Connection -> IO (Maybe Model)
 select connection = fmap Maybe.listToMaybe
-    $ Sql.query2 connection "select key, contents, size from hackageIndex limit 1" ()
+    $ Sql.query connection "select key, contents, size from hackageIndex limit 1" ()
 
 insert :: Sql.Connection -> HackageIndex -> IO ()
 insert connection hackageIndex = do
-    rows <- Sql.query2 connection "select count(*) from hackageIndex" ()
+    rows <- Sql.query connection "select count(*) from hackageIndex" ()
     when (rows /= [[0 :: Int]]) $ throwM DuplicateHackageIndex.new
-    Sql.execute2
+    Sql.execute
         connection
         "insert into hackageIndex (contents, size) values (?, ?)"
         hackageIndex
 
 update :: Sql.Connection -> Key -> HackageIndex -> IO ()
-update connection key hackageIndex = Sql.execute2 connection
+update connection key hackageIndex = Sql.execute connection
     "update hackageIndex set contents = ?, size = ? where key = ?"
     (contents hackageIndex, size hackageIndex, key)
 

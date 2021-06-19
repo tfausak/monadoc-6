@@ -171,7 +171,7 @@ migrations =
 
 insertOrUpdate :: Sql.Connection -> Package -> IO Key
 insertOrUpdate connection package = do
-    Sql.execute2
+    Sql.execute
         connection
             "insert into package (author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version) \
             \values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \
@@ -194,7 +194,7 @@ insertOrUpdate connection package = do
             \uploadedAt = excluded.uploadedAt, \
             \uploadedBy = excluded.uploadedBy"
         package
-    [Sql.Only key] <- Sql.query2 connection
+    [Sql.Only key] <- Sql.query connection
         "select key from package where name = ? and version = ? and revision = ?"
         (name package, version package, revision package)
     pure key
@@ -205,7 +205,7 @@ select
     -> Version.Version
     -> Revision.Revision
     -> IO (Maybe Model)
-select c n v r = fmap Maybe.listToMaybe $ Sql.query2 c
+select c n v r = fmap Maybe.listToMaybe $ Sql.query c
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ? \
@@ -216,11 +216,11 @@ selectHashes
     :: Sql.Connection
     -> IO (Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256)
 selectHashes connection = do
-    rows <- Sql.query2 connection "select name, version, revision, hash from package" ()
+    rows <- Sql.query connection "select name, version, revision, hash from package" ()
     pure $ foldr (\ (n, v, r, h) -> Map.insert (n, v, r) h) Map.empty rows
 
 selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Model]
-selectByName c n = Sql.query2 c
+selectByName c n = Sql.query c
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ?" [n]
@@ -230,21 +230,21 @@ selectByNameAndVersion
     -> PackageName.PackageName
     -> Version.Version
     -> IO [Model]
-selectByNameAndVersion c n v = Sql.query2 c
+selectByNameAndVersion c n v = Sql.query c
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ? \
     \and version = ?" (n, v)
 
 selectRecent :: Sql.Connection -> IO [Model]
-selectRecent c = Sql.query2 c
+selectRecent c = Sql.query c
     "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \order by uploadedAt desc \
     \limit 10" ()
 
 selectNamesLike :: Sql.Connection -> String -> IO [PackageName.PackageName]
-selectNamesLike c x = fmap (fmap Sql.fromOnly) $ Sql.query2 c
+selectNamesLike c x = fmap (fmap Sql.fromOnly) $ Sql.query c
     "select distinct name \
     \from package \
     \where name like ? escape ? \

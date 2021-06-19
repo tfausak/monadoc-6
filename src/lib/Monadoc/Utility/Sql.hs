@@ -23,22 +23,22 @@ defaultFromField p f = do
         Left e -> Sql.returnError Sql.ConversionFailed f $ show e
         Right t -> pure t
 
-execute2
+execute
     :: Sql.ToRow i
     => Sql.Connection
     -> String
     -> i
     -> IO ()
-execute2 connection sql input = do
+execute connection sql input = do
     Log.info $ "[sql] " <> sql
     Sql.execute connection (Sql.Query $ into @Text sql) input
 
-query2
+query
     :: (Sql.ToRow i, Sql.FromRow o)
     => Sql.Connection
     -> String
     -> i
     -> IO [o]
-query2 connection sql input = do
+query connection sql input = do
     Log.info $ "[sql] " <> sql
     Sql.query connection (Sql.Query $ into @Text sql) input

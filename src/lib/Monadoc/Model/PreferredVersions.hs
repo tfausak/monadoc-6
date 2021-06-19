@@ -47,7 +47,7 @@ new = PreferredVersions
 
 upsert :: Sql.Connection -> PreferredVersions -> IO ()
 upsert connection preferredVersions = do
-    Sql.execute2
+    Sql.execute
         connection
             "insert into preferredVersions (packageName, versionRange) \
             \values (?, ?) \
@@ -56,12 +56,12 @@ upsert connection preferredVersions = do
         preferredVersions
 
 selectByPackageName :: Sql.Connection -> PackageName.PackageName -> IO (Maybe Model)
-selectByPackageName c n = fmap Maybe.listToMaybe $ Sql.query2 c
+selectByPackageName c n = fmap Maybe.listToMaybe $ Sql.query c
     "select key, packageName, versionRange \
     \from preferredVersions \
     \where packageName = ?" [n]
 
 selectAll :: Sql.Connection -> IO (Map PackageName.PackageName VersionRange.VersionRange)
 selectAll connection = do
-    rows <- Sql.query2 connection "select packageName, versionRange from preferredVersions" ()
+    rows <- Sql.query connection "select packageName, versionRange from preferredVersions" ()
     pure $ Map.fromList rows
