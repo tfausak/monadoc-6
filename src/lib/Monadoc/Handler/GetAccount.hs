@@ -29,8 +29,8 @@ handler context request = do
     sessions <- Context.withConnection context $ \ connection ->
         Session.selectByGithubId connection . User.githubId $ Model.value user
     pure $ Common.makeResponse Common.Root
-        { Common.root_config = (Common.config_fromContext context route)
-            { Common.config_breadcrumbs =
+        { Common.root_meta = (Common.meta_fromContext context route)
+            { Common.meta_breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
                     , Breadcrumb.route = Just Route.Index
@@ -40,7 +40,7 @@ handler context request = do
                     , Breadcrumb.route = Nothing
                     }
                 ]
-            , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
+            , Common.meta_user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Common.root_page = Account
             { account_name = User.githubLogin $ Model.value user

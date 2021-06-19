@@ -23,14 +23,14 @@ handler context request = do
     maybeUser <- Common.getUser context request
     packages <- Context.withConnection context Package.selectRecent
     pure $ Common.makeResponse Common.Root
-        { Common.root_config = (Common.config_fromContext context route)
-            { Common.config_breadcrumbs =
+        { Common.root_meta = (Common.meta_fromContext context route)
+            { Common.meta_breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
                     , Breadcrumb.route = Nothing
                     }
                 ]
-            , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
+            , Common.meta_user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Common.root_page = Index
             { index_packages = fmap

@@ -6,8 +6,8 @@
         media-type="text/html"
         method="html"/>
 
-    <xsl:variable name="baseUrl" select="normalize-space(/root/config/baseUrl)"/>
-    <xsl:variable name="clientId" select="normalize-space(/root/config/clientId)"/>
+    <xsl:variable name="baseUrl" select="normalize-space(/root/meta/baseUrl)"/>
+    <xsl:variable name="clientId" select="normalize-space(/root/meta/clientId)"/>
 
     <xsl:template match="/root">
         <html lang="en-US">
@@ -16,19 +16,19 @@
                 <title>
                     Monadoc
                 </title>
-                <link href="{$baseUrl}{normalize-space(config/routes/bootstrap)}" rel="stylesheet"/>
+                <link href="{$baseUrl}{normalize-space(meta/routes/bootstrap)}" rel="stylesheet"/>
                 <link
-                    href="{$baseUrl}{normalize-space(config/routes/favicon)}"
+                    href="{$baseUrl}{normalize-space(meta/routes/favicon)}"
                     rel="icon"
                     type="image/svg+xml"/>
-                <link rel="canonical" href="{$baseUrl}{normalize-space(config/routes/self)}"/>
+                <link rel="canonical" href="{$baseUrl}{normalize-space(meta/routes/self)}"/>
             </head>
             <body>
                 <header class="mb-3">
                     <nav class="navbar navbar-dark bg-dark flex-nowrap">
                         <div class="container">
                             <a class="navbar-brand" href="{$baseUrl}">Monadoc</a>
-                            <form action="{$baseUrl}{normalize-space(config/routes/search)}" class="d-flex">
+                            <form action="{$baseUrl}{normalize-space(meta/routes/search)}" class="d-flex">
                                 <input class="form-control me-1" name="query" type="search" placeholder="Search"/>
                                 <button class="btn btn-outline-light" type="submit">Go</button>
                             </form>
@@ -37,7 +37,7 @@
                     <nav class="navbar navbar-light bg-light">
                         <div class="container">
                             <ol class="breadcrumb mb-0">
-                                <xsl:for-each select="config/breadcrumbs/breadcrumb">
+                                <xsl:for-each select="meta/breadcrumbs/breadcrumb">
                                     <xsl:variable name="route" select="normalize-space(route)"/>
 
                                     <xsl:choose>
@@ -58,13 +58,13 @@
                             </ol>
                             <ul class="navbar-nav">
                                 <li class="nav-item">
-                                    <xsl:variable name="user" select="normalize-space(config/user)"/>
+                                    <xsl:variable name="user" select="normalize-space(meta/user)"/>
                                     <xsl:choose>
                                         <xsl:when test="$user">
-                                            <a class="nav-link" href="{$baseUrl}{normalize-space(config/routes/account)}">@<xsl:value-of select="$user"/></a>
+                                            <a class="nav-link" href="{$baseUrl}{normalize-space(meta/routes/account)}">@<xsl:value-of select="$user"/></a>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$clientId}&amp;redirect_uri={$baseUrl}{normalize-space(config/routes/callback)}&amp;state={normalize-space(config/routes/self)}">Log in</a>
+                                            <a class="nav-link" href="https://github.com/login/oauth/authorize?client_id={$clientId}&amp;redirect_uri={$baseUrl}{normalize-space(meta/routes/callback)}&amp;state={normalize-space(meta/routes/self)}">Log in</a>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </li>
@@ -80,7 +80,7 @@
                         Powered by
                         <a href="https://github.com/tfausak/monadoc">Monadoc</a>
                         version
-                        <xsl:value-of select="normalize-space(config/version)"/>.
+                        <xsl:value-of select="normalize-space(meta/version)"/>.
                     </p>
                 </footer>
             </body>
@@ -241,7 +241,7 @@
         <h2>
             Search
         </h2>
-        <form action="{$baseUrl}{normalize-space(/root/config/routes/search)}" class="d-flex mb-3">
+        <form action="{$baseUrl}{normalize-space(/root/meta/routes/search)}" class="d-flex mb-3">
             <input class="form-control form-control-lg me-2" name="query" type="search" placeholder="Search" value="{normalize-space(query)}"/>
             <button class="btn btn-lg btn-primary" type="submit">Go</button>
         </form>
@@ -269,7 +269,7 @@
             Manage access
             <a href="https://github.com/settings/connections/applications/{$clientId}">on GitHub</a>.
         </p>
-        <form action="{$baseUrl}{normalize-space(/root/config/routes/logOut)}" method="post">
+        <form action="{$baseUrl}{normalize-space(/root/meta/routes/logOut)}" method="post">
             <button class="btn btn-outline-danger" type="submit">Log out</button>
         </form>
         <h3>
@@ -280,7 +280,7 @@
                 <li>
                     <xsl:value-of select="normalize-space(createdAt)"/>:
                     <xsl:value-of select="normalize-space(userAgent)"/>
-                    <form action="{$baseUrl}{normalize-space(/root/config/routes/revoke)}" method="post">
+                    <form action="{$baseUrl}{normalize-space(/root/meta/routes/revoke)}" method="post">
                         <input type="hidden" name="guid" value="{normalize-space(guid)}"/>
                         <button class="btn btn-outline-danger" type="submit">Revoke</button>
                     </form>

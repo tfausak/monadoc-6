@@ -49,8 +49,8 @@ handler packageName version revision context request = do
     sourceRepositories <- Context.withConnection context $ \ connection ->
         SourceRepository.selectByPackage connection $ Model.key package
     pure $ Common.makeResponse Common.Root
-        { Common.root_config = (Common.config_fromContext context route)
-            { Common.config_breadcrumbs =
+        { Common.root_meta = (Common.meta_fromContext context route)
+            { Common.meta_breadcrumbs =
                 [ Breadcrumb.Breadcrumb
                     { Breadcrumb.name = "Home"
                     , Breadcrumb.route = Just Route.Index
@@ -64,7 +64,7 @@ handler packageName version revision context request = do
                     , Breadcrumb.route = Nothing
                     }
                 ]
-            , Common.config_user = fmap (User.githubLogin . Model.value) maybeUser
+            , Common.meta_user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Common.root_page = Revision
             { revision_package = Package (Model.value package) (VersionRange.contains (Package.version $ Model.value package) versionRange)

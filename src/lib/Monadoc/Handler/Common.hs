@@ -55,7 +55,7 @@ getSessionWith context guid =
 makeResponse :: ToXml.ToXml page => Root page -> Wai.Response
 makeResponse monadoc =
     let
-        baseUrl = config_baseUrl $ root_config monadoc
+        baseUrl = meta_baseUrl $ root_meta monadoc
         status = Http.ok200
         hLink = CI.mk $ into @ByteString "Link"
         link = into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style"
@@ -65,7 +65,7 @@ makeResponse monadoc =
             (into @Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> Xml.escape (baseUrl <> Route.toString Route.Template) <> "\"")
         prologue = Xml.Prologue [Xml.MiscInstruction instruction] Nothing []
         root = Xml.element "root" []
-            [ ToXml.toXml $ root_config monadoc
+            [ ToXml.toXml $ root_meta monadoc
             , Xml.node "page" [] [ToXml.toXml $ root_page monadoc]
             ]
         epilogue = [] :: [Xml.Miscellaneous]
@@ -73,35 +73,35 @@ makeResponse monadoc =
     in Response.xml status headers document
 
 data Root page = Root
-    { root_config :: Config
+    { root_meta :: Meta
     , root_page :: page
     } deriving (Eq, Show)
 
-data Config = Config
-    { config_baseUrl :: String
-    , config_breadcrumbs :: [Breadcrumb.Breadcrumb]
-    , config_clientId :: String
-    , config_routes :: Routes.Routes
-    , config_user :: Maybe String
-    , config_version :: Version.Version
+data Meta = Meta
+    { meta_baseUrl :: String
+    , meta_breadcrumbs :: [Breadcrumb.Breadcrumb]
+    , meta_clientId :: String
+    , meta_routes :: Routes.Routes
+    , meta_user :: Maybe String
+    , meta_version :: Version.Version
     } deriving (Eq, Show)
 
-instance ToXml.ToXml Config where
-    toXml config = Xml.node "config" []
-        [ Xml.node "baseUrl" [] [ToXml.toXml $ config_baseUrl config]
-        , Xml.node "breadcrumbs" [] . fmap ToXml.toXml $ config_breadcrumbs config
-        , Xml.node "clientId" [] [ToXml.toXml $ config_clientId config]
-        , ToXml.toXml $ config_routes config
-        , Xml.node "user" [] [ToXml.toXml $ config_user config]
-        , Xml.node "version" [] [ToXml.toXml $ config_version config]
+instance ToXml.ToXml Meta where
+    toXml config = Xml.node "meta" []
+        [ Xml.node "baseUrl" [] [ToXml.toXml $ meta_baseUrl config]
+        , Xml.node "breadcrumbs" [] . fmap ToXml.toXml $ meta_breadcrumbs config
+        , Xml.node "clientId" [] [ToXml.toXml $ meta_clientId config]
+        , ToXml.toXml $ meta_routes config
+        , Xml.node "user" [] [ToXml.toXml $ meta_user config]
+        , Xml.node "version" [] [ToXml.toXml $ meta_version config]
         ]
 
-config_fromContext :: Context.Context -> Route.Route -> Config
-config_fromContext context self = Config
-    { config_baseUrl = Config.baseUrl $ Context.config context
-    , config_breadcrumbs = []
-    , config_clientId = Config.clientId $ Context.config context
-    , config_routes = Routes.Routes
+meta_fromContext :: Context.Context -> Route.Route -> Meta
+meta_fromContext context self = Meta
+    { meta_baseUrl = Config.baseUrl $ Context.config context
+    , meta_breadcrumbs = []
+    , meta_clientId = Config.clientId $ Context.config context
+    , meta_routes = Routes.Routes
         { Routes.account = Route.Account
         , Routes.bootstrap = Route.Bootstrap
         , Routes.callback = Route.Callback
@@ -111,6 +111,6 @@ config_fromContext context self = Config
         , Routes.search = Route.Search Nothing
         , Routes.self = self
         }
-    , config_user = Nothing
-    , config_version = into @Version.Version This.version
+    , meta_user = Nothing
+    , meta_version = into @Version.Version This.version
     }
