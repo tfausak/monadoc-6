@@ -3,6 +3,7 @@ module Monadoc.Class.ToXml where
 import Monadoc.Prelude
 
 import qualified Data.Time as Time
+import qualified Documentation.Haddock.Types as Haddock
 import qualified Text.XML as Xml
 
 class ToXml a where
@@ -31,3 +32,6 @@ instance ToXml Bool where
 
 instance ToXml Int64 where
     toXml = toXml . show
+
+instance ToXml (Haddock.DocH Void String) where
+    toXml = toXml . show -- TODO

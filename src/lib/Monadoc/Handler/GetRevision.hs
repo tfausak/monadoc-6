@@ -104,11 +104,9 @@ instance ToXml.ToXml Package where
         , Xml.node "copyright" [] [ToXml.toXml $ Package.copyright package]
         , Xml.node "description" []
             [ ToXml.toXml
-            . show -- TODO: Render this better.
-            . as @(Haddock.DocH Void String)
-            . Haddock.toRegular
+            . Haddock.toRegular @Void
             . Haddock._doc
-            . Haddock.parseParas (Just . into @String $ Package.name package)
+            . Haddock.parseParas Nothing
             . into @String
             $ Package.description package
             ]
