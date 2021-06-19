@@ -13,6 +13,7 @@ import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Route as Route
+import qualified Monadoc.Type.Routes as Routes
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
@@ -79,7 +80,7 @@ data Config = Config
     { config_baseUrl :: String
     , config_breadcrumbs :: [Breadcrumb]
     , config_clientId :: String
-    , config_routes :: Routes
+    , config_routes :: Routes.Routes
     , config_user :: Maybe String
     , config_version :: Version.Version
     } deriving (Eq, Show)
@@ -99,15 +100,15 @@ config_fromContext context self = Config
     { config_baseUrl = Config.baseUrl $ Context.config context
     , config_breadcrumbs = []
     , config_clientId = Config.clientId $ Context.config context
-    , config_routes = Routes
-        { routes_account = Route.Account
-        , routes_bootstrap = Route.Bootstrap
-        , routes_callback = Route.Callback
-        , routes_favicon = Route.Favicon
-        , routes_logOut = Route.LogOut
-        , routes_revoke = Route.Revoke
-        , routes_search = Route.Search Nothing
-        , routes_self = self
+    , config_routes = Routes.Routes
+        { Routes.account = Route.Account
+        , Routes.bootstrap = Route.Bootstrap
+        , Routes.callback = Route.Callback
+        , Routes.favicon = Route.Favicon
+        , Routes.logOut = Route.LogOut
+        , Routes.revoke = Route.Revoke
+        , Routes.search = Route.Search Nothing
+        , Routes.self = self
         }
     , config_user = Nothing
     , config_version = into @Version.Version This.version
@@ -122,27 +123,4 @@ instance ToXml.ToXml Breadcrumb where
     toXml breadcrumb = Xml.node "breadcrumb" []
         [ Xml.node "name" [] [ToXml.toXml $ breadcrumb_name breadcrumb]
         , Xml.node "route" [] [ToXml.toXml $ breadcrumb_route breadcrumb]
-        ]
-
-data Routes = Routes
-    { routes_account :: Route.Route
-    , routes_bootstrap :: Route.Route
-    , routes_callback :: Route.Route
-    , routes_favicon :: Route.Route
-    , routes_logOut :: Route.Route
-    , routes_revoke :: Route.Route
-    , routes_search :: Route.Route
-    , routes_self :: Route.Route
-    } deriving (Eq, Show)
-
-instance ToXml.ToXml Routes where
-    toXml routes = Xml.node "routes" []
-        [ Xml.node "account" [] [ToXml.toXml $ routes_account routes]
-        , Xml.node "bootstrap" [] [ToXml.toXml $ routes_bootstrap routes]
-        , Xml.node "callback" [] [ToXml.toXml $ routes_callback routes]
-        , Xml.node "favicon" [] [ToXml.toXml $ routes_favicon routes]
-        , Xml.node "logOut" [] [ToXml.toXml $ routes_logOut routes]
-        , Xml.node "revoke" [] [ToXml.toXml $ routes_revoke routes]
-        , Xml.node "search" [] [ToXml.toXml $ routes_search routes]
-        , Xml.node "self" [] [ToXml.toXml $ routes_self routes]
         ]
