@@ -36,13 +36,12 @@ instance Sql.ToRow Migration where
         ]
 
 createTable :: Sql.Connection -> IO ()
-createTable connection = void $ Sql.execute connection
+createTable connection = Sql.execute_ connection
     "create table if not exists migration \
     \(key integer not null primary key, \
     \migratedAt text, \
     \sql text not null, \
     \time text not null unique)"
-    ()
 
 new
     :: Time.Year
@@ -94,7 +93,7 @@ runOne connection migrations migration =
                 expected = sql migration
             when (actual /= expected) . throwM $ Mismatch.new expected actual
         Nothing -> Sql.withTransaction connection $ do
-            void $ Sql.execute connection (into @String $ sql migration) ()
+            Sql.execute_ connection . into @String $ sql migration
             now <- Time.getCurrentTime
             let newMigration = migration { migratedAt = Just now }
             Sql.execute

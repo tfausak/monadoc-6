@@ -33,6 +33,9 @@ execute connection sql input = do
     Log.info $ "[sql] " <> sql
     Sql.execute connection (Sql.Query $ into @Text sql) input
 
+execute_ :: Sql.Connection -> String -> IO ()
+execute_ connection sql = execute connection sql ()
+
 query
     :: (Sql.ToRow i, Sql.FromRow o)
     => Sql.Connection
