@@ -20,10 +20,10 @@ onHandle h message = do
     withLock . IO.hPutStrLn h $ Convert.timeToString now <> " " <> message
 
 withLock :: IO a -> IO a
-withLock action = bracket
+withLock = bracket
     (Stm.atomically $ Stm.takeTMVar lock)
     (Stm.atomically . Stm.putTMVar lock)
-    (\ () -> action)
+    . always
 
 lock :: Stm.TMVar ()
 lock = Unsafe.unsafePerformIO $ Stm.newTMVarIO ()
