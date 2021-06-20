@@ -71,6 +71,7 @@ library
         , http-client ^>= 0.7.8
         , http-client-tls ^>= 0.3.5
         , http-types ^>= 0.12.3
+        , network-uri ^>= 2.6.4
         , random ^>= 1.2.0
         , resource-pool ^>= 0.2.3
         , retry ^>= 0.8.1
@@ -166,11 +167,13 @@ library
         Monadoc.Type.Version
         Monadoc.Type.VersionRange
         Monadoc.Type.Warning
+        Monadoc.Utility.Client
         Monadoc.Utility.Convert
         Monadoc.Utility.Foldable
         Monadoc.Utility.Log
         Monadoc.Utility.Sql
         Monadoc.Utility.Xml
+        Monadoc.Vendor.Client
         Monadoc.Vendor.Sql
         Monadoc.Worker.Main
         Paths_monadoc

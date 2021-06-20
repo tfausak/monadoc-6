@@ -6,8 +6,7 @@ import qualified Data.Pool as Pool
 import qualified Data.Time as Time
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Type.Config as Config
-import qualified Network.HTTP.Client as Client
-import qualified Network.HTTP.Client.TLS as Tls
+import qualified Monadoc.Vendor.Client as Client
 
 data Context = Context
     { config :: Config.Config
@@ -17,7 +16,7 @@ data Context = Context
 
 fromConfig :: Config.Config -> IO Context
 fromConfig config = do
-    manager <- Tls.newTlsManager
+    manager <- Client.newTlsManager
     pool <- Pool.createPool
         (Sql.open $ Config.database config)
         Sql.close

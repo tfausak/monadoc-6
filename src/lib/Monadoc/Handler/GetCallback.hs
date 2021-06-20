@@ -11,7 +11,6 @@ import qualified Monadoc.Exception.MissingCode as MissingCode
 import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Response as Response
-import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.GithubToken as GithubToken
@@ -20,7 +19,7 @@ import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.OAuthResponse as OAuthResponse
 import qualified Monadoc.Type.Route as Route
-import qualified Network.HTTP.Client as Client
+import qualified Monadoc.Vendor.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Types.Header as Http
 import qualified Network.Wai as Wai
@@ -91,7 +90,7 @@ getAccessToken context code = do
             ]
         headers = (Http.hAccept, into @ByteString "application/json") : Client.requestHeaders initial
         req = Client.urlEncodedBody body initial { Client.requestHeaders = headers }
-    res <- Client.httpLbs req manager
+    res <- Client.performRequest manager req
     let responseBody = Client.responseBody res
     case Aeson.eitherDecode responseBody of
         Left message -> throwM $ InvalidJson.new message responseBody
@@ -104,10 +103,9 @@ getGithubUser context accessToken = do
     let
         headers
             = (Http.hAuthorization, into @ByteString $ "Bearer " <> into @String accessToken)
-            : (Http.hUserAgent, Settings.serverName)
             : Client.requestHeaders initial
         req = initial { Client.requestHeaders = headers }
-    res <- Client.httpLbs req manager
+    res <- Client.performRequest manager req
     let responseBody = Client.responseBody res
     case Aeson.eitherDecode responseBody of
         Left message -> throwM $ InvalidJson.new message responseBody

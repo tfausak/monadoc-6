@@ -68,7 +68,7 @@ import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
 import qualified Monadoc.Utility.Log as Log
-import qualified Network.HTTP.Client as Client
+import qualified Monadoc.Vendor.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified System.FilePath as FilePath
 import qualified System.IO.Unsafe as Unsafe
@@ -96,7 +96,7 @@ insertHackageIndex :: Context.Context -> IO HackageIndex.HackageIndex
 insertHackageIndex context = do
     Log.info "requesting initial Hackage index"
     request <- Client.parseUrlThrow $ Config.hackageUrl (Context.config context) <> "/01-index.tar.gz"
-    response <- Client.httpLbs request $ Context.manager context
+    response <- Client.performRequest (Context.manager context) request
     let
         contents = Client.responseBody response
             & Gzip.decompress
@@ -115,9 +115,8 @@ updateHackageIndex context model = do
         oldSize = HackageIndex.size oldHackageIndex
     Log.info $ "requesting new Hackage index size (old size: " <> pluralize "byte" oldSize <> ")"
     request <- Client.parseUrlThrow $ Config.hackageUrl (Context.config context) <> "/01-index.tar"
-    headResponse <- Client.httpNoBody
-        request { Client.method = into @ByteString "HEAD" }
-        $ Context.manager context
+    headResponse <- Client.performRequest (Context.manager context)
+        request { Client.method = Http.methodHead }
     let
         maybeNewSize = do
             x <- lookup Http.hContentLength $ Client.responseHeaders headResponse
@@ -138,9 +137,8 @@ updateHackageIndex context model = do
                     end = newSize - 1
                     range = into @ByteString $ "bytes=" <> show start <> "-" <> show end
                 Log.info $ "requesting " <> pluralize "byte" delta <> " of new Hackage index"
-                rangeResponse <- Client.httpLbs
+                rangeResponse <- Client.performRequest (Context.manager context)
                     request { Client.requestHeaders = (Http.hRange, range) : Client.requestHeaders request }
-                    $ Context.manager context
                 Log.info "got new Hackage index"
                 let
                     before = ByteString.take start $ HackageIndex.contents oldHackageIndex

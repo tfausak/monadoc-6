@@ -8,7 +8,9 @@ import qualified Data.Proxy as Proxy
 import qualified Data.Typeable as Typeable
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.FromField as Sql
+import qualified Monadoc.Type.RequestId as RequestId
 import qualified Monadoc.Utility.Log as Log
+import qualified Text.Printf as Printf
 
 defaultFromField
     :: ( Sql.FromField s
@@ -42,13 +44,16 @@ query
     -> String
     -> i
     -> IO [o]
-query connection sql input = Retry.recovering
-    Retry.retryPolicyDefault
-    [always . Exception.Handler $ pure . (== Sql.ErrorBusy) . Sql.sqlError]
-    (\ retryStatus -> do
-        Log.info $ "[sql] " <> sql
-        when (Retry.rsIterNumber retryStatus > 0) . Log.info $ "[retry] " <> show retryStatus
-        Sql.query connection (Sql.Query $ into @Text sql) input)
+query connection sql input = do
+    requestId <- RequestId.random
+    Retry.recovering
+        Retry.retryPolicyDefault
+        [always . Exception.Handler $ pure . (== Sql.ErrorBusy) . Sql.sqlError]
+        (\ retryStatus -> do
+            Log.info $ Printf.printf "[sql/%04x] %s" (into @Word16 requestId) sql
+            let number = Retry.rsIterNumber retryStatus
+            when (number > 0) . Log.info $ Printf.printf "[sql/%04x] [retry/%d] %s" (into @Word16 requestId) number (show retryStatus)
+            Sql.query connection (Sql.Query $ into @Text sql) input)
 
 query_ :: Sql.FromRow o => Sql.Connection -> String -> IO [o]
 query_ connection sql = query connection sql ()

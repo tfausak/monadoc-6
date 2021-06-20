@@ -25,14 +25,24 @@ addRequestId f request respond = do
 
 logRequests :: Wai.Middleware
 logRequests f request respond = do
+    let
+        requestId = maybe 0 (into @Word16) $ RequestId.get request
+        method = unsafeInto @Text $ Wai.requestMethod request
+        path = unsafeInto @Text $ Wai.rawPathInfo request
+        query = unsafeInto @Text $ Wai.rawQueryString request
+    Log.info $ Printf.printf "[http-server/%04x] %s %s%s"
+        requestId
+        method
+        path
+        query
     before <- Clock.getMonotonicTime
     f request $ \ response -> do
         after <- Clock.getMonotonicTime
-        Log.info $ Printf.printf "[%04x] %s %s%s %d %.3f"
-            (maybe 0 (into @Word16) $ RequestId.get request)
-            (unsafeInto @Text $ Wai.requestMethod request)
-            (unsafeInto @Text $ Wai.rawPathInfo request)
-            (unsafeInto @Text $ Wai.rawQueryString request)
+        Log.info $ Printf.printf "[http-server/%04x] %s %s%s %d %.3f"
+            requestId
+            method
+            path
+            query
             (Http.statusCode $ Wai.responseStatus response)
             (after - before)
         respond response

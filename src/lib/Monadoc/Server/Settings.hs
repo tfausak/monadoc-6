@@ -32,9 +32,9 @@ beforeMainLoop config = Log.info $ "listening on port " <> show (Config.port con
 
 onException :: Maybe Wai.Request -> SomeException -> IO ()
 onException maybeRequest (SomeException e) = Log.warn $ Printf.printf
-    "[%04x] [%s] %s"
-    (maybe 0 (maybe 0 (into @Word16) . RequestId.get) maybeRequest)
+    "[exception/%s] [%04x] %s"
     (show $ Typeable.typeOf e)
+    (maybe 0 (maybe 0 (into @Word16) . RequestId.get) maybeRequest)
     (displayException e)
 
 onExceptionResponse :: SomeException -> Wai.Response
