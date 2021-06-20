@@ -50,7 +50,6 @@ data Package = Package
     -- ^ This is a free form text field. Somewhat surprisingly, it is not
     -- usually empty. It's almost always a comma separated list of categories.
     -- There is not fixed set of categories to pick from.
-    , contents :: ByteString
     , copyright :: Text
     -- ^ This is a free form text field. It is usually empty. Often it looks
     -- like the author field, but with some additional data like years. For
@@ -111,7 +110,6 @@ instance Sql.FromRow Package where
         <*> Sql.field
         <*> Sql.field
         <*> Sql.field
-        <*> Sql.field
 
 instance Sql.ToRow Package where
     toRow package =
@@ -120,7 +118,6 @@ instance Sql.ToRow Package where
         , Sql.toField $ buildType package
         , Sql.toField $ cabalVersion package
         , Sql.toField $ category package
-        , Sql.toField $ contents package
         , Sql.toField $ copyright package
         , Sql.toField $ description package
         , Sql.toField $ hash package
@@ -147,7 +144,6 @@ migrations =
         \buildType text not null, \
         \cabalVersion text not null, \
         \category text not null, \
-        \contents blob not null, \
         \copyright text not null, \
         \description text not null, \
         \hash text not null, \
@@ -173,15 +169,14 @@ insertOrUpdate :: Sql.Connection -> Package -> IO Key
 insertOrUpdate connection package = do
     Sql.execute
         connection
-            "insert into package (author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version) \
-            \values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \
+            "insert into package (author, bugReports, buildType, cabalVersion, category, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version) \
+            \values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \
             \on conflict (name, version, revision) \
             \do update set author = excluded.author, \
             \bugReports = excluded.bugReports, \
             \buildType = excluded.buildType, \
             \cabalVersion = excluded.cabalVersion, \
             \category = excluded.category, \
-            \contents = excluded.contents, \
             \copyright = excluded.copyright, \
             \description = excluded.description, \
             \hash = excluded.hash, \
@@ -206,7 +201,7 @@ select
     -> Revision.Revision
     -> IO (Maybe Model)
 select c n v r = fmap Maybe.listToMaybe $ Sql.query c
-    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ? \
     \and version = ? \
@@ -221,7 +216,7 @@ selectHashes connection = do
 
 selectByName :: Sql.Connection -> PackageName.PackageName -> IO [Model]
 selectByName c n = Sql.query c
-    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ?" [n]
 
@@ -231,14 +226,14 @@ selectByNameAndVersion
     -> Version.Version
     -> IO [Model]
 selectByNameAndVersion c n v = Sql.query c
-    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \where name = ? \
     \and version = ?" (n, v)
 
 selectRecent :: Sql.Connection -> IO [Model]
 selectRecent c = Sql.query_ c
-    "select key, author, bugReports, buildType, cabalVersion, category, contents, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
+    "select key, author, bugReports, buildType, cabalVersion, category, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \order by uploadedAt desc \
     \limit 10"

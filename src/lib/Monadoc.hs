@@ -9,6 +9,7 @@ import qualified Data.List as List
 import qualified Data.Pool as Pool
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified GHC.Conc as Ghc
+import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
 import qualified Monadoc.Model.HackageIndex as HackageIndex
@@ -88,7 +89,8 @@ enableWriteAheadLog c = Sql.execute_ c "pragma journal_mode = wal"
 
 migrations :: [Migration.Migration]
 migrations = List.sortOn Migration.time $ mconcat
-    [ Component.migrations
+    [ Blob.migrations
+    , Component.migrations
     , Dependency.migrations
     , HackageIndex.migrations
     , HackageUser.migrations

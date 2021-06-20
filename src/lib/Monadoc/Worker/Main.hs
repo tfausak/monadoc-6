@@ -44,6 +44,7 @@ import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
+import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
 import qualified Monadoc.Model.HackageIndex as HackageIndex
@@ -299,7 +300,6 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                         , Package.buildType = into @BuildType.BuildType $ Cabal.buildType pd
                         , Package.cabalVersion = into @CabalVersion.CabalVersion $ Cabal.specVersion pd
                         , Package.category = into @Text $ Cabal.category pd
-                        , Package.contents
                         , Package.copyright = into @Text $ Cabal.copyright pd
                         , Package.description = into @Text $ Cabal.description pd
                         , Package.hash
@@ -315,7 +315,8 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                         , Package.uploadedBy = Model.key hackageUser
                         , Package.version
                         }
-                key <- Context.withConnection context $ \ connection ->
+                key <- Context.withConnection context $ \ connection -> do
+                    Blob.upsert connection $ Blob.fromByteString contents
                     Package.insertOrUpdate connection package
                 Context.withConnection context $ \ connection -> Sql.withTransaction connection $ do
                     SourceRepository.deleteByPackage connection key
