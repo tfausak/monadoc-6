@@ -6,6 +6,7 @@ import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.Migration as Migration
+import qualified Monadoc.Type.GithubId as GithubId
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
@@ -20,7 +21,7 @@ data Session = Session
     , guid :: Guid.Guid
     , updatedAt :: Time.UTCTime
     , userAgent :: String
-    , userGithubId :: Int
+    , userGithubId :: GithubId.GithubId
     } deriving (Eq, Show)
 
 instance Sql.FromRow Session where
@@ -74,7 +75,7 @@ selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query c
     \and guid = ? \
     \limit 1" [g]
 
-selectByGithubId :: Sql.Connection -> Int -> IO [Model]
+selectByGithubId :: Sql.Connection -> GithubId.GithubId -> IO [Model]
 selectByGithubId c i = Sql.query c
     "select key, createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId \
     \from session \

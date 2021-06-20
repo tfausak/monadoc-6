@@ -6,6 +6,9 @@ import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.Migration as Migration
+import qualified Monadoc.Type.GithubId as GithubId
+import qualified Monadoc.Type.GithubLogin as GithubLogin
+import qualified Monadoc.Type.GithubToken as GithubToken
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 
@@ -16,9 +19,9 @@ type Key = Key.Key User
 data User = User
     { createdAt :: Time.UTCTime
     , deletedAt :: Maybe Time.UTCTime
-    , githubId :: Int
-    , githubLogin :: String
-    , githubToken :: String
+    , githubId :: GithubId.GithubId
+    , githubLogin :: GithubLogin.GithubLogin
+    , githubToken :: GithubToken.GithubToken
     , updatedAt :: Time.UTCTime
     } deriving (Eq, Show)
 
@@ -70,7 +73,7 @@ insertOrUpdate connection user = do
             \updatedAt = excluded.updatedAt"
         user
 
-selectByGithubId :: Sql.Connection -> Int -> IO (Maybe Model)
+selectByGithubId :: Sql.Connection -> GithubId.GithubId -> IO (Maybe Model)
 selectByGithubId c i = fmap Maybe.listToMaybe $ Sql.query c
     "select key, createdAt, deletedAt, githubId, githubLogin, githubToken, updatedAt \
     \from user \

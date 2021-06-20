@@ -3,9 +3,10 @@ module Monadoc.Type.OAuthResponse where
 import Monadoc.Prelude
 
 import qualified Data.Aeson as Aeson
+import qualified Monadoc.Type.GithubToken as GithubToken
 
 data OAuthResponse = OAuthResponse
-    { accessToken :: String
+    { accessToken :: GithubToken.GithubToken
     , tokenType :: String
     } deriving (Eq, Show)
 

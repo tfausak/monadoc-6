@@ -6,6 +6,7 @@ import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Breadcrumb as Breadcrumb
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
+import qualified Monadoc.Type.GithubLogin as GithubLogin
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Routes as Routes
 import qualified Monadoc.Type.Version as Version
@@ -17,7 +18,7 @@ data Meta = Meta
     , breadcrumbs :: [Breadcrumb.Breadcrumb]
     , clientId :: String
     , routes :: Routes.Routes
-    , user :: Maybe String
+    , user :: Maybe GithubLogin.GithubLogin
     , version :: Version.Version
     } deriving (Eq, Show)
 

@@ -13,6 +13,7 @@ import qualified Monadoc.Model.Session as Session
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.Breadcrumb as Breadcrumb
 import qualified Monadoc.Type.Context as Context
+import qualified Monadoc.Type.GithubLogin as GithubLogin
 import qualified Monadoc.Type.Guid as Guid
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Meta as Meta
@@ -58,7 +59,7 @@ handler context request = do
         }
 
 data Account = Account
-    { account_name :: String
+    { account_name :: GithubLogin.GithubLogin
     , account_sessions :: [Session]
     } deriving (Eq, Show)
 

@@ -54,7 +54,7 @@ handler context request = do
                 initial <- Client.parseUrlThrow "https://api.github.com/user"
                 let
                     headers
-                        = (Http.hAuthorization, into @ByteString $ "Bearer " <> accessToken)
+                        = (Http.hAuthorization, into @ByteString $ "Bearer " <> into @String accessToken)
                         : (Http.hUserAgent, Settings.serverName)
                         : Client.requestHeaders initial
                     req = initial { Client.requestHeaders = headers }

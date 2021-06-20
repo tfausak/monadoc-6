@@ -57,6 +57,8 @@ import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
+import qualified Monadoc.Type.HackageId as HackageId
+import qualified Monadoc.Type.HackageName as HackageName
 import qualified Monadoc.Type.License as License
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
@@ -279,8 +281,8 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                 hackageUser <- do
                     let
                         ownership = Tar.entryOwnership entry
-                        name = Tar.ownerName ownership
-                        id = Tar.ownerId ownership
+                        name = into @HackageName.HackageName $ Tar.ownerName ownership
+                        id = into @HackageId.HackageId $ Tar.ownerId ownership
                         value = HackageUser.HackageUser { HackageUser.id, HackageUser.name }
                     maybeModel <- Context.withConnection context $ \ connection ->
                         HackageUser.selectByName connection name

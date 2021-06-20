@@ -139,8 +139,13 @@ library
         Monadoc.Type.Config
         Monadoc.Type.Context
         Monadoc.Type.Flag
+        Monadoc.Type.GithubId
+        Monadoc.Type.GithubLogin
+        Monadoc.Type.GithubToken
         Monadoc.Type.GithubUser
         Monadoc.Type.Guid
+        Monadoc.Type.HackageId
+        Monadoc.Type.HackageName
         Monadoc.Type.Handler
         Monadoc.Type.Key
         Monadoc.Type.License
