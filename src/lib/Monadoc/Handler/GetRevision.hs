@@ -134,7 +134,7 @@ componentName package component =
     let
         name = Component.name component
         isLibrary = Component.tag component == ComponentTag.Library
-        namesMatch = from name == Package.name package
+        namesMatch = into @PackageName.PackageName name == Package.name package
     in if isLibrary && namesMatch then Nothing else Just name
 
 componentRoute :: Package.Package -> Component.Component -> Route.Route

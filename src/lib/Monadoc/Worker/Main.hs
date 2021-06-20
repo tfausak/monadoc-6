@@ -63,6 +63,8 @@ import qualified Monadoc.Type.HackageName as HackageName
 import qualified Monadoc.Type.License as License
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.RepositoryKind as RepositoryKind
+import qualified Monadoc.Type.RepositoryType as RepositoryType
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
@@ -324,13 +326,13 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                             let
                                 sourceRepository = SourceRepository.SourceRepository
                                     { SourceRepository.branch = Cabal.repoBranch sourceRepo
-                                    , SourceRepository.kind = from $ Cabal.repoKind sourceRepo
+                                    , SourceRepository.kind = into @RepositoryKind.RepositoryKind $ Cabal.repoKind sourceRepo
                                     , SourceRepository.location = Cabal.repoLocation sourceRepo
                                     , SourceRepository.module_ = Cabal.repoModule sourceRepo
                                     , SourceRepository.package = key
                                     , SourceRepository.subdir = Cabal.repoSubdir sourceRepo
                                     , SourceRepository.tag = Cabal.repoTag sourceRepo
-                                    , SourceRepository.type_ = fmap from $ Cabal.repoType sourceRepo
+                                    , SourceRepository.type_ = fmap (into @RepositoryType.RepositoryType) $ Cabal.repoType sourceRepo
                                     }
                             SourceRepository.insert connection sourceRepository)
                 pd

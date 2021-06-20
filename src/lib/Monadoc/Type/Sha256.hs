@@ -27,4 +27,4 @@ instance Sql.ToField Sha256 where
     toField = Sql.toField . into @String
 
 hash :: ByteString -> Sha256
-hash = from . Crypto.hashWith Crypto.SHA256
+hash = into @Sha256 . Crypto.hashWith Crypto.SHA256

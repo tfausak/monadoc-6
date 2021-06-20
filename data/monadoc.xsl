@@ -137,6 +137,10 @@
             <div class="alert alert-warning">
                 Version
                 <xsl:value-of select="$version"/>
+                <xsl:if test="$revision != 0">
+                    <xsl:text>-</xsl:text>
+                    <xsl:value-of select="$revision"/>
+                </xsl:if>
                 of
                 <xsl:value-of select="$name"/>
                 is out of date.

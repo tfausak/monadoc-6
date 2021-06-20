@@ -236,7 +236,7 @@ selectRecent c = Sql.query_ c
     "select key, author, bugReports, buildType, cabalVersion, category, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \order by uploadedAt desc \
-    \limit 10"
+    \limit 32"
 
 selectNamesLike :: Sql.Connection -> String -> IO [PackageName.PackageName]
 selectNamesLike c x = fmap (fmap Sql.fromOnly) $ Sql.query c

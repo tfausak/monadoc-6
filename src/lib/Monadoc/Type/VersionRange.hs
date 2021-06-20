@@ -34,7 +34,7 @@ instance ToXml.ToXml VersionRange where
     toXml = ToXml.toXml . into @String
 
 any :: VersionRange
-any = from Cabal.anyVersion
+any = into @VersionRange Cabal.anyVersion
 
 contains :: Version.Version -> VersionRange -> Bool
 contains v r = Cabal.withinRange (into @Cabal.Version v) (into @Cabal.VersionRange r)
