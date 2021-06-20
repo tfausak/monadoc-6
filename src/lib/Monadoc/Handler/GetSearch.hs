@@ -13,62 +13,44 @@ import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
-import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml
 
 handler :: Maybe String -> Handler.Handler
 handler maybeQuery context request = do
-    let
-        route = Route.Search maybeQuery
-        query = Maybe.fromMaybe "" maybeQuery
+    let query = Maybe.fromMaybe "" maybeQuery
     exactMatches <- Context.withConnection context $ \ connection ->
         Package.selectNamesLike connection $ Package.escapeLike query
     partialMatches <- Context.withConnection context $ \ connection ->
         Package.selectNamesLike connection $ "%" <> Package.escapeLike query <> "%"
     maybeUser <- Common.getUser context request
+    let
+        route = Route.Search maybeQuery
+        breadcrumbs =
+            [ Breadcrumb.Breadcrumb
+                { Breadcrumb.name = "Home"
+                , Breadcrumb.route = Just Route.Index
+                }
+            , Breadcrumb.Breadcrumb
+                { Breadcrumb.name = "Search"
+                , Breadcrumb.route = Nothing
+                }
+            ]
+        page = Xml.node "search" []
+            [ Xml.node "query" [] [ToXml.toXml maybeQuery]
+            , Xml.node "packages" []
+            . fmap (\ x -> Xml.node "package" []
+                [ Xml.node "name" [] [ToXml.toXml x]
+                , Xml.node "route" [] [ToXml.toXml $ Route.Package x]
+                ])
+            . Containers.nubOrd
+            $ exactMatches <> partialMatches
+            ]
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
-            { Meta.breadcrumbs =
-                [ Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = "Home"
-                    , Breadcrumb.route = Just Route.Index
-                    }
-                , Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = "Search"
-                    , Breadcrumb.route = Nothing
-                    }
-                ]
+            { Meta.breadcrumbs
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Root.page = Search
-            { search_query = query
-            ,search_packages = fmap (\ packageName -> Package
-                { package_name = packageName
-                , package_route = Route.Package packageName
-                }) . Containers.nubOrd $ exactMatches <> partialMatches
-            }
+        , Root.page
         }
-
-data Search = Search
-    { search_query :: String
-    , search_packages :: [Package]
-    } deriving (Eq, Show)
-
-instance ToXml.ToXml Search where
-    toXml search = Xml.node "search" []
-        [ Xml.node "query" [] [ToXml.toXml $ search_query search]
-        , Xml.node "packages" [] . fmap ToXml.toXml $ search_packages search
-        ]
-
-data Package = Package
-    { package_name :: PackageName.PackageName
-    , package_route :: Route.Route
-    } deriving (Eq, Show)
-
-instance ToXml.ToXml Package where
-    toXml package = Xml.node "package" []
-        [ Xml.node "name" [] [ToXml.toXml $ package_name package]
-        , Xml.node "route" [] [ToXml.toXml $ package_route package]
-        ]

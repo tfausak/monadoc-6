@@ -24,8 +24,8 @@ handler packageName context _ = do
     let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions
     package <- packages
         & fmap Model.value
-        & filter (\ p -> VersionRange.contains (Package.version p) versionRange)
-        & Foldable.maximumOn (\ p -> (Package.version p, Package.revision p))
+        & filter (\ x -> VersionRange.contains (Package.version x) versionRange)
+        & Foldable.maximumOn (\ x -> (Package.version x, Package.revision x))
         & maybe (throwM NotFound.new) pure
     let
         config = Context.config context

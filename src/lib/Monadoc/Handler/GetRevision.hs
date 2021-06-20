@@ -36,7 +36,6 @@ handler
     -> Revision.Revision
     -> Handler.Handler
 handler packageName version revision context request = do
-    let route = Route.Revision packageName version revision
     maybeUser <- Common.getUser context request
     maybePackage <- Context.withConnection context $ \ connection ->
         Package.select connection packageName version revision
@@ -46,7 +45,7 @@ handler packageName version revision context request = do
     let
         sortedPackages = packages
             & fmap Model.value
-            & List.sortOn (\ p -> Ord.Down (Package.version p, Package.revision p))
+            & List.sortOn (\ x -> Ord.Down (Package.version x, Package.revision x))
     maybePreferredVersions <- Context.withConnection context $ \ connection ->
         PreferredVersions.selectByPackageName connection packageName
     let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions
@@ -54,144 +53,115 @@ handler packageName version revision context request = do
         Component.selectByPackage connection $ Model.key package
     sourceRepositories <- Context.withConnection context $ \ connection ->
         SourceRepository.selectByPackage connection $ Model.key package
+    let
+        route = Route.Revision packageName version revision
+        breadcrumbs =
+            [ Breadcrumb.Breadcrumb
+                { Breadcrumb.name = "Home"
+                , Breadcrumb.route = Just Route.Index
+                }
+            , Breadcrumb.Breadcrumb
+                { Breadcrumb.name = into @String packageName
+                , Breadcrumb.route = Just $ Route.Package packageName
+                }
+            , Breadcrumb.Breadcrumb
+                { Breadcrumb.name = into @String version <> if revision == Revision.zero then "" else "-" <> into @String revision
+                , Breadcrumb.route = Nothing
+                }
+            ]
+        page = Xml.node "revision" []
+            [ Xml.node "package" []
+                [ Xml.node "author" [] [ToXml.toXml . Package.author $ Model.value package]
+                , Xml.node "bugReports" [] [ToXml.toXml . Package.bugReports $ Model.value package]
+                , Xml.node "buildType" [] [ToXml.toXml . Package.buildType $ Model.value package]
+                , Xml.node "cabalVersion" [] [ToXml.toXml . Package.cabalVersion $ Model.value package]
+                , Xml.node "category" [] [ToXml.toXml . Package.category $ Model.value package]
+                , Xml.node "copyright" [] [ToXml.toXml . Package.copyright $ Model.value package]
+                , Xml.node "description" [] [ToXml.toXml . parsedDescription $ Model.value package]
+                , Xml.node "homepage" [] [ToXml.toXml . Package.homepage $ Model.value package]
+                , Xml.node "latest" [] [ToXml.toXml . isLatest versionRange sortedPackages $ Model.value package]
+                , Xml.node "license" [] [ToXml.toXml . Package.license $ Model.value package]
+                , Xml.node "maintainer" [] [ToXml.toXml . Package.maintainer $ Model.value package]
+                , Xml.node "name" [] [ToXml.toXml . Package.name $ Model.value package]
+                , Xml.node "pkgUrl" [] [ToXml.toXml . Package.pkgUrl $ Model.value package]
+                , Xml.node "preferred" [] [ToXml.toXml . isPreferred versionRange $ Model.value package]
+                , Xml.node "revision" [] [ToXml.toXml . Package.revision $ Model.value package]
+                , Xml.node "stability" [] [ToXml.toXml . Package.stability $ Model.value package]
+                , Xml.node "synopsis" [] [ToXml.toXml . Package.synopsis $ Model.value package]
+                , Xml.node "uploadedAt" [] [ToXml.toXml . Package.uploadedAt $ Model.value package]
+                , Xml.node "uploadedBy" [] [ToXml.toXml . Package.uploadedBy $ Model.value package]
+                , Xml.node "version" [] [ToXml.toXml . Package.version $ Model.value package]
+                ]
+            , Xml.node "versions" []
+            $ fmap (\ x -> Xml.node "version" []
+                [ Xml.node "number" [] [ToXml.toXml $ Package.version x]
+                , Xml.node "preferred" [] [ToXml.toXml $ isPreferred versionRange x]
+                , Xml.node "revision" [] [ToXml.toXml $ Package.revision x]
+                , Xml.node "route" [] [ToXml.toXml $ Route.Revision (Package.name x) (Package.version x) (Package.revision x)]
+                , Xml.node "uploadedAt" [] [ToXml.toXml $ Package.uploadedAt x]
+                ]) sortedPackages
+            , Xml.node "components" []
+            . fmap (\ x -> Xml.node "component" []
+                [ Xml.node "tag" [] [ToXml.toXml $ Component.tag x]
+                , Xml.node "name" [] [ToXml.toXml $ componentName (Model.value package) x]
+                , Xml.node "route" [] [ToXml.toXml $ componentRoute (Model.value package) x]
+                ])
+            . List.sortOn (\ x -> (Component.tag x, Component.name x))
+            $ fmap Model.value components
+            , Xml.node "sourceRepositories" []
+            . fmap (\ x -> Xml.node "sourceRepository" []
+                [ Xml.node "branch" [] [ToXml.toXml $ SourceRepository.branch x]
+                , Xml.node "kind" [] [ToXml.toXml $ SourceRepository.kind x]
+                , Xml.node "location" [] [ToXml.toXml $ SourceRepository.location x]
+                , Xml.node "module" [] [ToXml.toXml $ SourceRepository.module_ x]
+                , Xml.node "subdir" [] [ToXml.toXml $ SourceRepository.subdir x]
+                , Xml.node "tag" [] [ToXml.toXml $ SourceRepository.tag x]
+                , Xml.node "type" [] [ToXml.toXml $ SourceRepository.type_ x]
+                ])
+            . List.sortOn SourceRepository.location
+            $ fmap Model.value sourceRepositories
+            ]
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
-            { Meta.breadcrumbs =
-                [ Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = "Home"
-                    , Breadcrumb.route = Just Route.Index
-                    }
-                , Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = into @String packageName
-                    , Breadcrumb.route = Just $ Route.Package packageName
-                    }
-                , Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = into @String version <> if revision == Revision.zero then "" else "-" <> into @String revision
-                    , Breadcrumb.route = Nothing
-                    }
-                ]
+            { Meta.breadcrumbs
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Root.page = Revision
-            { revision_package = Package
-                { package_package = Model.value package
-                , package_preferred = VersionRange.contains (Package.version $ Model.value package) versionRange
-                , package_latest = case sortedPackages of
-                    [] -> True
-                    p : _ -> Package.version p == Package.version (Model.value package) && Package.revision p == Package.revision (Model.value package)
-                }
-            , revision_versions = sortedPackages
-                & fmap (\ p -> Version
-                    { version_package = p
-                    , version_preferred = VersionRange.contains (Package.version p) versionRange
-                    })
-            , revision_components = components
-                & fmap Model.value
-                & List.sortOn (\ c -> (Component.tag c, Component.name c))
-                & fmap (toComponent $ Model.value package)
-            , revision_sourceRepositories = sourceRepositories
-                & fmap Model.value
-            }
+        , Root.page
         }
 
-data Revision = Revision
-    { revision_package :: Package
-    , revision_versions :: [Version]
-    , revision_components :: [Component]
-    , revision_sourceRepositories :: [SourceRepository.SourceRepository]
-    } deriving (Eq, Show)
-
-instance ToXml.ToXml Revision where
-    toXml revision = Xml.node "revision" []
-        [ ToXml.toXml $ revision_package revision
-        , Xml.node "versions" [] . fmap ToXml.toXml $ revision_versions revision
-        , Xml.node "components" [] . fmap ToXml.toXml $ revision_components revision
-        , Xml.node "sourceRepositories" [] . fmap (\ sourceRepository -> Xml.node "sourceRepository" []
-            [ Xml.node "branch" [] [ToXml.toXml $ SourceRepository.branch sourceRepository]
-            , Xml.node "kind" [] [ToXml.toXml $ SourceRepository.kind sourceRepository]
-            , Xml.node "location" [] [ToXml.toXml $ SourceRepository.location sourceRepository]
-            , Xml.node "module" [] [ToXml.toXml $ SourceRepository.module_ sourceRepository]
-            , Xml.node "subdir" [] [ToXml.toXml $ SourceRepository.subdir sourceRepository]
-            , Xml.node "tag" [] [ToXml.toXml $ SourceRepository.tag sourceRepository]
-            , Xml.node "type" [] [ToXml.toXml $ SourceRepository.type_ sourceRepository]
-            ]) $ revision_sourceRepositories revision
-        ]
-
-data Package = Package
-    { package_package :: Package.Package
-    , package_preferred :: Bool
-    , package_latest :: Bool
-    } deriving (Eq, Show)
-
-instance ToXml.ToXml Package where
-    toXml (Package package preferred latest) = Xml.node "package" []
-        [ Xml.node "author" [] [ToXml.toXml $ Package.author package]
-        , Xml.node "bugReports" [] [ToXml.toXml $ Package.bugReports package]
-        , Xml.node "buildType" [] [ToXml.toXml $ Package.buildType package]
-        , Xml.node "cabalVersion" [] [ToXml.toXml $ Package.cabalVersion package]
-        , Xml.node "category" [] [ToXml.toXml $ Package.category package]
-        , Xml.node "copyright" [] [ToXml.toXml $ Package.copyright package]
-        , Xml.node "description" []
-            [ ToXml.toXml
-            . Haddock.toRegular @Void
-            . Haddock._doc
-            . Haddock.parseParas Nothing
-            . into @String
-            $ Package.description package
-            ]
-        , Xml.node "homepage" [] [ToXml.toXml $ Package.homepage package]
-        , Xml.node "latest" [] [ToXml.toXml latest]
-        , Xml.node "license" [] [ToXml.toXml $ Package.license package]
-        , Xml.node "maintainer" [] [ToXml.toXml $ Package.maintainer package]
-        , Xml.node "name" [] [ToXml.toXml $ Package.name package]
-        , Xml.node "pkgUrl" [] [ToXml.toXml $ Package.pkgUrl package]
-        , Xml.node "preferred" [] [ToXml.toXml preferred]
-        , Xml.node "revision" [] [ToXml.toXml $ Package.revision package]
-        , Xml.node "stability" [] [ToXml.toXml $ Package.stability package]
-        , Xml.node "synopsis" [] [ToXml.toXml $ Package.synopsis package]
-        , Xml.node "uploadedAt" [] [ToXml.toXml $ Package.uploadedAt package]
-        , Xml.node "uploadedBy" [] [ToXml.toXml $ Package.uploadedBy package]
-        , Xml.node "version" [] [ToXml.toXml $ Package.version package]
-        ]
-
-data Version = Version
-    { version_package :: Package.Package
-    , version_preferred :: Bool
-    } deriving (Eq, Show)
-
-instance ToXml.ToXml Version where
-    toXml (Version package preferred) = Xml.node "version" []
-        [ Xml.node "number" [] [ToXml.toXml $ Package.version package]
-        , Xml.node "preferred" [] [ToXml.toXml preferred]
-        , Xml.node "revision" [] [ToXml.toXml $ Package.revision package]
-        , Xml.node "route" [] [ToXml.toXml $ Route.Revision (Package.name package) (Package.version package) (Package.revision package)]
-        , Xml.node "uploadedAt" [] [ToXml.toXml $ Package.uploadedAt package]
-        ]
-
-data Component = Component
-    { component_tag :: ComponentTag.ComponentTag
-    , component_name :: Maybe ComponentName.ComponentName
-    , component_route :: Route.Route
-    } deriving (Eq, Show)
-
-instance ToXml.ToXml Component where
-    toXml component = Xml.node "component" []
-        [ Xml.node "tag" [] [ToXml.toXml $ component_tag component]
-        , Xml.node "name" [] [ToXml.toXml $ component_name component]
-        , Xml.node "route" [] [ToXml.toXml $ component_route component]
-        ]
-
-toComponent :: Package.Package -> Component.Component -> Component
-toComponent package component =
+componentName :: Package.Package -> Component.Component -> Maybe ComponentName.ComponentName
+componentName package component =
     let
-        tag = Component.tag component
         name = Component.name component
-        isLibrary = tag == ComponentTag.Library
-        namesMatch = into @PackageName.PackageName name == Package.name package
-        maybeName = if isLibrary && namesMatch then Nothing else Just name
-        route = Route.Component
-            (Package.name package)
-            (Package.version package)
-            (Package.revision package)
-            (ComponentId.ComponentId tag maybeName)
-    in Component { component_tag = tag, component_name = maybeName, component_route = route }
+        isLibrary = Component.tag component == ComponentTag.Library
+        namesMatch = from name == Package.name package
+    in if isLibrary && namesMatch then Nothing else Just name
+
+componentRoute :: Package.Package -> Component.Component -> Route.Route
+componentRoute package component =
+    let
+        name = Package.name package
+        version = Package.version package
+        revision = Package.revision package
+        tag = Component.tag component
+        componentId = ComponentId.ComponentId tag $ componentName package component
+    in Route.Component name version revision componentId
+
+parsedDescription :: Package.Package -> Haddock.DocH Void String
+parsedDescription = Haddock.toRegular
+    . Haddock._doc
+    . Haddock.parseParas Nothing
+    . into @String
+    . Package.description
+
+isLatest :: VersionRange.VersionRange -> [Package.Package] -> Package.Package -> Bool
+isLatest versionRange sortedPackages package =
+    case filter (isPreferred versionRange) sortedPackages of
+        [] -> False
+        latest : _ ->
+            Package.version latest == Package.version package
+            && Package.revision latest == Package.revision package
+
+isPreferred :: VersionRange.VersionRange -> Package.Package -> Bool
+isPreferred versionRange package =
+    VersionRange.contains (Package.version package) versionRange

@@ -35,3 +35,6 @@ instance ToXml Int64 where
 
 instance ToXml (Haddock.DocH Void String) where
     toXml = toXml . show -- TODO
+
+instance ToXml Xml.Node where
+    toXml = identity

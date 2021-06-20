@@ -52,7 +52,6 @@ handler packageName version revision componentId context request = do
     when (isLibrary && namesMatch) . throwM . Found.new $ baseUrl <> Route.toString
         (Route.Component packageName version revision $ ComponentId.ComponentId componentTag Nothing)
 
-    let route = Route.Component packageName version revision componentId
     maybeUser <- Common.getUser context request
     maybePackage <- Context.withConnection context $ \ connection ->
         Package.select connection packageName version revision
@@ -99,61 +98,53 @@ handler packageName version revision componentId context request = do
         \group by package.name"
         (packageName, componentName)
 
+    let
+        route = Route.Component packageName version revision componentId
+        breadcrumbs =
+            [ Breadcrumb.Breadcrumb
+                { Breadcrumb.name = "Home"
+                , Breadcrumb.route = Just Route.Index
+                }
+            , Breadcrumb.Breadcrumb
+                { Breadcrumb.name = into @String packageName
+                , Breadcrumb.route = Just $ Route.Package packageName
+                }
+            , Breadcrumb.Breadcrumb
+                { Breadcrumb.name = into @String version <> if revision == Revision.zero then "" else "-" <> into @String revision
+                , Breadcrumb.route = Just $ Route.Revision packageName version revision
+                }
+            , Breadcrumb.Breadcrumb
+                { Breadcrumb.name = into @String componentId
+                , Breadcrumb.route = Nothing
+                }
+            ]
+        page = Xml.node "component" []
+            [ Xml.node "package" [] [ToXml.toXml . Package.name $ Model.value package]
+            , Xml.node "version" [] [ToXml.toXml . Package.version $ Model.value package]
+            , Xml.node "revision" [] [ToXml.toXml . Package.revision $ Model.value package]
+            , Xml.node "tag" [] [ToXml.toXml . Component.tag $ Model.value component]
+            , Xml.node "name" [] [ToXml.toXml . Component.name $ Model.value component]
+            , Xml.node "dependencies" []
+            . fmap (\ x -> Xml.node "dependency" []
+                [ Xml.node "packageName" [] [ToXml.toXml $ Dependency.packageName x]
+                , Xml.node "libraryName" [] [ToXml.toXml $ Dependency.libraryName x]
+                , Xml.node "route" [] [ToXml.toXml . Route.Package $ Dependency.packageName x]
+                , Xml.node "versionRange" [] [ToXml.toXml $ Dependency.versionRange x]
+                ])
+            . List.sortOn (CI.mk . into @String . Dependency.packageName)
+            $ fmap Model.value dependencies
+            , Xml.node "reverseDependencies" []
+            . fmap (\ x -> Xml.node "reverseDependency" []
+                [ Xml.node "packageName" [] [ToXml.toXml x]
+                , Xml.node "route" [] [ToXml.toXml $ Route.Package x]
+                ])
+            . List.sortOn (CI.mk . into @String)
+            $ fmap Sql.fromOnly reverseDependencies
+            ]
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
-            { Meta.breadcrumbs =
-                [ Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = "Home"
-                    , Breadcrumb.route = Just Route.Index
-                    }
-                , Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = into @String packageName
-                    , Breadcrumb.route = Just $ Route.Package packageName
-                    }
-                , Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = into @String version <> if revision == Revision.zero then "" else "-" <> into @String revision
-                    , Breadcrumb.route = Just $ Route.Revision packageName version revision
-                    }
-                , Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = into @String componentId
-                    , Breadcrumb.route = Nothing
-                    }
-                ]
+            { Meta.breadcrumbs
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Root.page = Component
-            { component_package = Model.value package
-            , component_component = Model.value component
-            , component_dependencies = fmap Model.value dependencies
-            , component_reverseDependencies = fmap Sql.fromOnly reverseDependencies
-            }
+        , Root.page
         }
-
-data Component = Component
-    { component_package :: Package.Package
-    , component_component :: Component.Component
-    , component_dependencies :: [Dependency.Dependency]
-    , component_reverseDependencies :: [PackageName.PackageName]
-    } deriving (Eq, Show)
-
-instance ToXml.ToXml Component where
-    toXml component = Xml.node "component" []
-        [ Xml.node "package" [] [ToXml.toXml . Package.name $ component_package component]
-        , Xml.node "version" [] [ToXml.toXml . Package.version $ component_package component]
-        , Xml.node "revision" [] [ToXml.toXml . Package.revision $ component_package component]
-        , Xml.node "tag" [] [ToXml.toXml . Component.tag $ component_component component]
-        , Xml.node "name" [] [ToXml.toXml . Component.name $ component_component component]
-        , Xml.node "dependencies" [] . fmap (\ dependency -> Xml.node "dependency" []
-            [ Xml.node "packageName" [] [ToXml.toXml $ Dependency.packageName dependency]
-            , Xml.node "libraryName" [] [ToXml.toXml $ Dependency.libraryName dependency]
-            , Xml.node "route" [] [ToXml.toXml . Route.Package $ Dependency.packageName dependency]
-            , Xml.node "versionRange" [] [ToXml.toXml $ Dependency.versionRange dependency]
-            ]) . List.sortOn (CI.mk . into @String . Dependency.packageName) $ component_dependencies component
-        , Xml.node "reverseDependencies" []
-        . fmap (\ x -> Xml.node "reverseDependency" []
-            [ Xml.node "packageName" [] [ToXml.toXml x]
-            , Xml.node "route" [] [ToXml.toXml $ Route.Package x]
-            ])
-        . List.sortOn (CI.mk . into @String)
-        $ component_reverseDependencies component
-        ]
