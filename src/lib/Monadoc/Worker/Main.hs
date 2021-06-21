@@ -459,6 +459,7 @@ fetchDistribution context hashes (package, version) =
                     Client.HttpExceptionRequest _ (Client.StatusCodeException response _) ->
                         case Http.statusCode $ Client.responseStatus response of
                             410 -> pure response { Client.responseBody = Gzip.compress $ Tar.write [] }
+                            451 -> pure response { Client.responseBody = Gzip.compress $ Tar.write [] }
                             _ -> throwM httpException
                     _ -> throwM httpException)
             Concurrent.threadDelay 500000 -- TODO: Remove delay?

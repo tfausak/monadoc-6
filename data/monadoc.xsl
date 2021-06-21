@@ -158,7 +158,10 @@
             </small>
         </h2>
         <p>
-            View this package <a href="https://hackage.haskell.org/package/{$name}-{$version}">on Hackage</a>.
+            View this package on
+            <a href="https://hackage.haskell.org/package/{$name}-{$version}">Hackage</a>
+            or
+            <a href="https://www.stackage.org/package/{$name}">Stacakge</a>.
         </p>
         <ul>
             <li> name: <xsl:value-of select="$name"/> </li>
@@ -329,6 +332,10 @@
         <h3>
             Reverse Dependencies
         </h3>
+        <p>
+            See also
+            <a href="https://packdeps.haskellers.com/reverse/{normalize-space(package)}">packdeps.haskellers.com</a>.
+        </p>
         <ul>
             <xsl:for-each select="reverseDependencies/reverseDependency">
                 <li>
