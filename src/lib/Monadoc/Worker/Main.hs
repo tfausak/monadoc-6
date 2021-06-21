@@ -47,6 +47,7 @@ import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
+import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.Package as Package
@@ -83,6 +84,9 @@ run context = do
         Log.info "beginning worker loop"
         hackageIndex <- upsertHackageIndex context
         processHackageIndex context hackageIndex
+        fetchDistributions context
+        -- TODO: Unpack distributions.
+        -- TODO: Process distributions (in other words, parse Haskell modules).
         Log.info "finished worker loop"
         Concurrent.threadDelay 60000000
 
@@ -422,3 +426,42 @@ componentName component = case component of
     Cabal.CExe executable -> "exe:" <> Cabal.unUnqualComponentName (Cabal.exeName executable)
     Cabal.CTest testSuite -> "test:" <> Cabal.unUnqualComponentName (Cabal.testName testSuite)
     Cabal.CBench benchmark -> "bench:" <> Cabal.unUnqualComponentName (Cabal.benchmarkName benchmark)
+
+fetchDistributions :: Context.Context -> IO ()
+fetchDistributions context = do
+    hashes <- Context.withConnection context Distribution.selectHashes
+    namesAndVersions <- Context.withConnection context Package.selectNamesAndVersions
+    traverse_ (fetchDistribution context hashes) namesAndVersions
+
+fetchDistribution
+    :: Context.Context
+    -> Map (PackageName.PackageName, Version.Version) Sha256.Sha256
+    -> (PackageName.PackageName, Version.Version)
+    -> IO ()
+fetchDistribution context hashes (package, version) =
+    case Map.lookup (package, version) hashes of
+        Just _ -> pure ()
+        Nothing -> do
+            let id = into @String package <> "-" <> into @String version
+            request <- Client.parseUrlThrow
+                $ Config.hackageUrl (Context.config context)
+                <> "/package/" <> id <> "/" <> id <> ".tar.gz"
+            response <- catch
+                (Client.performRequest (Context.manager context) request)
+                (\ httpException -> case httpException of
+                    Client.HttpExceptionRequest _ (Client.StatusCodeException response _) ->
+                        case Http.statusCode $ Client.responseStatus response of
+                            410 -> pure response { Client.responseBody = Gzip.compress $ Tar.write [] }
+                            _ -> throwM httpException
+                    _ -> throwM httpException)
+            Concurrent.threadDelay 500000 -- TODO: Remove delay?
+            let
+                blob = Blob.fromByteString . into @ByteString $ Client.responseBody response
+                distribution = Distribution.Distribution
+                    { Distribution.hash = Blob.hash blob
+                    , Distribution.package
+                    , Distribution.version
+                    }
+            Context.withConnection context $ \ connection -> do
+                Blob.upsert connection blob
+                Distribution.upsert connection distribution

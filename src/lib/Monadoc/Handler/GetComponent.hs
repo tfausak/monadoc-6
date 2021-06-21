@@ -83,6 +83,7 @@ handler packageName version revision componentId context request = do
         & maybe (throwM NotFound.new) pure
     dependencies <- Context.withConnection context $ \ connection ->
         Dependency.selectByComponent connection $ Model.key component
+    -- TODO: Chase down transitive dependencies?
 
     reverseDependencies <- Context.withConnection context $ \ connection -> Sql.query
         connection

@@ -240,11 +240,12 @@ selectRecent c = Sql.query_ c
 
 selectNamesLike :: Sql.Connection -> String -> IO [PackageName.PackageName]
 selectNamesLike c x = fmap (fmap Sql.fromOnly) $ Sql.query c
-    "select distinct name \
+    "select name \
     \from package \
     \where name like ? escape ? \
+    \group by name \
     \order by uploadedAt desc \
-    \limit 10" (x, "\\")
+    \limit 32" (x, "\\")
 
 escapeLike :: String -> String
 escapeLike = foldMap $ \ c -> case c of
@@ -252,3 +253,7 @@ escapeLike = foldMap $ \ c -> case c of
     '_' -> "\\_"
     '\\' -> "\\\\"
     _ -> [c]
+
+selectNamesAndVersions :: Sql.Connection -> IO [(PackageName.PackageName, Version.Version)]
+selectNamesAndVersions connection = Sql.query_ connection
+    "select name, version from package group by name, version"
