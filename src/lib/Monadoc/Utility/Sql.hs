@@ -51,13 +51,13 @@ query connection sql input = do
     result <- Retry.recovering
         Retry.retryPolicyDefault
         [always . Exception.Handler $ pure . (== Sql.ErrorBusy) . Sql.sqlError]
-        (\ retryStatus -> do
+        $ \ retryStatus -> do
             let number = Retry.rsIterNumber retryStatus
             when (number > 0) . Log.info $ Printf.printf "[sql/%04x] [retry/%d] %s"
                 (into @Word16 requestId)
                 number
                 (show retryStatus)
-            Sql.query connection (Sql.Query $ into @Text sql) input)
+            Sql.query connection (Sql.Query $ into @Text sql) input
     after <- Clock.getMonotonicTime
     Log.info $ Printf.printf "[sql/%04x] %s -- %.3f"
         (into @Word16 requestId)

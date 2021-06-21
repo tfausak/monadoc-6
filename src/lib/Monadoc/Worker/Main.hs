@@ -8,6 +8,8 @@ import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Concurrent.STM as Stm
 import qualified Control.Monad as Monad
+import qualified Control.Monad.Catch as Exception
+import qualified Control.Retry as Retry
 import qualified Data.ByteString as ByteString
 import qualified Data.Fixed as Fixed
 import qualified Data.Map as Map
@@ -447,7 +449,12 @@ fetchDistribution context hashes (package, version) =
                 $ Config.hackageUrl (Context.config context)
                 <> "/package/" <> id <> "/" <> id <> ".tar.gz"
             response <- catch
-                (Client.performRequest (Context.manager context) request)
+                (Retry.recovering
+                    Retry.retryPolicyDefault
+                    [always . Exception.Handler $ \ httpException -> pure $ case httpException of
+                        Client.HttpExceptionRequest _ Client.ResponseTimeout -> True
+                        _ -> False]
+                    . always $ Client.performRequest (Context.manager context) request)
                 (\ httpException -> case httpException of
                     Client.HttpExceptionRequest _ (Client.StatusCodeException response _) ->
                         case Http.statusCode $ Client.responseStatus response of
