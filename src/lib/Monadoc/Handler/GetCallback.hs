@@ -37,6 +37,9 @@ handler context request = do
     githubUser <- getGithubUser context accessToken
     now <- Time.getCurrentTime
     guid <- Guid.random
+    userAgent <- case Wai.requestHeaderUserAgent request of
+        Nothing -> pure ""
+        Just rawUserAgent -> either throwM pure $ tryInto @String rawUserAgent
     let
         user = User.User
             { User.createdAt = now
@@ -51,7 +54,7 @@ handler context request = do
             , Session.deletedAt = Nothing
             , Session.guid = guid
             , Session.updatedAt = now
-            , Session.userAgent = maybe "" (unsafeInto @String) $ Wai.requestHeaderUserAgent request
+            , Session.userAgent
             , Session.userGithubId = User.githubId user
             }
     Context.withConnection context $ \ connection -> do

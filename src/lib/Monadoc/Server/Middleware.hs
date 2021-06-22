@@ -28,11 +28,14 @@ logRequests f request respond = do
     before <- Clock.getMonotonicTime
     f request $ \ response -> do
         after <- Clock.getMonotonicTime
+        method <- either throwM pure . tryInto @Text $ Wai.requestMethod request
+        path <- either throwM pure . tryInto @Text $ Wai.rawPathInfo request
+        query <- either throwM pure . tryInto @Text $ Wai.rawQueryString request
         Log.info $ Printf.printf "[http-server/%04x] %s %s%s %d %.3f"
             (maybe 0 (into @Word16) $ RequestId.get request)
-            (unsafeInto @Text $ Wai.requestMethod request)
-            (unsafeInto @Text $ Wai.rawPathInfo request)
-            (unsafeInto @Text $ Wai.rawQueryString request)
+            method
+            path
+            query
             (Http.statusCode $ Wai.responseStatus response)
             (after - before)
         respond response

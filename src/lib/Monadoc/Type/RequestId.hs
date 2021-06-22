@@ -20,7 +20,7 @@ random = from @Word16 <$> Random.randomIO
 
 key :: Vault.Key RequestId
 key = Unsafe.unsafePerformIO Vault.newKey
-{-# NOINLINE key #-}
+{-# noinline key #-}
 
 get :: Wai.Request -> Maybe RequestId
 get = Vault.lookup key . Wai.vault
