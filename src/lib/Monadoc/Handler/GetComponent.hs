@@ -33,6 +33,8 @@ import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Monadoc.Vendor.Sql as Sql
 
+-- TODO: Include list of exposed modules.
+
 handler
     :: PackageName.PackageName
     -> Version.Version
@@ -84,6 +86,7 @@ handler packageName version revision componentId context request = do
     dependencies <- Context.withConnection context $ \ connection ->
         Dependency.selectByComponent connection $ Model.key component
     -- TODO: Chase down transitive dependencies?
+    -- <https://sqlite.org/lang_with.html>
 
     reverseDependencies <- Context.withConnection context $ \ connection -> Sql.query
         connection

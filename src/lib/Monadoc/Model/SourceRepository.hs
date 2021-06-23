@@ -2,6 +2,7 @@ module Monadoc.Model.SourceRepository where
 
 import Monadoc.Prelude
 
+import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Model.Package as Package
@@ -31,7 +32,7 @@ data SourceRepository = SourceRepository
     , type_ :: Maybe RepositoryType.RepositoryType
     -- ^ Never null. Almost always "git", but sometimes: "darcs", "mercurial",
     -- "bazaar", "svn", and then some other rare stuff.
-    } deriving (Eq, Show)
+    } deriving (Eq, Ord, Show)
 
 instance Sql.FromRow SourceRepository where
     fromRow = SourceRepository
@@ -83,11 +84,11 @@ insert connection sourceRepository = do
         sourceRepository
     fmap (from @Int64) $ Sql.lastInsertRowId connection
 
-deleteByPackage :: Sql.Connection -> Package.Key -> IO ()
-deleteByPackage connection package = Sql.execute
+delete :: Sql.Connection -> Key -> IO ()
+delete connection key = Sql.execute
     connection
-    "delete from sourceRepository where package = ?"
-    [package]
+    "delete from sourceRepository where key = ?"
+    [key]
 
 selectByPackage :: Sql.Connection -> Package.Key -> IO [Model]
 selectByPackage connection package = Sql.query
@@ -96,3 +97,15 @@ selectByPackage connection package = Sql.query
     \from sourceRepository \
     \where package = ?"
     [package]
+
+fromSourceRepo :: Package.Key -> Cabal.SourceRepo -> SourceRepository
+fromSourceRepo package sourceRepo = SourceRepository
+    { branch = Cabal.repoBranch sourceRepo
+    , kind = into @RepositoryKind.RepositoryKind $ Cabal.repoKind sourceRepo
+    , location = Cabal.repoLocation sourceRepo
+    , module_ = Cabal.repoModule sourceRepo
+    , package
+    , subdir = Cabal.repoSubdir sourceRepo
+    , tag = Cabal.repoTag sourceRepo
+    , type_ = fmap (into @RepositoryType.RepositoryType) $ Cabal.repoType sourceRepo
+    }

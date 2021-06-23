@@ -13,6 +13,7 @@ import qualified Control.Retry as Retry
 import qualified Data.ByteString as ByteString
 import qualified Data.Fixed as Fixed
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import qualified Data.Time as Time
 import qualified Data.Time.Clock.POSIX as Time
 import qualified Monadoc.Vendor.Sql as Sql
@@ -66,8 +67,6 @@ import qualified Monadoc.Type.HackageName as HackageName
 import qualified Monadoc.Type.License as License
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
-import qualified Monadoc.Type.RepositoryKind as RepositoryKind
-import qualified Monadoc.Type.RepositoryType as RepositoryType
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
@@ -324,23 +323,7 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                 key <- Context.withConnection context $ \ connection -> do
                     Blob.upsert connection $ Blob.fromByteString contents
                     Package.insertOrUpdate connection package
-                Context.withConnection context $ \ connection -> Sql.withTransaction connection $ do
-                    SourceRepository.deleteByPackage connection key
-                    pd
-                        & Cabal.sourceRepos
-                        & traverse_ (\ sourceRepo -> do
-                            let
-                                sourceRepository = SourceRepository.SourceRepository
-                                    { SourceRepository.branch = Cabal.repoBranch sourceRepo
-                                    , SourceRepository.kind = into @RepositoryKind.RepositoryKind $ Cabal.repoKind sourceRepo
-                                    , SourceRepository.location = Cabal.repoLocation sourceRepo
-                                    , SourceRepository.module_ = Cabal.repoModule sourceRepo
-                                    , SourceRepository.package = key
-                                    , SourceRepository.subdir = Cabal.repoSubdir sourceRepo
-                                    , SourceRepository.tag = Cabal.repoTag sourceRepo
-                                    , SourceRepository.type_ = fmap (into @RepositoryType.RepositoryType) $ Cabal.repoType sourceRepo
-                                    }
-                            SourceRepository.insert connection sourceRepository)
+                syncSourceRepositories context key $ Cabal.sourceRepos pd
                 pd
                     & Cabal.pkgComponents
                     & traverse_ (\ component -> do
@@ -381,6 +364,25 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                         Context.withConnection context $ \ connection -> Sql.withTransaction connection $ do
                             Dependency.deleteByComponent connection componentKey
                             traverse_ (Dependency.insert connection) dependencies)
+
+syncSourceRepositories
+    :: Context.Context
+    -> Package.Key
+    -> [Cabal.SourceRepo]
+    -> IO ()
+syncSourceRepositories context packageKey sourceRepos = do
+    old <- Context.withConnection context $ \ connection -> do
+        SourceRepository.selectByPackage connection packageKey
+    let
+        oldSet = Set.fromList $ fmap Model.value old
+        newSet = Set.fromList $ fmap (SourceRepository.fromSourceRepo packageKey) sourceRepos
+        shouldDelete x = Set.notMember (Model.value x) newSet
+        toDelete = fmap Model.key $ filter shouldDelete old
+        shouldInsert x = Set.notMember x oldSet
+        toInsert = Set.filter shouldInsert newSet
+    Context.withConnection context $ \ connection -> do
+        traverse_ (SourceRepository.delete connection) toDelete
+        traverse_ (SourceRepository.insert connection) toInsert
 
 epochTimeToUtcTime :: Tar.EpochTime -> Time.UTCTime
 epochTimeToUtcTime = into @Time.UTCTime

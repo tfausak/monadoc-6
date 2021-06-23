@@ -30,6 +30,8 @@ import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
 import qualified Monadoc.Utility.Xml as Xml
 
+-- TODO: Include list of files in distribution tarball.
+
 handler
     :: PackageName.PackageName
     -> Version.Version

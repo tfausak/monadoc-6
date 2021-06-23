@@ -83,6 +83,7 @@ selectByComponent connection component = Sql.query
     \where component = ?"
     [component]
 
+-- TODO: Remove this?
 deleteByComponent :: Sql.Connection -> Component.Key -> IO ()
 deleteByComponent connection component = Sql.execute
     connection

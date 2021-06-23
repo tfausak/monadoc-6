@@ -10,7 +10,7 @@ import qualified Monadoc.Class.ToXml as ToXml
 
 newtype RepositoryKind
     = RepositoryKind Cabal.RepoKind
-    deriving (Eq, Show)
+    deriving (Eq, Ord, Show)
 
 instance From Cabal.RepoKind RepositoryKind
 

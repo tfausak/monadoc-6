@@ -7,7 +7,7 @@ import qualified Monadoc.Class.ToXml as ToXml
 
 newtype Key a
     = Key Int64
-    deriving (Eq, Show)
+    deriving (Eq, Ord, Show)
 
 instance From Int64 (Key a)
 
