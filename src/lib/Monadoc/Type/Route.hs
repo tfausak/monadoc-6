@@ -43,10 +43,10 @@ parse path query = case path of
     ["robots.txt"] -> Just Robots
     ["package", rawPackageName] -> Package
         <$> hush (tryInto @PackageName.PackageName rawPackageName)
-    ["package", rawPackageName, rawVersion] -> Version
+    ["package", rawPackageName, "version", rawVersion] -> Version
         <$> hush (tryInto @PackageName.PackageName rawPackageName)
         <*> hush (tryInto @Version.Version rawVersion)
-    ["package", rawPackageName, rawVersion, rawRevision] -> Revision
+    ["package", rawPackageName, "version", rawVersion, "revision", rawRevision] -> Revision
         <$> hush (tryInto @PackageName.PackageName rawPackageName)
         <*> hush (tryInto @Version.Version rawVersion)
         <*> hush (tryInto @Revision.Revision rawRevision)
@@ -54,7 +54,7 @@ parse path query = case path of
     ["account"] -> Just Account
     ["account", "log-out"] -> Just LogOut
     ["account", "revoke"] -> Just Revoke
-    ["package", rawPackageName, rawVersion, rawRevision, rawComponentId] -> Component
+    ["package", rawPackageName, "version", rawVersion, "revision", rawRevision, "component", rawComponentId] -> Component
         <$> hush (tryInto @PackageName.PackageName rawPackageName)
         <*> hush (tryInto @Version.Version rawVersion)
         <*> hush (tryInto @Revision.Revision rawRevision)
@@ -79,16 +79,16 @@ render route = case route of
     Account -> (["account"], [])
     Bootstrap -> (["static", "bootstrap.css"], [])
     Callback -> (["account", "callback"], [])
-    Component packageName version revision componentId -> (["package", into @String packageName, into @String version, into @String revision, into @String componentId], [])
+    Component packageName version revision componentId -> (["package", into @String packageName, "version", into @String version, "revision", into @String revision, "component", into @String componentId], [])
     Favicon -> (["favicon.ico"], [])
     HealthCheck -> (["health-check"], [])
     Index -> ([], [])
     LogOut -> (["account", "log-out"], [])
     Logo -> (["static", "monadoc.svg"], [])
     Package packageName -> (["package", into @String packageName], [])
-    Revision packageName version revision -> (["package", into @String packageName, into @String version, into @String revision], [])
+    Revision packageName version revision -> (["package", into @String packageName, "version", into @String version, "revision", into @String revision], [])
     Revoke -> (["account", "revoke"], [])
     Robots -> (["robots.txt"], [])
     Search maybeQuery -> (["search"], maybe [] (\ query -> [(into @ByteString "query", Just $ into @ByteString query)]) maybeQuery)
     Template -> (["static", "monadoc.xsl"], [])
-    Version packageName version -> (["package", into @String packageName, into @String version], [])
+    Version packageName version -> (["package", into @String packageName, "version", into @String version], [])
