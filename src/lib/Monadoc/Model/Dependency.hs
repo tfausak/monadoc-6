@@ -2,6 +2,9 @@ module Monadoc.Model.Dependency where
 
 import Monadoc.Prelude
 
+import qualified Distribution.Compat.NonEmptySet as NonEmptySet
+import qualified Distribution.Types.Dependency as Cabal
+import qualified Distribution.Types.LibraryName as Cabal
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Migration as Migration
@@ -83,12 +86,11 @@ selectByComponent connection component = Sql.query
     \where component = ?"
     [component]
 
--- TODO: Remove this?
-deleteByComponent :: Sql.Connection -> Component.Key -> IO ()
-deleteByComponent connection component = Sql.execute
+delete :: Sql.Connection -> Key -> IO ()
+delete connection key = Sql.execute
     connection
-    "delete from dependency where component = ?"
-    [component]
+    "delete from dependency where key = ?"
+    [key]
 
 insert :: Sql.Connection -> Dependency -> IO Key
 insert connection dependency = do
@@ -96,3 +98,19 @@ insert connection dependency = do
         "insert into dependency (component, packageName, libraryName, versionRange) \
         \values (?, ?, ?, ?)" dependency
     fmap (from @Int64) $ Sql.lastInsertRowId connection
+
+fromDependency :: Component.Key -> Cabal.Dependency -> [Dependency]
+fromDependency componentKey dependency =
+    fmap (fromLibraryName componentKey dependency)
+    . NonEmptySet.toList
+    $ Cabal.depLibraries dependency
+
+fromLibraryName :: Component.Key -> Cabal.Dependency -> Cabal.LibraryName -> Dependency
+fromLibraryName componentKey dependency libraryName = Dependency
+    { component = componentKey
+    , packageName = into @PackageName.PackageName $ Cabal.depPkgName dependency
+    , libraryName = case libraryName of
+        Cabal.LMainLibName -> via @PackageName.PackageName $ Cabal.depPkgName dependency
+        Cabal.LSubLibName n -> into @ComponentName.ComponentName n
+    , versionRange = into @VersionRange.VersionRange $ Cabal.depVerRange dependency
+    }

@@ -36,5 +36,16 @@ instance ToXml.ToXml VersionRange where
 any :: VersionRange
 any = into @VersionRange Cabal.anyVersion
 
+none :: VersionRange
+none = into @VersionRange Cabal.noVersion
+
 contains :: Version.Version -> VersionRange -> Bool
 contains v r = Cabal.withinRange (into @Cabal.Version v) (into @Cabal.VersionRange r)
+
+union :: VersionRange -> VersionRange -> VersionRange
+union x y = into @VersionRange $ Cabal.unionVersionRanges (into @Cabal.VersionRange x) (into @Cabal.VersionRange y)
+
+unions :: [VersionRange] -> VersionRange
+unions xs = case xs of
+    [] -> none
+    x : ys -> foldr union x ys

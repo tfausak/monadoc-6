@@ -12,13 +12,12 @@ import qualified Control.Monad.Catch as Exception
 import qualified Control.Retry as Retry
 import qualified Data.ByteString as ByteString
 import qualified Data.Fixed as Fixed
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Time as Time
 import qualified Data.Time.Clock.POSIX as Time
-import qualified Monadoc.Vendor.Sql as Sql
 import qualified Distribution.Compat.Lens as Lens
-import qualified Distribution.Compat.NonEmptySet as NonEmptySet
 import qualified Distribution.Compiler as Cabal
 import qualified Distribution.PackageDescription.Configuration as Cabal
 import qualified Distribution.PackageDescription.Parsec as Cabal
@@ -71,6 +70,7 @@ import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
+import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Vendor.Client as Client
 import qualified Network.HTTP.Types as Http
@@ -347,42 +347,42 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                                     , Component.package = key
                                     , Component.tag
                                     }
-                        let
-                            dependencies = component
-                                & Lens.view Cabal.targetBuildDepends
-                                & foldMap (\ d -> d
-                                    & Cabal.depLibraries
-                                    & NonEmptySet.toList
-                                    & fmap (\ l -> Dependency.Dependency
-                                        { Dependency.component = componentKey
-                                        , Dependency.packageName = into @PackageName.PackageName $ Cabal.depPkgName d
-                                        , Dependency.libraryName = case l of
-                                            Cabal.LMainLibName -> via @PackageName.PackageName $ Cabal.depPkgName d
-                                            Cabal.LSubLibName n -> into @ComponentName.ComponentName n
-                                        , Dependency.versionRange = into @VersionRange.VersionRange $ Cabal.depVerRange d
-                                        }))
-                        Context.withConnection context $ \ connection -> Sql.withTransaction connection $ do
-                            Dependency.deleteByComponent connection componentKey
-                            traverse_ (Dependency.insert connection) dependencies)
+                        syncDependencies context componentKey component)
+
+syncDependencies :: Context.Context -> Component.Key -> Cabal.Component -> IO ()
+syncDependencies context componentKey component = Context.withConnection context $ \ connection -> do
+    old <- Dependency.selectByComponent connection componentKey
+    let
+        toKey x = (Dependency.packageName x, Dependency.libraryName x)
+        toMap :: [Dependency.Dependency] -> Map (PackageName.PackageName, ComponentName.ComponentName) VersionRange.VersionRange
+        toMap = fmap (VersionRange.unions . NonEmpty.toList . fmap Dependency.versionRange) . Foldable.groupBy toKey
+        oldMap = toMap $ fmap Model.value old
+        new = foldMap (Dependency.fromDependency componentKey) $ Lens.view Cabal.targetBuildDepends component
+        newMap = toMap new
+        shouldDelete x = Map.notMember (toKey $ Model.value x) newMap
+        toDelete = fmap Model.key $ filter shouldDelete old
+        shouldInsert x = Map.notMember (toKey x) oldMap
+        toInsert = filter shouldInsert new
+    traverse_ (Dependency.delete connection) toDelete
+    traverse_ (Dependency.insert connection) toInsert
 
 syncSourceRepositories
     :: Context.Context
     -> Package.Key
     -> [Cabal.SourceRepo]
     -> IO ()
-syncSourceRepositories context packageKey sourceRepos = do
-    old <- Context.withConnection context $ \ connection -> do
-        SourceRepository.selectByPackage connection packageKey
+syncSourceRepositories context packageKey sourceRepos = Context.withConnection context $ \ connection -> do
+    old <- SourceRepository.selectByPackage connection packageKey
     let
         oldSet = Set.fromList $ fmap Model.value old
-        newSet = Set.fromList $ fmap (SourceRepository.fromSourceRepo packageKey) sourceRepos
+        new = fmap (SourceRepository.fromSourceRepo packageKey) sourceRepos
+        newSet = Set.fromList new
         shouldDelete x = Set.notMember (Model.value x) newSet
         toDelete = fmap Model.key $ filter shouldDelete old
         shouldInsert x = Set.notMember x oldSet
-        toInsert = Set.filter shouldInsert newSet
-    Context.withConnection context $ \ connection -> do
-        traverse_ (SourceRepository.delete connection) toDelete
-        traverse_ (SourceRepository.insert connection) toInsert
+        toInsert = filter shouldInsert new
+    traverse_ (SourceRepository.delete connection) toDelete
+    traverse_ (SourceRepository.insert connection) toInsert
 
 epochTimeToUtcTime :: Tar.EpochTime -> Time.UTCTime
 epochTimeToUtcTime = into @Time.UTCTime
