@@ -12,6 +12,7 @@ import qualified Network.HTTP.Types as Http
 
 data Route
     = Account
+    | AppleTouchIcon
     | Bootstrap
     | Callback
     | Component PackageName.PackageName Version.Version Revision.Revision ComponentId.ComponentId
@@ -60,6 +61,7 @@ parse path query = case path of
         <*> hush (tryInto @Revision.Revision rawRevision)
         <*> hush (tryInto @ComponentId.ComponentId rawComponentId)
     ["health-check"] -> Just HealthCheck
+    ["apple-touch-icon.png"] -> Just AppleTouchIcon
     _ -> Nothing
 
 getQuery :: Http.Query -> Maybe (Maybe String)
@@ -77,6 +79,7 @@ toString route =
 render :: Route -> ([String], Http.Query)
 render route = case route of
     Account -> (["account"], [])
+    AppleTouchIcon -> (["apple-touch-icon.png"], [])
     Bootstrap -> (["static", "bootstrap.css"], [])
     Callback -> (["account", "callback"], [])
     Component packageName version revision componentId -> (["package", into @String packageName, "version", into @String version, "revision", into @String revision, "component", into @String componentId], [])
