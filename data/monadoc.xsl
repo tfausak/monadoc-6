@@ -258,7 +258,9 @@
         <ul>
             <xsl:for-each select="files/file">
                 <li>
-                    <xsl:value-of select="path"/>
+                    <a href="{$baseUrl}{normalize-space(route)}">
+                        <xsl:value-of select="normalize-space(path)"/>
+                    </a>
                 </li>
             </xsl:for-each>
         </ul>

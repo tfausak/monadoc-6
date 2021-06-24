@@ -17,6 +17,7 @@ data Route
     | Callback
     | Component PackageName.PackageName Version.Version Revision.Revision ComponentId.ComponentId
     | Favicon
+    | File PackageName.PackageName Version.Version FilePath
     | HealthCheck
     | Index
     | LogOut
@@ -62,7 +63,17 @@ parse path query = case path of
         <*> hush (tryInto @ComponentId.ComponentId rawComponentId)
     ["health-check"] -> Just HealthCheck
     ["apple-touch-icon.png"] -> Just AppleTouchIcon
+    ["package", rawPackageName, "version", rawVersion, "file"] -> File
+        <$> hush (tryInto @PackageName.PackageName rawPackageName)
+        <*> hush (tryInto @Version.Version rawVersion)
+        <*> getPath query
     _ -> Nothing
+
+getPath :: Http.Query -> Maybe FilePath
+getPath query = do
+    maybeByteString <- lookup (into @ByteString "path") query
+    byteString <- maybeByteString
+    hush $ tryInto @String byteString
 
 getQuery :: Http.Query -> Maybe (Maybe String)
 getQuery query = case lookup (into @ByteString "query") query of
@@ -84,6 +95,7 @@ render route = case route of
     Callback -> (["account", "callback"], [])
     Component packageName version revision componentId -> (["package", into @String packageName, "version", into @String version, "revision", into @String revision, "component", into @String componentId], [])
     Favicon -> (["favicon.ico"], [])
+    File packageName version path -> (["package", into @String packageName, "version", into @String version, "file"], [(into @ByteString "path", Just $ into @ByteString path)])
     HealthCheck -> (["health-check"], [])
     Index -> ([], [])
     LogOut -> (["account", "log-out"], [])

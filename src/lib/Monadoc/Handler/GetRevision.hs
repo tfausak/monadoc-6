@@ -130,6 +130,7 @@ handler packageName version revision context request = do
             , Xml.node "files" []
             . fmap (\ x -> Xml.node "file" []
                 [ Xml.node "path" [] [ToXml.toXml $ File.path x]
+                , Xml.node "route" [] [ToXml.toXml . Route.File packageName version $ File.path x]
                 ])
             . List.sortOn File.path
             $ fmap Model.value files

@@ -2,6 +2,7 @@ module Monadoc.Model.File where
 
 import Monadoc.Prelude
 
+import qualified Data.Maybe as Maybe
 import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Key as Key
@@ -50,6 +51,15 @@ selectByDistribution connection distribution = Sql.query
     \from file \
     \where distribution = ?"
     [distribution]
+
+selectByDistributionAndPath :: Sql.Connection -> Distribution.Key -> FilePath -> IO (Maybe Model)
+selectByDistributionAndPath connection distribution path = fmap Maybe.listToMaybe $ Sql.query
+    connection
+    "select key, distribution, hash, path \
+    \from file \
+    \where distribution = ? \
+    \and path = ?"
+    (distribution, path)
 
 upsert :: Sql.Connection -> File -> IO ()
 upsert connection = Sql.execute connection
