@@ -79,7 +79,6 @@ import qualified Monadoc.Vendor.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified System.FilePath as FilePath
 import qualified System.FilePath.Posix as FilePath.Posix
-import qualified System.IO.Unsafe as Unsafe
 import qualified Text.Read as Read
 
 run :: Context.Context -> IO ()
@@ -171,8 +170,8 @@ processHackageIndex context hackageIndex = do
         & HackageIndex.contents
         & into @LazyByteString
         & Tar.read
-        & Tar.foldEntries (:) [] (Unsafe.unsafePerformIO . throwM)
-        & traverse_ (processTarEntry context revisionsVar preferredVersionsVar hashes)
+        & Tar.foldEntries ((:) . Right) [] (pure . Left)
+        & traverse_ (processTarItem context revisionsVar preferredVersionsVar hashes)
     oldPreferredVersions <- Context.withConnection context PreferredVersions.selectAll
     newPreferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
     newPreferredVersions
@@ -182,6 +181,18 @@ processHackageIndex context hackageIndex = do
             Just v | v == PreferredVersions.versionRange pv -> pure ()
             _ -> Context.withConnection context $ \ connection ->
                 PreferredVersions.upsert connection pv)
+
+processTarItem
+    :: Context.Context
+    -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
+    -> Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256
+    -> Either Tar.FormatError Tar.Entry
+    -> IO ()
+processTarItem context revisionsVar preferredVersionsVar hashes item =
+    case item of
+        Left formatError -> throwM formatError
+        Right entry -> processTarEntry context revisionsVar preferredVersionsVar hashes entry
 
 -- Possible Hackage index tar entry paths:
 --
