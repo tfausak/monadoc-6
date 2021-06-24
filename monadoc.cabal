@@ -97,6 +97,7 @@ library
         Monadoc.Exception.Found
         Monadoc.Exception.InvalidJson
         Monadoc.Exception.Mismatch
+        Monadoc.Exception.MissingBlob
         Monadoc.Exception.MissingCode
         Monadoc.Exception.NotFound
         Monadoc.Exception.OptionError

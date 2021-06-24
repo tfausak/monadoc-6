@@ -45,6 +45,7 @@ import qualified Distribution.Types.UnqualComponentName as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
+import qualified Monadoc.Exception.MissingBlob as MissingBlob
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
@@ -86,7 +87,7 @@ run context = do
         hackageIndex <- upsertHackageIndex context
         processHackageIndex context hackageIndex
         fetchDistributions context
-        -- TODO: Unpack distributions.
+        unpackDistributions context
         -- TODO: Process distributions (in other words, parse Haskell modules).
         Log.info "finished worker loop"
         Concurrent.threadDelay 60000000
@@ -470,8 +471,73 @@ fetchDistribution context hashes (package, version) =
                 distribution = Distribution.Distribution
                     { Distribution.hash = Blob.hash blob
                     , Distribution.package
+                    , Distribution.unpackedAt = Nothing
                     , Distribution.version
                     }
             Context.withConnection context $ \ connection -> do
                 Blob.upsert connection blob
                 Distribution.upsert connection distribution
+
+unpackDistributions :: Context.Context -> IO ()
+unpackDistributions context = do
+    distributions <- Context.withConnection context Distribution.selectUnpacked
+    traverse_ (unpackDistribution context) distributions
+
+unpackDistribution :: Context.Context -> Distribution.Model -> IO ()
+unpackDistribution context distribution = do
+    let hash = Distribution.hash $ Model.value distribution
+    maybeBlob <- Context.withConnection context $ \ connection ->
+        Blob.selectByHash connection hash
+    blob <- case maybeBlob of
+        Nothing -> throwM $ MissingBlob.new hash
+        Just blob -> pure blob
+    blob
+        & Model.value
+        & Blob.contents
+        & into @LazyByteString
+        & Gzip.decompress
+        & Tar.read
+        & Tar.foldEntries ((:) . Right) [] (pure . Left)
+        & traverse_ (unpackDistributionItem context)
+    when False $ do -- TODO
+        now <- Time.getCurrentTime
+        Context.withConnection context $ \ connection ->
+            Distribution.updateUnpackedAt connection (Model.key distribution) (Just now)
+
+unpackDistributionItem :: Context.Context -> Either Tar.FormatError Tar.Entry -> IO ()
+unpackDistributionItem context item = case item of
+    Left formatError -> case formatError of
+        Tar.ShortTrailer ->
+            -- Hackage itself ignores this error in many places. See
+            -- <https://github.com/haskell/hackage-server/issues/851>.
+            pure ()
+        _ ->
+            throwM formatError
+    Right entry -> case Tar.entryContent entry of
+        Tar.Directory ->
+            -- We only care about files, so we can safely ignore directories.
+            pure ()
+        Tar.OtherEntryType '5' _ _ ->
+            -- DIRTYPE: These are also directories.
+            pure ()
+        Tar.OtherEntryType 'g' _ _ ->
+            -- XGLTYPE: These @pax\_global\_header@ files can be ignored. See
+            -- <https://github.com/haskell/hackage-server/pull/190>.
+            pure ()
+        Tar.OtherEntryType 'x' _ _ ->
+            -- XHDTYPE: These extended attributes can be ignored. See
+            -- <https://github.com/haskell/hackage-server/issues/858>.
+            pure ()
+        Tar.SymbolicLink _ ->
+            -- No symbolic links appear to be necessary for our purposes. See
+            -- <https://github.com/haskell/hackage-server/issues/858>.
+            pure ()
+        Tar.HardLink _ ->
+            -- Similarly, hard links appear to be unnecessary. See
+            -- <https://github.com/haskell/hackage-server/issues/858>.
+            pure ()
+        Tar.NormalFile _ _ ->
+            pure () -- TODO: Handle normal files.
+        Tar.OtherEntryType 'L' _ _ ->
+            pure () -- TODO: Handle long file names.
+        _ -> throwM $ UnexpectedTarEntry.new entry
