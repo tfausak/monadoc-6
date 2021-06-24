@@ -68,7 +68,7 @@ upsert connection = Sql.execute connection
     "insert into distribution (hash, package, unpackedAt, version) \
     \values (?, ?, ?, ?) \
     \on conflict (package, version) \
-    \do update set hash = excluded.hash \
+    \do update set hash = excluded.hash, \
     \unpackedAt = excluded.unpackedAt"
 
 updateUnpackedAt :: Sql.Connection -> Key -> Maybe Time.UTCTime -> IO ()

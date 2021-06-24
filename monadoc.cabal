@@ -119,6 +119,7 @@ library
         Monadoc.Model.Component
         Monadoc.Model.Dependency
         Monadoc.Model.Distribution
+        Monadoc.Model.File
         Monadoc.Model.HackageIndex
         Monadoc.Model.HackageUser
         Monadoc.Model.Migration

@@ -14,6 +14,7 @@ import qualified Data.ByteString as ByteString
 import qualified Data.Fixed as Fixed
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
+import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import qualified Data.Time as Time
 import qualified Data.Time.Clock.POSIX as Time
@@ -51,6 +52,7 @@ import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
 import qualified Monadoc.Model.Distribution as Distribution
+import qualified Monadoc.Model.File as File
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.Package as Package
@@ -76,6 +78,7 @@ import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Vendor.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified System.FilePath as FilePath
+import qualified System.FilePath.Posix as FilePath.Posix
 import qualified System.IO.Unsafe as Unsafe
 import qualified Text.Read as Read
 
@@ -185,11 +188,6 @@ processHackageIndex context hackageIndex = do
 -- - PKG_NAME/PKG_VERSION/PKG_NAME.cabal
 -- - PKG_NAME/preferred-versions
 -- - PKG_NAME/PKD_VERSION/package.json
---
--- Note that on Windows, tar entries have Windows-style paths:
---
--- - Windows: base\4.15.0.0\base.cabal
--- - Unix: base/4.15.0.0/base.cabal
 processTarEntry
     :: Context.Context
     -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
@@ -491,6 +489,7 @@ unpackDistribution context distribution = do
     blob <- case maybeBlob of
         Nothing -> throwM $ MissingBlob.new hash
         Just blob -> pure blob
+    pathVar <- Stm.newEmptyTMVarIO
     blob
         & Model.value
         & Blob.contents
@@ -498,14 +497,18 @@ unpackDistribution context distribution = do
         & Gzip.decompress
         & Tar.read
         & Tar.foldEntries ((:) . Right) [] (pure . Left)
-        & traverse_ (unpackDistributionItem context)
-    when False $ do -- TODO
-        now <- Time.getCurrentTime
-        Context.withConnection context $ \ connection ->
-            Distribution.updateUnpackedAt connection (Model.key distribution) (Just now)
+        & traverse_ (unpackDistributionItem context (Model.key distribution) pathVar)
+    now <- Time.getCurrentTime
+    Context.withConnection context $ \ connection ->
+        Distribution.updateUnpackedAt connection (Model.key distribution) (Just now)
 
-unpackDistributionItem :: Context.Context -> Either Tar.FormatError Tar.Entry -> IO ()
-unpackDistributionItem context item = case item of
+unpackDistributionItem
+    :: Context.Context
+    -> Distribution.Key
+    -> Stm.TMVar FilePath
+    -> Either Tar.FormatError Tar.Entry
+    -> IO ()
+unpackDistributionItem context distribution pathVar item = case item of
     Left formatError -> case formatError of
         Tar.ShortTrailer ->
             -- Hackage itself ignores this error in many places. See
@@ -536,8 +539,24 @@ unpackDistributionItem context item = case item of
             -- Similarly, hard links appear to be unnecessary. See
             -- <https://github.com/haskell/hackage-server/issues/858>.
             pure ()
-        Tar.NormalFile _ _ ->
-            pure () -- TODO: Handle normal files.
-        Tar.OtherEntryType 'L' _ _ ->
-            pure () -- TODO: Handle long file names.
+        Tar.OtherEntryType 'L' contents _ -> do
+            path <- either throwM pure $ tryInto @String contents
+            succeeded <- Stm.atomically $ Stm.tryPutTMVar pathVar path
+            unless succeeded . throwM $ UnexpectedTarEntry.new entry
+        Tar.NormalFile contents _ -> do
+            maybePath <- Stm.atomically $ Stm.tryTakeTMVar pathVar
+            let
+                path = normalizeFilePath $ Maybe.fromMaybe (Tar.entryPath entry) maybePath
+                blob = Blob.fromByteString $ into @ByteString contents
+                file = File.File { File.distribution, File.hash = Blob.hash blob, File.path }
+            Context.withConnection context $ \ connection -> do
+                Blob.upsert connection blob
+                File.upsert connection file
         _ -> throwM $ UnexpectedTarEntry.new entry
+
+-- Note that on Windows, tar entries have Windows-style paths:
+--
+-- - Windows: base\4.15.0.0\base.cabal
+-- - Unix: base/4.15.0.0/base.cabal
+normalizeFilePath :: FilePath -> FilePath
+normalizeFilePath = FilePath.Posix.joinPath . FilePath.splitDirectories

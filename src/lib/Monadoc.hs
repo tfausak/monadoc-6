@@ -13,6 +13,7 @@ import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
 import qualified Monadoc.Model.Distribution as Distribution
+import qualified Monadoc.Model.File as File
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.Migration as Migration
@@ -94,6 +95,7 @@ migrations = List.sortOn Migration.time $ mconcat
     , Component.migrations
     , Dependency.migrations
     , Distribution.migrations
+    , File.migrations
     , HackageIndex.migrations
     , HackageUser.migrations
     , Package.migrations
