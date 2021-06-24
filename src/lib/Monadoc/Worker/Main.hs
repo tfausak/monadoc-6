@@ -474,7 +474,7 @@ fetchDistribution context hashes (package, version) =
                             451 -> pure response { Client.responseBody = Gzip.compress $ Tar.write [] }
                             _ -> throwM httpException
                     _ -> throwM httpException)
-            Concurrent.threadDelay 500000 -- TODO: Remove delay?
+            Concurrent.threadDelay 1000000
             let
                 blob = Blob.fromByteString . into @ByteString $ Client.responseBody response
                 distribution = Distribution.Distribution

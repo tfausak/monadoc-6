@@ -10,6 +10,8 @@ import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Component as Component
+import qualified Monadoc.Model.Distribution as Distribution
+import qualified Monadoc.Model.File as File
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.SourceRepository as SourceRepository
@@ -29,8 +31,6 @@ import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
 import qualified Monadoc.Utility.Xml as Xml
-
--- TODO: Include list of files in distribution tarball.
 
 handler
     :: PackageName.PackageName
@@ -55,6 +55,11 @@ handler packageName version revision context request = do
         Component.selectByPackage connection $ Model.key package
     sourceRepositories <- Context.withConnection context $ \ connection ->
         SourceRepository.selectByPackage connection $ Model.key package
+    maybeDistribution <- Context.withConnection context $ \ connection ->
+        Distribution.selectByPackageAndVersion connection packageName version
+    distribution <- maybe (throwM NotFound.new) pure maybeDistribution
+    files <- Context.withConnection context $ \ connection ->
+        File.selectByDistribution connection $ Model.key distribution
     let
         route = Route.Revision packageName version revision
         breadcrumbs =
@@ -122,6 +127,12 @@ handler packageName version revision context request = do
                 ])
             . List.sortOn SourceRepository.location
             $ fmap Model.value sourceRepositories
+            , Xml.node "files" []
+            . fmap (\ x -> Xml.node "file" []
+                [ Xml.node "path" [] [ToXml.toXml $ File.path x]
+                ])
+            . List.sortOn File.path
+            $ fmap Model.value files
             ]
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)

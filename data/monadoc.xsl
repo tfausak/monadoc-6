@@ -252,6 +252,16 @@
                 </li>
             </xsl:for-each>
         </ul>
+        <h3>
+            Files
+        </h3>
+        <ul>
+            <xsl:for-each select="files/file">
+                <li>
+                    <xsl:value-of select="path"/>
+                </li>
+            </xsl:for-each>
+        </ul>
     </xsl:template>
 
     <xsl:template match="search">

@@ -4,8 +4,14 @@ import Monadoc.Prelude
 
 import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.Migration as Migration
+import qualified Monadoc.Type.Key as Key
+import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Vendor.Sql as Sql
+
+type Model = Model.Model File
+
+type Key = Key.Key File
 
 data File = File
     { distribution :: Distribution.Key
@@ -36,6 +42,14 @@ migrations =
         \path text not null, \
         \unique (distribution, path))"
     ]
+
+selectByDistribution :: Sql.Connection -> Distribution.Key -> IO [Model]
+selectByDistribution connection distribution = Sql.query
+    connection
+    "select key, distribution, hash, path \
+    \from file \
+    \where distribution = ?"
+    [distribution]
 
 upsert :: Sql.Connection -> File -> IO ()
 upsert connection = Sql.execute connection

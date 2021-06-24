@@ -3,6 +3,7 @@ module Monadoc.Model.Distribution where
 import Monadoc.Prelude
 
 import qualified Data.Map as Map
+import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Key as Key
@@ -62,6 +63,15 @@ selectUnpacked connection = Sql.query_ connection
     "select key, hash, package, unpackedAt, version \
     \from distribution \
     \where unpackedAt is null"
+
+selectByPackageAndVersion :: Sql.Connection -> PackageName.PackageName -> Version.Version -> IO (Maybe Model)
+selectByPackageAndVersion connection package version = fmap Maybe.listToMaybe $ Sql.query
+    connection
+    "select key, hash, package, unpackedAt, version \
+    \from distribution \
+    \where package = ? \
+    \and version = ?"
+    (package, version)
 
 upsert :: Sql.Connection -> Distribution -> IO ()
 upsert connection = Sql.execute connection
