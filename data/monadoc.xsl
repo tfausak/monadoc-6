@@ -163,33 +163,31 @@
             or
             <a href="https://www.stackage.org/package/{$name}">Stacakge</a>.
         </p>
+        <dl>
+            <dt>name</dt> <dd><xsl:value-of select="$name"/></dd>
+            <dt>version</dt> <dd><xsl:value-of select="$version"/></dd>
+            <dt>revision</dt> <dd><xsl:value-of select="$revision"/></dd>
+            <dt>preferred</dt> <dd><xsl:value-of select="$preferred"/></dd>
+            <dt>uploadedAt</dt> <dd><xsl:value-of select="package/uploadedAt"/></dd>
+            <dt>uploadedBy</dt> <dd><xsl:value-of select="package/uploadedBy"/></dd>
+            <dt>synopsis</dt> <dd><xsl:value-of select="package/synopsis"/></dd>
+            <dt>description</dt> <dd><xsl:value-of select="package/description"/></dd>
+            <dt>license</dt> <dd><xsl:value-of select="package/license"/></dd>
+            <dt>author</dt> <dd><xsl:value-of select="package/author"/></dd>
+            <dt>copyright</dt> <dd><xsl:value-of select="package/copyright"/></dd>
+            <dt>maintainer</dt> <dd><xsl:value-of select="package/maintainer"/></dd>
+            <dt>bugReports</dt> <dd><xsl:value-of select="package/bugReports"/></dd>
+            <dt>homepage</dt> <dd><xsl:value-of select="package/homepage"/></dd>
+            <dt>pkgUrl</dt> <dd><xsl:value-of select="package/pkgUrl"/></dd>
+            <dt>buildType</dt> <dd><xsl:value-of select="package/buildType"/></dd>
+            <dt>cabalVersion</dt> <dd><xsl:value-of select="package/cabalVersion"/></dd>
+            <dt>category</dt> <dd><xsl:value-of select="package/category"/></dd>
+            <dt>stability</dt> <dd><xsl:value-of select="package/stability"/></dd>
+        </dl>
+        <h3>
+            Source Repositories
+        </h3>
         <ul>
-            <li> name: <xsl:value-of select="$name"/> </li>
-            <li> version: <xsl:value-of select="$version"/> </li>
-            <li> revision: <xsl:value-of select="$revision"/> </li>
-            <li> preferred: <xsl:value-of select="$preferred"/> </li>
-            <li> uploadedAt: <xsl:value-of select="package/uploadedAt"/> </li>
-            <li> uploadedBy: <xsl:value-of select="package/uploadedBy"/> </li>
-            <li> synopsis: <xsl:value-of select="package/synopsis"/> </li>
-            <li> description: <xsl:value-of select="package/description"/> </li>
-
-            <li> license: <xsl:value-of select="package/license"/> </li>
-            <li> author: <xsl:value-of select="package/author"/> </li>
-            <li> copyright: <xsl:value-of select="package/copyright"/> </li>
-            <li> maintainer: <xsl:value-of select="package/maintainer"/> </li>
-
-            <li> bugReports: <xsl:value-of select="package/bugReports"/> </li>
-            <li> homepage: <xsl:value-of select="package/homepage"/> </li>
-            <li> pkgUrl: <xsl:value-of select="package/pkgUrl"/> </li>
-
-            <li> buildType: <xsl:value-of select="package/buildType"/> </li>
-            <li> cabalVersion: <xsl:value-of select="package/cabalVersion"/> </li>
-            <li> category: <xsl:value-of select="package/category"/> </li>
-            <li> stability: <xsl:value-of select="package/stability"/> </li>
-        </ul>
-        <h3>Source Repositories</h3>
-        <ul>
-            <!-- TODO -->
             <xsl:for-each select="sourceRepositories/sourceRepository">
                 <li>
                     <dl>
@@ -319,12 +317,13 @@
     </xsl:template>
 
     <xsl:template match="component">
-        <!-- TODO -->
-        <xsl:value-of select="package"/>
-        <xsl:value-of select="version"/>
-        <xsl:value-of select="revision"/>
-        <xsl:value-of select="tag"/>
-        <xsl:value-of select="name"/>
+        <dl>
+            <dt>package</dt> <dd><xsl:value-of select="package"/></dd>
+            <dt>version</dt> <dd><xsl:value-of select="version"/></dd>
+            <dt>revision</dt> <dd><xsl:value-of select="revision"/></dd>
+            <dt>tag</dt> <dd><xsl:value-of select="tag"/></dd>
+            <dt>name</dt> <dd><xsl:value-of select="name"/></dd>
+        </dl>
         <h3>
             Dependencies
         </h3>
