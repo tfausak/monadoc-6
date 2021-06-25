@@ -130,6 +130,7 @@ module Monadoc.Prelude (
     Prelude.show,
     Prelude.snd,
     Prelude.span,
+    Prelude.subtract,
     Prelude.take,
     Prelude.takeWhile,
     Prelude.traverse,

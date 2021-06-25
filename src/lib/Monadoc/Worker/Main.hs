@@ -172,6 +172,35 @@ processHackageIndex context hackageIndex = do
         & Tar.read
         & Tar.foldEntries ((:) . Right) [] (pure . Left)
         & traverse_ (processTarItem context revisionsVar preferredVersionsVar hashes)
+    updatePreferredVersions context preferredVersionsVar
+    updateLatestVersions context revisionsVar preferredVersionsVar
+
+updateLatestVersions
+    :: Context.Context
+    -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
+    -> IO ()
+updateLatestVersions _context revisionsVar preferredVersionsVar = do
+    revisions <- Stm.atomically $ Stm.readTVar revisionsVar
+    preferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
+    let
+        latest = revisions
+            & Map.mapMaybe Revision.decrement
+            & Map.toList
+            & Maybe.mapMaybe (\ ((p, v), r) ->
+                let c = Map.findWithDefault VersionRange.any p preferredVersions
+                in if VersionRange.contains v c
+                    then pure (p, [(v, r)])
+                    else Nothing)
+            & Map.fromListWith (<>)
+            & Map.mapMaybe Foldable.maximum
+    traverse_ (Log.info . show) $ Map.toList latest
+
+updatePreferredVersions
+    :: Context.Context
+    -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
+    -> IO ()
+updatePreferredVersions context preferredVersionsVar = do
     oldPreferredVersions <- Context.withConnection context PreferredVersions.selectAll
     newPreferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
     newPreferredVersions

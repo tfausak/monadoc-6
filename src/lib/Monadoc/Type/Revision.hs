@@ -34,3 +34,6 @@ zero = from @Word 0
 
 increment :: Revision -> Revision
 increment = over @Word (+ 1)
+
+decrement :: Revision -> Maybe Revision
+decrement x = if x == zero then Nothing else Just $ over @Word (subtract 1) x
