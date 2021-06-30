@@ -16,6 +16,7 @@ import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.File as File
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
+import qualified Monadoc.Model.LatestVersion as LatestVersion
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
@@ -98,6 +99,7 @@ migrations = List.sortOn Migration.time $ mconcat
     , File.migrations
     , HackageIndex.migrations
     , HackageUser.migrations
+    , LatestVersion.migrations
     , Package.migrations
     , PreferredVersions.migrations
     , Session.migrations

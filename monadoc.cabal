@@ -123,6 +123,7 @@ library
         Monadoc.Model.File
         Monadoc.Model.HackageIndex
         Monadoc.Model.HackageUser
+        Monadoc.Model.LatestVersion
         Monadoc.Model.Migration
         Monadoc.Model.Package
         Monadoc.Model.PreferredVersions

@@ -55,6 +55,7 @@ import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.File as File
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
+import qualified Monadoc.Model.LatestVersion as LatestVersion
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.SourceRepository as SourceRepository
@@ -180,21 +181,25 @@ updateLatestVersions
     -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
     -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
     -> IO ()
-updateLatestVersions _context revisionsVar preferredVersionsVar = do
+updateLatestVersions context revisionsVar preferredVersionsVar = do
+    oldLatestVersions <- Context.withConnection context LatestVersion.selectAll
     revisions <- Stm.atomically $ Stm.readTVar revisionsVar
     preferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
-    let
-        latest = revisions
-            & Map.mapMaybe Revision.decrement
-            & Map.toList
-            & Maybe.mapMaybe (\ ((p, v), r) ->
-                let c = Map.findWithDefault VersionRange.any p preferredVersions
-                in if VersionRange.contains v c
-                    then pure (p, [(v, r)])
-                    else Nothing)
-            & Map.fromListWith (<>)
-            & Map.mapMaybe Foldable.maximum
-    traverse_ (Log.info . show) $ Map.toList latest
+    revisions
+        & Map.mapMaybe Revision.decrement
+        & Map.toList
+        & Maybe.mapMaybe (\ ((p, v), r) ->
+            let c = Map.findWithDefault VersionRange.any p preferredVersions
+            in if VersionRange.contains v c
+                then pure (p, [(v, r)])
+                else Nothing)
+        & Map.fromListWith (<>)
+        & Map.mapMaybe Foldable.maximum
+        & Map.toList
+        & traverse_ (\ (p, (v1, r1)) -> case Map.lookup p oldLatestVersions of
+            Just (v0, r0) | v0 == v1 && r0 == r1 -> pure ()
+            _ -> Context.withConnection context $ \ connection ->
+                LatestVersion.upsert connection $ LatestVersion.new p v1 r1)
 
 updatePreferredVersions
     :: Context.Context
