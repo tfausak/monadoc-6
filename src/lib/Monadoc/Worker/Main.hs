@@ -24,25 +24,18 @@ import qualified Distribution.PackageDescription.Configuration as Cabal
 import qualified Distribution.PackageDescription.Parsec as Cabal
 import qualified Distribution.Parsec as Cabal
 import qualified Distribution.System as Cabal
-import qualified Distribution.Types.Benchmark as Cabal
 import qualified Distribution.Types.BuildInfo.Lens as Cabal
 import qualified Distribution.Types.Component as Cabal
 import qualified Distribution.Types.ComponentName as Cabal
 import qualified Distribution.Types.ComponentRequestedSpec as Cabal
 import qualified Distribution.Types.Dependency as Cabal
-import qualified Distribution.Types.Executable as Cabal
 import qualified Distribution.Types.Flag as Cabal
-import qualified Distribution.Types.ForeignLib as Cabal
 import qualified Distribution.Types.GenericPackageDescription as Cabal
-import qualified Distribution.Types.Library as Cabal
-import qualified Distribution.Types.LibraryName as Cabal
 import qualified Distribution.Types.PackageDescription as Cabal
 import qualified Distribution.Types.PackageId as Cabal
 import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.PackageVersionConstraint as Cabal
 import qualified Distribution.Types.SourceRepo as Cabal
-import qualified Distribution.Types.TestSuite as Cabal
-import qualified Distribution.Types.UnqualComponentName as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
@@ -467,18 +460,6 @@ toPackageDescription = Cabal.finalizePD
     (Cabal.Platform Cabal.X86_64 Cabal.Linux)
     (Cabal.unknownCompilerInfo (Cabal.CompilerId Cabal.GHC (Cabal.mkVersion [9, 0, 1])) Cabal.NoAbiTag)
     []
-
-componentName :: Cabal.Component -> String
-componentName component = case component of
-    Cabal.CLib library -> case Cabal.libName library of
-        Cabal.LMainLibName -> "lib"
-        Cabal.LSubLibName unqualComponentName -> "lib:" <> Cabal.unUnqualComponentName unqualComponentName
-    -- Only a handful of libraries have foreign libraries: hexchat, HABQT,
-    -- perceptual-hash, and toysolver.
-    Cabal.CFLib foreignLib -> "flib:" <> Cabal.unUnqualComponentName (Cabal.foreignLibName foreignLib)
-    Cabal.CExe executable -> "exe:" <> Cabal.unUnqualComponentName (Cabal.exeName executable)
-    Cabal.CTest testSuite -> "test:" <> Cabal.unUnqualComponentName (Cabal.testName testSuite)
-    Cabal.CBench benchmark -> "bench:" <> Cabal.unUnqualComponentName (Cabal.benchmarkName benchmark)
 
 fetchDistributions :: Context.Context -> IO ()
 fetchDistributions context = do
