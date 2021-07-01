@@ -190,13 +190,12 @@ updateLatestVersions context revisionsVar preferredVersionsVar = do
             revisions
                 & Map.mapMaybe Revision.decrement
                 & Map.toList
-                & Maybe.mapMaybe (\ ((p, v), r) ->
+                & fmap (\ ((p, v), r) ->
                     let c = Map.findWithDefault VersionRange.any p preferredVersions
-                    in if VersionRange.contains v c
-                        then pure (p, [(v, r)])
-                        else Nothing)
+                    in (p, [(VersionRange.contains v c, (v, r))]))
                 & Map.fromListWith (<>)
                 & Map.mapMaybe Foldable.maximum
+                & fmap snd
     newLatestVersions
         & Map.toList
         & traverse_ (\ (p, (v1, r1)) -> case Map.lookup p oldLatestVersions of
