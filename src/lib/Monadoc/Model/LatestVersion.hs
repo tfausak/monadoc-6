@@ -59,3 +59,7 @@ upsert connection = Sql.execute connection
     \on conflict (package) \
     \do update set version = excluded.version, \
     \revision = excluded.revision"
+
+deleteByPackage :: Sql.Connection -> PackageName.PackageName -> IO ()
+deleteByPackage connection package = Sql.execute connection
+    "delete from latestVersion where package = ?" [package]

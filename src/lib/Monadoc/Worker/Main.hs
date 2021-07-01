@@ -185,21 +185,27 @@ updateLatestVersions context revisionsVar preferredVersionsVar = do
     oldLatestVersions <- Context.withConnection context LatestVersion.selectAll
     revisions <- Stm.atomically $ Stm.readTVar revisionsVar
     preferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
-    revisions
-        & Map.mapMaybe Revision.decrement
-        & Map.toList
-        & Maybe.mapMaybe (\ ((p, v), r) ->
-            let c = Map.findWithDefault VersionRange.any p preferredVersions
-            in if VersionRange.contains v c
-                then pure (p, [(v, r)])
-                else Nothing)
-        & Map.fromListWith (<>)
-        & Map.mapMaybe Foldable.maximum
+    let
+        newLatestVersions =
+            revisions
+                & Map.mapMaybe Revision.decrement
+                & Map.toList
+                & Maybe.mapMaybe (\ ((p, v), r) ->
+                    let c = Map.findWithDefault VersionRange.any p preferredVersions
+                    in if VersionRange.contains v c
+                        then pure (p, [(v, r)])
+                        else Nothing)
+                & Map.fromListWith (<>)
+                & Map.mapMaybe Foldable.maximum
+    newLatestVersions
         & Map.toList
         & traverse_ (\ (p, (v1, r1)) -> case Map.lookup p oldLatestVersions of
             Just (v0, r0) | v0 == v1 && r0 == r1 -> pure ()
             _ -> Context.withConnection context $ \ connection ->
                 LatestVersion.upsert connection $ LatestVersion.new p v1 r1)
+    Set.difference (Map.keysSet oldLatestVersions) (Map.keysSet newLatestVersions)
+        & traverse_ (\ p -> Context.withConnection context $ \ connection ->
+            LatestVersion.deleteByPackage connection p)
 
 updatePreferredVersions
     :: Context.Context
@@ -209,7 +215,7 @@ updatePreferredVersions context preferredVersionsVar = do
     oldPreferredVersions <- Context.withConnection context PreferredVersions.selectAll
     newPreferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
     newPreferredVersions
-        & Map.toAscList
+        & Map.toList
         & fmap (uncurry PreferredVersions.new)
         & traverse_ (\ pv -> case Map.lookup (PreferredVersions.packageName pv) oldPreferredVersions of
             Just v | v == PreferredVersions.versionRange pv -> pure ()
