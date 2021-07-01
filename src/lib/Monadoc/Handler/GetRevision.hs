@@ -12,6 +12,7 @@ import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.File as File
+import qualified Monadoc.Model.LatestVersion as LatestVersion
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.SourceRepository as SourceRepository
@@ -60,6 +61,8 @@ handler packageName version revision context request = do
     distribution <- maybe (throwM NotFound.new) pure maybeDistribution
     files <- Context.withConnection context $ \ connection ->
         File.selectByDistribution connection $ Model.key distribution
+    maybeLatestVersion <- Context.withConnection context $ \ connection ->
+        LatestVersion.selectByPackage connection packageName
     let
         route = Route.Revision packageName version revision
         breadcrumbs =
@@ -86,7 +89,7 @@ handler packageName version revision context request = do
                 , Xml.node "copyright" [] [ToXml.toXml . Package.copyright $ Model.value package]
                 , Xml.node "description" [] [ToXml.toXml . parsedDescription $ Model.value package]
                 , Xml.node "homepage" [] [ToXml.toXml . Package.homepage $ Model.value package]
-                , Xml.node "latest" [] [ToXml.toXml . isLatest versionRange sortedPackages $ Model.value package]
+                , Xml.node "latest" [] [ToXml.toXml $ isLatest maybeLatestVersion (Package.version $ Model.value package) (Package.revision $ Model.value package)]
                 , Xml.node "license" [] [ToXml.toXml . Package.license $ Model.value package]
                 , Xml.node "maintainer" [] [ToXml.toXml . Package.maintainer $ Model.value package]
                 , Xml.node "name" [] [ToXml.toXml . Package.name $ Model.value package]
@@ -101,7 +104,8 @@ handler packageName version revision context request = do
                 ]
             , Xml.node "versions" []
             $ fmap (\ x -> Xml.node "version" []
-                [ Xml.node "number" [] [ToXml.toXml $ Package.version x]
+                [ Xml.node "latest" [] [ToXml.toXml $ isLatest maybeLatestVersion (Package.version x) (Package.revision x)]
+                , Xml.node "number" [] [ToXml.toXml $ Package.version x]
                 , Xml.node "preferred" [] [ToXml.toXml $ isPreferred versionRange x]
                 , Xml.node "revision" [] [ToXml.toXml $ Package.revision x]
                 , Xml.node "route" [] [ToXml.toXml $ Route.Revision (Package.name x) (Package.version x) (Package.revision x)]
@@ -168,13 +172,11 @@ parsedDescription = Haddock.toRegular
     . into @String
     . Package.description
 
-isLatest :: VersionRange.VersionRange -> [Package.Package] -> Package.Package -> Bool
-isLatest versionRange sortedPackages package =
-    case filter (isPreferred versionRange) sortedPackages of
-        [] -> False
-        latest : _ ->
-            Package.version latest == Package.version package
-            && Package.revision latest == Package.revision package
+isLatest :: Maybe LatestVersion.Model -> Version.Version -> Revision.Revision -> Bool
+isLatest m v r = case m of
+    Nothing -> False
+    Just l -> v == LatestVersion.version (Model.value l)
+        && r == LatestVersion.revision (Model.value l)
 
 isPreferred :: VersionRange.VersionRange -> Package.Package -> Bool
 isPreferred versionRange package =

@@ -18,9 +18,10 @@ handler :: PackageName.PackageName -> Version.Version -> Handler.Handler
 handler packageName version context _ = do
     packages <- Context.withConnection context $ \ connection ->
         Package.selectByNameAndVersion connection packageName version
-    package <- case Foldable.maximumOn Package.revision $ fmap Model.value packages of
-        Nothing -> throwM NotFound.new
-        Just package -> pure package
+    package <- packages
+        & fmap Model.value
+        & Foldable.maximumOn Package.revision
+        & maybe (throwM NotFound.new) pure
     let
         config = Context.config context
         baseUrl = Config.baseUrl config

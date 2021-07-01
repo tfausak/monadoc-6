@@ -3,6 +3,7 @@ module Monadoc.Model.LatestVersion where
 import Monadoc.Prelude
 
 import qualified Data.Map as Map
+import qualified Data.Maybe as Maybe
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
@@ -63,3 +64,10 @@ upsert connection = Sql.execute connection
 deleteByPackage :: Sql.Connection -> PackageName.PackageName -> IO ()
 deleteByPackage connection package = Sql.execute connection
     "delete from latestVersion where package = ?" [package]
+
+selectByPackage :: Sql.Connection -> PackageName.PackageName -> IO (Maybe Model)
+selectByPackage connection package = fmap Maybe.listToMaybe $ Sql.query connection
+    "select key, package, version, revision \
+    \from latestVersion \
+    \where package = ?"
+    [package]
