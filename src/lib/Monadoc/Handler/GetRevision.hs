@@ -3,6 +3,7 @@ module Monadoc.Handler.GetRevision where
 import Monadoc.Prelude
 
 import qualified Data.List as List
+import qualified Data.Maybe as Maybe
 import qualified Data.Ord as Ord
 import qualified Documentation.Haddock.Parser as Haddock
 import qualified Documentation.Haddock.Types as Haddock
@@ -79,6 +80,12 @@ handler packageName version revision context request = do
                 , Breadcrumb.route = Nothing
                 }
             ]
+        prefix = mconcat
+            [ into @String packageName
+            , "-"
+            , into @String version
+            , "/"
+            ]
         page = Xml.node "revision" []
             [ Xml.node "package" []
                 [ Xml.node "author" [] [ToXml.toXml . Package.author $ Model.value package]
@@ -132,10 +139,12 @@ handler packageName version revision context request = do
             . List.sortOn SourceRepository.location
             $ fmap Model.value sourceRepositories
             , Xml.node "files" []
-            . fmap (\ x -> Xml.node "file" []
-                [ Xml.node "path" [] [ToXml.toXml $ File.path x]
-                , Xml.node "route" [] [ToXml.toXml . Route.File packageName version $ File.path x]
-                ])
+            . Maybe.mapMaybe (\ x -> do
+                path <- List.stripPrefix prefix $ File.path x
+                pure $ Xml.node "file" []
+                    [ Xml.node "path" [] [ToXml.toXml path]
+                    , Xml.node "route" [] [ToXml.toXml . Route.File packageName version $ File.path x]
+                    ])
             . List.sortOn File.path
             $ fmap Model.value files
             ]
