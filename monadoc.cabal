@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name: monadoc
-version: 0.2021.5.16
+version: 0.2021.7.1
 synopsis: Worse Haskell documentation.
 description: Monadoc provides worse Haskell documentation.
 

@@ -245,28 +245,42 @@
                 <xsl:variable name="versionNumber" select="normalize-space(number)"/>
                 <xsl:variable name="versionRevision" select="normalize-space(revision)"/>
                 <xsl:variable name="versionPreferred" select="boolean(normalize-space(preferred))"/>
+                <xsl:variable name="class">
+                    <xsl:if test="not($versionPreferred)">
+                        text-decoration-line-through
+                    </xsl:if>
+                    <xsl:if test="$versionLatest">
+                        mark
+                    </xsl:if>
+                    <xsl:if test="$versionNumber = $version and $versionRevision = $revision">
+                        fw-bold
+                    </xsl:if>
+                </xsl:variable>
+                <xsl:variable name="title">
+                    <xsl:text>version </xsl:text>
+                    <xsl:value-of select="$versionNumber"/>
+                    <xsl:text> revision </xsl:text>
+                    <xsl:value-of select="$versionRevision"/>
+                    <xsl:if test="not($versionPreferred)">
+                        <xsl:text> (deprecated)</xsl:text>
+                    </xsl:if>
+                    <xsl:if test="$versionLatest">
+                        <xsl:text> (latest)</xsl:text>
+                    </xsl:if>
+                </xsl:variable>
 
                 <li>
                     <code>
                         <xsl:value-of select="normalize-space(uploadedAt)"/>
                     </code>
                     <xsl:text>: </xsl:text>
-                    <a href="{$baseUrl}{normalize-space(route)}">
+                    <a class="{$class}" href="{$baseUrl}{normalize-space(route)}" title="{$title}">
                         <xsl:value-of select="$versionNumber"/>
                         <xsl:if test="$versionRevision != 0">
                             <xsl:text>-</xsl:text>
                             <xsl:value-of select="$versionRevision"/>
                         </xsl:if>
                     </a>
-                    <xsl:if test="not($versionPreferred)">
-                        (deprecated)
-                    </xsl:if>
-                    <xsl:if test="$versionLatest">
-                        (latest)
-                    </xsl:if>
-                    <xsl:if test="$versionNumber = $version and $versionRevision = $revision">
-                        (this)
-                    </xsl:if>
                 </li>
             </xsl:for-each>
         </ul>
