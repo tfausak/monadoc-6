@@ -2,10 +2,14 @@ module Monadoc.Handler.GetModule where
 
 import Monadoc.Prelude
 
+import qualified Data.List as List
+import qualified Distribution.ModuleName as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Component as Component
+import qualified Monadoc.Model.Distribution as Distribution
+import qualified Monadoc.Model.File as File
 import qualified Monadoc.Model.Module as Module
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
@@ -22,6 +26,7 @@ import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
+import qualified System.FilePath.Posix as FilePath.Posix
 
 handler
     :: PackageName.PackageName
@@ -49,8 +54,30 @@ handler packageName version revision componentId moduleName context request = do
         maybeModule <- Context.withConnection context $ \ connection ->
             Module.select connection (Model.key component) moduleName
         maybe (throwM NotFound.new) pure maybeModule
-    -- TODO: Find source file for module. This will require tracking the build
-    -- info of the component, specifically the `hs-source-dirs` field.
+
+    -- TODO: This method of locating the module's file is brittle and janky. It
+    -- should be done ahead of time using the `hs-source-dirs` information on
+    -- the component.
+    distribution <- do
+        maybeDistribution <- Context.withConnection context $ \ connection ->
+            Distribution.selectByPackageAndVersion connection packageName version
+        maybe (throwM NotFound.new) pure maybeDistribution
+    files <- Context.withConnection context $ \ connection ->
+        File.selectByDistribution connection $ Model.key distribution
+    let
+        needle = moduleName
+            & into @Cabal.ModuleName
+            & Cabal.components
+            & FilePath.Posix.joinPath
+            & (FilePath.Posix.pathSeparator :)
+            & (<> [FilePath.Posix.extSeparator])
+        matches = files
+            & fmap (File.path . Model.value)
+            & filter (List.isInfixOf needle)
+        maybeFile = case matches of
+            [match] -> Just match
+            _ -> Nothing
+
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
             { Meta.breadcrumbs =
@@ -84,5 +111,9 @@ handler packageName version revision componentId moduleName context request = do
             , Xml.node "component" [] [ToXml.toXml $ into @String componentId]
             , Xml.node "module" [] [ToXml.toXml moduleName]
             , Xml.node "key" [] [ToXml.toXml $ Model.key module_] -- TODO: Remove.
+            , Xml.node "file" []
+                [ Xml.node "path" [] [ToXml.toXml maybeFile]
+                , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName version) maybeFile]
+                ]
             ]
         }

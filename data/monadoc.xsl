@@ -412,6 +412,12 @@
             <dt> revision </dt> <dd> <xsl:value-of select="revision"/> </dd>
             <dt> component </dt> <dd> <xsl:value-of select="component"/> </dd>
             <dt> module </dt> <dd> <xsl:value-of select="module"/> </dd>
+            <dt> file </dt>
+            <dd>
+                <a href="{$baseUrl}{normalize-space(file/route)}">
+                    <xsl:value-of select="normalize-space(file/path)"/>
+                </a>
+            </dd>
         </dl>
     </xsl:template>
 </xsl:stylesheet>
