@@ -15,6 +15,7 @@ import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Version as Version
 import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Types.Header as Http
+import qualified System.FilePath as FilePath
 
 handler
     :: PackageName.PackageName
@@ -35,10 +36,16 @@ handler packageName version path context _ = do
         Blob.selectByHash connection hash
     blob <- maybe (throwM $ MissingBlob.new hash) pure maybeBlob
 
+    let
+        contentType = case FilePath.takeExtensions path of
+            ".cabal" -> "text/plain"
+            ".hs" -> "text/plain"
+            ".md" -> "text/plain"
+            _ -> "application/octet-stream"
     pure
         . Response.byteString Http.ok200
-            [ (Http.hContentDisposition, into @ByteString $ "filename=" <> File.path (Model.value file))
-            , (Http.hContentType, into @ByteString "application/octet-stream")
+            [ (Http.hContentDisposition, into @ByteString $ "filename=" <> path)
+            , (Http.hContentType, into @ByteString contentType)
             ]
         . Blob.contents
         $ Model.value blob

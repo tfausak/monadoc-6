@@ -109,6 +109,7 @@ handler packageName version revision context request = do
                 , Xml.node "uploadedBy" [] [ToXml.toXml . Package.uploadedBy $ Model.value package]
                 , Xml.node "version" [] [ToXml.toXml . Package.version $ Model.value package]
                 ]
+            -- TODO: Move these to a separate page?
             , Xml.node "versions" []
             $ fmap (\ x -> Xml.node "version" []
                 [ Xml.node "latest" [] [ToXml.toXml $ isLatest maybeLatestVersion (Package.version x) (Package.revision x)]
@@ -118,6 +119,7 @@ handler packageName version revision context request = do
                 , Xml.node "route" [] [ToXml.toXml $ Route.Revision (Package.name x) (Package.version x) (Package.revision x)]
                 , Xml.node "uploadedAt" [] [ToXml.toXml $ Package.uploadedAt x]
                 ]) sortedPackages
+            -- TODO: Include main library component directly on this page?
             , Xml.node "components" []
             . fmap (\ x -> Xml.node "component" []
                 [ Xml.node "tag" [] [ToXml.toXml $ Component.tag x]
@@ -138,6 +140,7 @@ handler packageName version revision context request = do
                 ])
             . List.sortOn SourceRepository.location
             $ fmap Model.value sourceRepositories
+            -- TODO: Move these to a separate page?
             , Xml.node "files" []
             . Maybe.mapMaybe (\ x -> do
                 path <- List.stripPrefix prefix $ File.path x

@@ -19,6 +19,7 @@ handler :: PackageName.PackageName -> Handler.Handler
 handler packageName context _ = do
     packages <- Context.withConnection context $ \ connection ->
         Package.selectByName connection packageName
+    -- TODO: Use latest version rather than preferred versions.
     maybePreferredVersions <- Context.withConnection context $ \ connection ->
         PreferredVersions.selectByPackageName connection packageName
     let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions

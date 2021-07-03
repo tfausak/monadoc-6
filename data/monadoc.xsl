@@ -255,7 +255,6 @@
                     </xsl:if>
                     <xsl:if test="$versionNumber = $version and $versionRevision = $revision">
                         text-decoration-none
-                        text-reset
                     </xsl:if>
                 </xsl:variable>
                 <xsl:variable name="title">
