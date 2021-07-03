@@ -89,7 +89,7 @@ handler packageName version revision componentId context request = do
     -- TODO: Chase down transitive dependencies?
     -- <https://sqlite.org/lang_with.html>
 
-    -- TODO: Mark out of date dependencies?
+    -- TODO: Mark dependencies that do not allow latest?
 
     reverseDependencies <- Context.withConnection context $ \ connection -> Sql.query
         connection

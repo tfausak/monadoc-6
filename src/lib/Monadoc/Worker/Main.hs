@@ -31,6 +31,7 @@ import qualified Distribution.Types.ComponentRequestedSpec as Cabal
 import qualified Distribution.Types.Dependency as Cabal
 import qualified Distribution.Types.Flag as Cabal
 import qualified Distribution.Types.GenericPackageDescription as Cabal
+import qualified Distribution.Types.Library as Cabal
 import qualified Distribution.Types.PackageDescription as Cabal
 import qualified Distribution.Types.PackageId as Cabal
 import qualified Distribution.Types.PackageName as Cabal
@@ -49,6 +50,7 @@ import qualified Monadoc.Model.File as File
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.LatestVersion as LatestVersion
+import qualified Monadoc.Model.Module as Module
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions
 import qualified Monadoc.Model.SourceRepository as SourceRepository
@@ -62,6 +64,7 @@ import qualified Monadoc.Type.HackageId as HackageId
 import qualified Monadoc.Type.HackageName as HackageName
 import qualified Monadoc.Type.License as License
 import qualified Monadoc.Type.Model as Model
+import qualified Monadoc.Type.ModuleName as ModuleName
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
@@ -389,7 +392,30 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                                     , Component.package = key
                                     , Component.tag
                                     }
+                        syncModules context componentKey component
                         syncDependencies context componentKey component)
+
+syncModules :: Context.Context -> Component.Key -> Cabal.Component -> IO ()
+syncModules context componentKey component = case component of
+    Cabal.CLib library -> Context.withConnection context $ \ connection -> do
+        oldModules <- Module.selectByComponent connection componentKey
+        let
+            newModuleNames = library
+                & Cabal.exposedModules
+                & fmap (into @ModuleName.ModuleName)
+                & Set.fromList
+            oldModuleNames = oldModules
+                & fmap (Module.name . Model.value)
+                & Set.fromList
+            shouldDelete x = Set.notMember (Module.name $ Model.value x) newModuleNames
+            shouldUpsert x = Set.notMember x oldModuleNames
+        oldModules
+            & filter shouldDelete
+            & traverse_ (Module.delete connection . Model.key)
+        newModuleNames
+            & Set.filter shouldUpsert
+            & traverse_ (Module.upsert connection . Module.Module componentKey)
+    _ -> pure ()
 
 syncDependencies :: Context.Context -> Component.Key -> Cabal.Component -> IO ()
 syncDependencies context componentKey component = Context.withConnection context $ \ connection -> do

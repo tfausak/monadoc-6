@@ -125,6 +125,7 @@ library
         Monadoc.Model.HackageUser
         Monadoc.Model.LatestVersion
         Monadoc.Model.Migration
+        Monadoc.Model.Module
         Monadoc.Model.Package
         Monadoc.Model.PreferredVersions
         Monadoc.Model.Session
@@ -159,6 +160,7 @@ library
         Monadoc.Type.License
         Monadoc.Type.Meta
         Monadoc.Type.Model
+        Monadoc.Type.ModuleName
         Monadoc.Type.OAuthResponse
         Monadoc.Type.PackageName
         Monadoc.Type.Port
