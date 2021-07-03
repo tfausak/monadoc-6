@@ -187,6 +187,7 @@
             <dt>uploadedAt</dt> <dd><xsl:value-of select="package/uploadedAt"/></dd>
             <dt>uploadedBy</dt> <dd><xsl:value-of select="package/uploadedBy"/></dd>
             <dt>synopsis</dt> <dd><xsl:value-of select="package/synopsis"/></dd>
+            <!-- TODO: Render Haddock as HTML. -->
             <dt>description</dt> <dd><xsl:value-of select="package/description"/></dd>
             <dt>license</dt> <dd><xsl:value-of select="package/license"/></dd>
             <dt>author</dt> <dd><xsl:value-of select="package/author"/></dd>
@@ -253,7 +254,8 @@
                         mark
                     </xsl:if>
                     <xsl:if test="$versionNumber = $version and $versionRevision = $revision">
-                        fw-bold
+                        text-decoration-none
+                        text-reset
                     </xsl:if>
                 </xsl:variable>
                 <xsl:variable name="title">

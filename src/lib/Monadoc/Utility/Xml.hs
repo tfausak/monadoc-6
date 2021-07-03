@@ -31,6 +31,3 @@ element :: String -> [(String, String)] -> [Xml.Node] -> Xml.Element
 element n = Xml.Element (name n)
     . Map.fromList
     . fmap (Bifunctor.bimap name (into @Text))
-
-content :: String -> Xml.Node
-content = Xml.NodeContent . into @Text
