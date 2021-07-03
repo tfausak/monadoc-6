@@ -110,6 +110,7 @@ library
         Monadoc.Handler.GetFile
         Monadoc.Handler.GetHealthCheck
         Monadoc.Handler.GetIndex
+        Monadoc.Handler.GetModule
         Monadoc.Handler.GetPackage
         Monadoc.Handler.GetRevision
         Monadoc.Handler.GetSearch

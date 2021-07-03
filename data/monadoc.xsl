@@ -366,7 +366,9 @@
         <ul>
             <xsl:for-each select="modules/module">
                 <li>
-                    <xsl:value-of select="name"/>
+                    <a href="{$baseUrl}{normalize-space(route)}">
+                        <xsl:value-of select="normalize-space(name)"/>
+                    </a>
                 </li>
             </xsl:for-each>
         </ul>
@@ -402,5 +404,15 @@
                 </li>
             </xsl:for-each>
         </ul>
+    </xsl:template>
+
+    <xsl:template match="module">
+        <dl>
+            <dt> package </dt> <dd> <xsl:value-of select="package"/> </dd>
+            <dt> version </dt> <dd> <xsl:value-of select="version"/> </dd>
+            <dt> revision </dt> <dd> <xsl:value-of select="revision"/> </dd>
+            <dt> component </dt> <dd> <xsl:value-of select="component"/> </dd>
+            <dt> module </dt> <dd> <xsl:value-of select="module"/> </dd>
+        </dl>
     </xsl:template>
 </xsl:stylesheet>
