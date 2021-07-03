@@ -3,10 +3,15 @@ module Monadoc.Handler.GetModule where
 import Monadoc.Prelude
 
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
+import qualified Monadoc.Model.Component as Component
+import qualified Monadoc.Model.Module as Module
+import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.Breadcrumb as Breadcrumb
 import qualified Monadoc.Type.ComponentId as ComponentId
+import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
@@ -28,6 +33,24 @@ handler
 handler packageName version revision componentId moduleName context request = do
     maybeUser <- Common.getUser context request
     let route = Route.Module packageName version revision componentId moduleName
+    package <- do
+        maybePackage <- Context.withConnection context $ \ connection ->
+            Package.select connection packageName version revision
+        maybe (throwM NotFound.new) pure maybePackage
+    component <- do
+        -- TODO: More accurately handle component IDs.
+        maybeComponent <- Context.withConnection context $ \ connection ->
+            Component.select connection
+                (Model.key package)
+                (ComponentId.tag componentId)
+                (maybe (from packageName) identity $ ComponentId.name componentId)
+        maybe (throwM NotFound.new) pure maybeComponent
+    module_ <- do
+        maybeModule <- Context.withConnection context $ \ connection ->
+            Module.select connection (Model.key component) moduleName
+        maybe (throwM NotFound.new) pure maybeModule
+    -- TODO: Find source file for module. This will require tracking the build
+    -- info of the component, specifically the `hs-source-dirs` field.
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
             { Meta.breadcrumbs =
@@ -60,5 +83,6 @@ handler packageName version revision componentId moduleName context request = do
             , Xml.node "revision" [] [ToXml.toXml revision]
             , Xml.node "component" [] [ToXml.toXml $ into @String componentId]
             , Xml.node "module" [] [ToXml.toXml moduleName]
+            , Xml.node "key" [] [ToXml.toXml $ Model.key module_] -- TODO: Remove.
             ]
         }

@@ -2,6 +2,7 @@ module Monadoc.Model.Module where
 
 import Monadoc.Prelude
 
+import qualified Data.Maybe as Maybe
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Key as Key
@@ -38,6 +39,11 @@ migrations =
         \name string not null, \
         \unique (component, name))"
     ]
+
+select :: Sql.Connection -> Component.Key -> ModuleName.ModuleName -> IO (Maybe Model)
+select connection component name = fmap Maybe.listToMaybe $ Sql.query connection
+    "select key, component, name from module where component = ? and name = ?"
+    (component, name)
 
 selectByComponent :: Sql.Connection -> Component.Key -> IO [Model]
 selectByComponent connection component = Sql.query connection
