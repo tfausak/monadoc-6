@@ -361,6 +361,16 @@
             <dt>name</dt> <dd><xsl:value-of select="name"/></dd>
         </dl>
         <h3>
+            Modules
+        </h3>
+        <ul>
+            <xsl:for-each select="modules/module">
+                <li>
+                    <xsl:value-of select="name"/>
+                </li>
+            </xsl:for-each>
+        </ul>
+        <h3>
             Dependencies
         </h3>
         <ul>

@@ -13,6 +13,7 @@ import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
+import qualified Monadoc.Model.Module as Module
 import qualified Monadoc.Model.Package as Package
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.Breadcrumb as Breadcrumb
@@ -105,6 +106,11 @@ handler packageName version revision componentId context request = do
         \group by package.name"
         (packageName, componentName)
 
+    modules <- if isLibrary
+        then Context.withConnection context $ \ connection ->
+            Module.selectByComponent connection $ Model.key component
+        else pure []
+
     let
         route = Route.Component packageName version revision componentId
         breadcrumbs =
@@ -147,6 +153,12 @@ handler packageName version revision componentId context request = do
                 ])
             . List.sortOn (CI.mk . into @String)
             $ fmap Sql.fromOnly reverseDependencies
+            , Xml.node "modules" []
+            . fmap (\ x -> Xml.node "module" []
+                [ Xml.node "name" [] [ToXml.toXml $ Module.name x]
+                ])
+            . List.sortOn (CI.mk . into @String . Module.name)
+            $ fmap Model.value modules
             ]
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
