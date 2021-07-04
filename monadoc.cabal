@@ -121,9 +121,12 @@ library
         Monadoc.Job.FetchDistribution
         Monadoc.Job.FetchDistributions
         Monadoc.Job.InsertHackageIndex
+        Monadoc.Job.ProcessHackageIndex
         Monadoc.Job.UnpackDistribution
         Monadoc.Job.UnpackDistributions
         Monadoc.Job.UpdateHackageIndex
+        Monadoc.Job.UpdateLatestVersions
+        Monadoc.Job.UpdatePreferredVersions
         Monadoc.Job.UpsertHackageIndex
         Monadoc.Main
         Monadoc.Model.Blob
