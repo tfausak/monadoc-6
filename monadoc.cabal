@@ -120,8 +120,11 @@ library
         Monadoc.Handler.PostRevoke
         Monadoc.Job.FetchDistribution
         Monadoc.Job.FetchDistributions
+        Monadoc.Job.InsertHackageIndex
         Monadoc.Job.UnpackDistribution
         Monadoc.Job.UnpackDistributions
+        Monadoc.Job.UpdateHackageIndex
+        Monadoc.Job.UpsertHackageIndex
         Monadoc.Main
         Monadoc.Model.Blob
         Monadoc.Model.Component

@@ -4,7 +4,6 @@ import Monadoc.Prelude
 
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Archive.Tar.Entry as Tar
-import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Concurrent.STM as Stm
 import qualified Control.Monad as Monad
@@ -35,11 +34,11 @@ import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.PackageVersionConstraint as Cabal
 import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Distribution.Types.Version as Cabal
-import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Job.FetchDistributions as FetchDistributions
 import qualified Monadoc.Job.UnpackDistributions as UnpackDistributions
+import qualified Monadoc.Job.UpsertHackageIndex as UpsertHackageIndex
 import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
@@ -54,7 +53,6 @@ import qualified Monadoc.Type.BuildType as BuildType
 import qualified Monadoc.Type.CabalVersion as CabalVersion
 import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
-import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.HackageId as HackageId
 import qualified Monadoc.Type.HackageName as HackageName
@@ -68,89 +66,20 @@ import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
 import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Log as Log
-import qualified Monadoc.Vendor.Client as Client
-import qualified Network.HTTP.Types as Http
 import qualified System.FilePath as FilePath
-import qualified Text.Read as Read
 
 run :: Context.Context -> IO ()
 run context = do
     Log.info "starting worker"
     Monad.forever $ do
         Log.info "beginning worker loop"
-        hackageIndex <- upsertHackageIndex context
+        hackageIndex <- UpsertHackageIndex.run context
         processHackageIndex context hackageIndex
         FetchDistributions.run context
         UnpackDistributions.run context
         -- TODO: Process distributions (in other words, parse Haskell modules).
         Log.info "finished worker loop"
         Concurrent.threadDelay 60000000
-
-upsertHackageIndex :: Context.Context -> IO HackageIndex.HackageIndex
-upsertHackageIndex context = do
-    Log.info "refreshing Hackage index"
-    maybeHackageIndex <- Context.withConnection context HackageIndex.select
-    case maybeHackageIndex of
-        Nothing -> insertHackageIndex context
-        Just hackageIndex -> updateHackageIndex context hackageIndex
-
-insertHackageIndex :: Context.Context -> IO HackageIndex.HackageIndex
-insertHackageIndex context = do
-    Log.info "requesting initial Hackage index"
-    request <- Client.parseUrlThrow $ Config.hackageUrl (Context.config context) <> "/01-index.tar.gz"
-    response <- Client.performRequest (Context.manager context) request
-    let
-        contents = Client.responseBody response
-            & Gzip.decompress
-            & into @ByteString
-        size = ByteString.length contents
-        hackageIndex = HackageIndex.HackageIndex { HackageIndex.contents, HackageIndex.size }
-    Log.info $ "got initial Hackage index (size: " <> pluralize "byte" size <> ")"
-    Context.withConnection context $ \ connection ->
-        HackageIndex.insert connection hackageIndex
-    pure hackageIndex
-
-updateHackageIndex :: Context.Context -> Model.Model HackageIndex.HackageIndex -> IO HackageIndex.HackageIndex
-updateHackageIndex context model = do
-    let
-        oldHackageIndex = Model.value model
-        oldSize = HackageIndex.size oldHackageIndex
-    Log.info $ "requesting new Hackage index size (old size: " <> pluralize "byte" oldSize <> ")"
-    request <- Client.parseUrlThrow $ Config.hackageUrl (Context.config context) <> "/01-index.tar"
-    headResponse <- Client.performRequest (Context.manager context)
-        request { Client.method = Http.methodHead }
-    let
-        maybeNewSize = do
-            x <- lookup Http.hContentLength $ Client.responseHeaders headResponse
-            y <- hush $ tryInto @String x
-            Read.readMaybe @Int y
-    case maybeNewSize of
-        Nothing -> throwM $ BadHackageIndexSize.new oldSize maybeNewSize
-        Just newSize
-            | newSize < oldSize -> throwM $ BadHackageIndexSize.new oldSize maybeNewSize
-            | newSize == oldSize -> do
-                Log.info "Hackage index has not changed"
-                pure oldHackageIndex
-            | otherwise -> do
-                Log.info $ "got new Hackage index size: " <> pluralize "byte" newSize
-                let
-                    delta = newSize - oldSize
-                    start = oldSize - HackageIndex.offset
-                    end = newSize - 1
-                    range = into @ByteString $ "bytes=" <> show start <> "-" <> show end
-                Log.info $ "requesting " <> pluralize "byte" delta <> " of new Hackage index"
-                rangeResponse <- Client.performRequest (Context.manager context)
-                    request { Client.requestHeaders = (Http.hRange, range) : Client.requestHeaders request }
-                Log.info "got new Hackage index"
-                let
-                    before = ByteString.take start $ HackageIndex.contents oldHackageIndex
-                    after = into @ByteString $ Client.responseBody rangeResponse
-                    contents = before <> after
-                    newHackageIndex = HackageIndex.fromByteString contents
-                    key = Model.key model
-                Context.withConnection context $ \ connection ->
-                    HackageIndex.update connection key newHackageIndex
-                pure newHackageIndex
 
 processHackageIndex :: Context.Context -> HackageIndex.HackageIndex -> IO ()
 processHackageIndex context hackageIndex = do
@@ -459,9 +388,6 @@ isValidTarEntry entry = Tar.entryPermissions entry == 420
     && Tar.groupName (Tar.entryOwnership entry) == "Hackage"
     && Tar.groupId (Tar.entryOwnership entry) == 0
     && Tar.entryFormat entry == Tar.UstarFormat
-
-pluralize :: String -> Int -> String
-pluralize word count = show count <> " " <> word <> if count == 1 then "" else "s"
 
 getTarEntryPath :: Tar.Entry -> ([FilePath], String)
 getTarEntryPath entry =
