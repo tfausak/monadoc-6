@@ -114,7 +114,6 @@ library
         Monadoc.Handler.GetModule
         Monadoc.Handler.GetPackage
         Monadoc.Handler.GetRelease
-        Monadoc.Handler.GetRevision
         Monadoc.Handler.GetSearch
         Monadoc.Handler.GetVersion
         Monadoc.Handler.PostLogOut

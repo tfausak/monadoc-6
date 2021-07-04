@@ -26,6 +26,7 @@ import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
@@ -124,7 +125,10 @@ handler packageName version revision componentId context request = do
                 }
             , Breadcrumb.Breadcrumb
                 { Breadcrumb.name = into @String version <> if revision == Revision.zero then "" else "-" <> into @String revision
-                , Breadcrumb.route = Just $ Route.Revision packageName version revision
+                , Breadcrumb.route = Just $ Route.Release packageName Release.Release
+                    { Release.version
+                    , Release.revision = Just revision
+                    }
                 }
             , Breadcrumb.Breadcrumb
                 { Breadcrumb.name = into @String componentId

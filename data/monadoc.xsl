@@ -117,7 +117,7 @@
         </ul>
     </xsl:template>
 
-    <xsl:template match="revision">
+    <xsl:template match="release">
         <xsl:variable name="name" select="normalize-space(package/name)"/>
         <xsl:variable name="version" select="normalize-space(package/version)"/>
         <xsl:variable name="revision" select="normalize-space(package/revision)"/>
@@ -418,13 +418,6 @@
                     <xsl:value-of select="normalize-space(file/path)"/>
                 </a>
             </dd>
-        </dl>
-    </xsl:template>
-
-    <xsl:template match="release">
-        <dl>
-            <dt> package </dt> <dd> <xsl:value-of select="package"/> </dd>
-            <dt> release </dt> <dd> <xsl:value-of select="release"/> </dd>
         </dl>
     </xsl:template>
 </xsl:stylesheet>

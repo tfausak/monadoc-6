@@ -13,7 +13,6 @@ import qualified Monadoc.Handler.GetIndex as GetIndex
 import qualified Monadoc.Handler.GetModule as GetModule
 import qualified Monadoc.Handler.GetPackage as GetPackage
 import qualified Monadoc.Handler.GetRelease as GetRelease
-import qualified Monadoc.Handler.GetRevision as GetRevision
 import qualified Monadoc.Handler.GetSearch as GetSearch
 import qualified Monadoc.Handler.GetVersion as GetVersion
 import qualified Monadoc.Handler.PostLogOut as PostLogOut
@@ -49,7 +48,6 @@ getHandler request = do
         (Http.GET, Route.Robots) -> Just $ fileHandler "robots.txt" "text/plain; charset=UTF-8"
         (Http.GET, Route.Package packageName) -> Just $ GetPackage.handler packageName
         (Http.GET, Route.Version packageName version) -> Just $ GetVersion.handler packageName version
-        (Http.GET, Route.Revision packageName version revision) -> Just $ GetRevision.handler packageName version revision
         (Http.GET, Route.Search query) -> Just $ GetSearch.handler query
         (Http.GET, Route.Account) -> Just GetAccount.handler
         (Http.POST, Route.LogOut) -> Just PostLogOut.handler

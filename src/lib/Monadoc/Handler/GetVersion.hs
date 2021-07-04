@@ -10,6 +10,7 @@ import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Foldable as Foldable
@@ -25,6 +26,9 @@ handler packageName version context _ = do
     let
         config = Context.config context
         baseUrl = Config.baseUrl config
-        route = Route.Revision packageName version $ Package.revision package
+        route = Route.Release packageName Release.Release
+            { Release.version
+            , Release.revision = Just $ Package.revision package
+            }
         location = baseUrl <> Route.toString route
     throwM $ Found.new location

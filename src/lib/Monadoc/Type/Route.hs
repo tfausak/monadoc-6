@@ -42,10 +42,6 @@ data Route
     | Release
         PackageName.PackageName
         Release.Release
-    | Revision
-        PackageName.PackageName
-        Version.Version
-        Revision.Revision
     | Revoke
     | Robots
     | Search
@@ -73,10 +69,6 @@ parse path query = case path of
     ["package", p, "version", v] -> Version
         <$> hush (tryInto @PackageName.PackageName p)
         <*> hush (tryInto @Version.Version v)
-    ["package", p, "version", v, "revision", r] -> Revision
-        <$> hush (tryInto @PackageName.PackageName p)
-        <*> hush (tryInto @Version.Version v)
-        <*> hush (tryInto @Revision.Revision r)
     ["search"] -> Search <$> getQuery query
     ["account"] -> Just Account
     ["account", "log-out"] -> Just LogOut
@@ -137,7 +129,6 @@ render route = case route of
     Module p v r c m -> (["package", into @String p, "version", into @String v, "revision", into @String r, "component", into @String c, "module", into @String m], [])
     Package p -> (["package", into @String p], [])
     Release p r -> (["package", into @String p, "release", into @String r], [])
-    Revision p v r -> (["package", into @String p, "version", into @String v, "revision", into @String r], [])
     Revoke -> (["account", "revoke"], [])
     Robots -> (["robots.txt"], [])
     Search maybeQuery -> (["search"], maybe [] (\ query -> [(into @ByteString "query", Just $ into @ByteString query)]) maybeQuery)
