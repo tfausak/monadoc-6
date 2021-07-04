@@ -14,7 +14,6 @@ import qualified Monadoc.Handler.GetModule as GetModule
 import qualified Monadoc.Handler.GetPackage as GetPackage
 import qualified Monadoc.Handler.GetRelease as GetRelease
 import qualified Monadoc.Handler.GetSearch as GetSearch
-import qualified Monadoc.Handler.GetVersion as GetVersion
 import qualified Monadoc.Handler.PostLogOut as PostLogOut
 import qualified Monadoc.Handler.PostRevoke as PostRevoke
 import qualified Monadoc.Server.Response as Response
@@ -47,7 +46,6 @@ getHandler request = do
         (Http.GET, Route.Template) -> Just $ fileHandler "monadoc.xsl" "text/xsl; charset=UTF-8"
         (Http.GET, Route.Robots) -> Just $ fileHandler "robots.txt" "text/plain; charset=UTF-8"
         (Http.GET, Route.Package packageName) -> Just $ GetPackage.handler packageName
-        (Http.GET, Route.Version packageName version) -> Just $ GetVersion.handler packageName version
         (Http.GET, Route.Search query) -> Just $ GetSearch.handler query
         (Http.GET, Route.Account) -> Just GetAccount.handler
         (Http.POST, Route.LogOut) -> Just PostLogOut.handler

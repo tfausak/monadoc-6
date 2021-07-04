@@ -47,9 +47,6 @@ data Route
     | Search
         (Maybe String)
     | Template
-    | Version
-        PackageName.PackageName
-        Version.Version
     deriving (Eq, Show)
 
 instance ToXml.ToXml Route where
@@ -66,9 +63,6 @@ parse path query = case path of
     ["robots.txt"] -> Just Robots
     ["package", p] -> Package
         <$> hush (tryInto @PackageName.PackageName p)
-    ["package", p, "version", v] -> Version
-        <$> hush (tryInto @PackageName.PackageName p)
-        <*> hush (tryInto @Version.Version v)
     ["search"] -> Search <$> getQuery query
     ["account"] -> Just Account
     ["account", "log-out"] -> Just LogOut
@@ -133,4 +127,3 @@ render route = case route of
     Robots -> (["robots.txt"], [])
     Search maybeQuery -> (["search"], maybe [] (\ query -> [(into @ByteString "query", Just $ into @ByteString query)]) maybeQuery)
     Template -> (["static", "monadoc.xsl"], [])
-    Version p v -> (["package", into @String p, "version", into @String v], [])

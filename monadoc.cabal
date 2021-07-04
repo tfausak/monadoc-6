@@ -115,7 +115,6 @@ library
         Monadoc.Handler.GetPackage
         Monadoc.Handler.GetRelease
         Monadoc.Handler.GetSearch
-        Monadoc.Handler.GetVersion
         Monadoc.Handler.PostLogOut
         Monadoc.Handler.PostRevoke
         Monadoc.Job.FetchDistribution
