@@ -162,7 +162,7 @@ handler packageName release context request = do
                 path <- List.stripPrefix prefix $ File.path x
                 pure $ Xml.node "file" []
                     [ Xml.node "path" [] [ToXml.toXml path]
-                    , Xml.node "route" [] [ToXml.toXml . Route.File packageName version $ File.path x]
+                    , Xml.node "route" [] [ToXml.toXml . Route.File packageName Release.Release { Release.version, Release.revision = Just revision } $ File.path x]
                     ])
             . List.sortOn File.path
             $ fmap Model.value files

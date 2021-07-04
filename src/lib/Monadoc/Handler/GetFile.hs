@@ -12,17 +12,18 @@ import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
-import qualified Monadoc.Type.Version as Version
+import qualified Monadoc.Type.Release as Release
 import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Types.Header as Http
 import qualified System.FilePath as FilePath
 
 handler
     :: PackageName.PackageName
-    -> Version.Version
+    -> Release.Release
     -> FilePath
     -> Handler.Handler
-handler packageName version path context _ = do
+handler packageName release path context _ = do
+    let version = Release.version release
     maybeDistribution <- Context.withConnection context $ \ connection ->
         Distribution.selectByPackageAndVersion connection packageName version
     distribution <- maybe (throwM NotFound.new) pure maybeDistribution

@@ -117,7 +117,7 @@ handler packageName version revision componentId moduleName context request = do
             , Xml.node "key" [] [ToXml.toXml $ Model.key module_] -- TODO: Remove.
             , Xml.node "file" []
                 [ Xml.node "path" [] [ToXml.toXml maybeFile]
-                , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName version) maybeFile]
+                , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName Release.Release { Release.version, Release.revision = Just revision }) maybeFile]
                 ]
             ]
         }

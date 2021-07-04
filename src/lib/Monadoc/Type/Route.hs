@@ -25,7 +25,7 @@ data Route
     | Favicon
     | File
         PackageName.PackageName
-        Version.Version
+        Release.Release
         FilePath
     | HealthCheck
     | Index
@@ -74,9 +74,9 @@ parse path query = case path of
         <*> hush (tryInto @ComponentId.ComponentId c)
     ["health-check"] -> Just HealthCheck
     ["apple-touch-icon.png"] -> Just AppleTouchIcon
-    ["package", p, "version", v, "file"] -> File
+    ["package", p, "release", r, "file"] -> File
         <$> hush (tryInto @PackageName.PackageName p)
-        <*> hush (tryInto @Version.Version v)
+        <*> hush (tryInto @Release.Release r)
         <*> getPath query
     ["package", p, "version", v, "revision", r, "component", c, "module", m] -> Module
         <$> hush (tryInto @PackageName.PackageName p)
@@ -115,7 +115,7 @@ render route = case route of
     Callback -> (["account", "callback"], [])
     Component p v r c -> (["package", into @String p, "version", into @String v, "revision", into @String r, "component", into @String c], [])
     Favicon -> (["favicon.ico"], [])
-    File p v path -> (["package", into @String p, "version", into @String v, "file"], [(into @ByteString "path", Just $ into @ByteString path)])
+    File p r path -> (["package", into @String p, "release", into @String r, "file"], [(into @ByteString "path", Just $ into @ByteString path)])
     HealthCheck -> (["health-check"], [])
     Index -> ([], [])
     LogOut -> (["account", "log-out"], [])
