@@ -96,7 +96,7 @@
         </h2>
         <ul>
             <xsl:for-each select="packages/package">
-                <xsl:variable name="revision" select="normalize-space(revision)"/>
+                <xsl:variable name="release" select="normalize-space(release)"/>
 
                 <li>
                     <code>
@@ -106,9 +106,7 @@
                     <a href="{$baseUrl}{normalize-space(route)}">
                         <xsl:value-of select="normalize-space(name)"/>
                         <xsl:text>-</xsl:text>
-                        <xsl:value-of select="normalize-space(version)"/>
-                        <xsl:text>-</xsl:text>
-                        <xsl:value-of select="$revision"/>
+                        <xsl:value-of select="$release"/>
                     </a>
                 </li>
             </xsl:for-each>
@@ -344,8 +342,7 @@
     <xsl:template match="component">
         <dl>
             <dt>package</dt> <dd><xsl:value-of select="package"/></dd>
-            <dt>version</dt> <dd><xsl:value-of select="version"/></dd>
-            <dt>revision</dt> <dd><xsl:value-of select="revision"/></dd>
+            <dt>release</dt> <dd><xsl:value-of select="release"/></dd>
             <dt>tag</dt> <dd><xsl:value-of select="tag"/></dd>
             <dt>name</dt> <dd><xsl:value-of select="name"/></dd>
         </dl>
@@ -398,8 +395,7 @@
     <xsl:template match="module">
         <dl>
             <dt> package </dt> <dd> <xsl:value-of select="package"/> </dd>
-            <dt> version </dt> <dd> <xsl:value-of select="version"/> </dd>
-            <dt> revision </dt> <dd> <xsl:value-of select="revision"/> </dd>
+            <dt> release </dt> <dd> <xsl:value-of select="release"/> </dd>
             <dt> component </dt> <dd> <xsl:value-of select="component"/> </dd>
             <dt> module </dt> <dd> <xsl:value-of select="module"/> </dd>
             <dt> file </dt>

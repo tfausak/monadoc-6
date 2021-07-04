@@ -50,7 +50,7 @@ handler packageName release componentId moduleName context request = do
                 (ComponentId.tag componentId)
                 (maybe (from packageName) identity $ ComponentId.name componentId)
         maybe (throwM NotFound.new) pure maybeComponent
-    module_ <- do
+    _module <- do
         maybeModule <- Context.withConnection context $ \ connection ->
             Module.select connection (Model.key component) moduleName
         maybe (throwM NotFound.new) pure maybeModule
@@ -109,11 +109,9 @@ handler packageName release componentId moduleName context request = do
             }
         , Root.page = Xml.node "module" []
             [ Xml.node "package" [] [ToXml.toXml packageName]
-            , Xml.node "version" [] [ToXml.toXml version]
-            , Xml.node "revision" [] [ToXml.toXml revision]
+            , Xml.node "release" [] [ToXml.toXml release]
             , Xml.node "component" [] [ToXml.toXml $ into @String componentId]
             , Xml.node "module" [] [ToXml.toXml moduleName]
-            , Xml.node "key" [] [ToXml.toXml $ Model.key module_] -- TODO: Remove.
             , Xml.node "file" []
                 [ Xml.node "path" [] [ToXml.toXml maybeFile]
                 , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName Release.Release { Release.version, Release.revision = Just revision }) maybeFile]

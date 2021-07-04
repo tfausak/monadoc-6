@@ -13,7 +13,6 @@ import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
-import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml
@@ -34,13 +33,9 @@ handler context request = do
             [ Xml.node "packages" []
             . fmap (\ x -> Xml.node "package" []
                 [ Xml.node "name" [] [ToXml.toXml $ Package.name x]
-                , Xml.node "version" [] [ToXml.toXml $ Package.version x]
-                , Xml.node "revision" [] [ToXml.toXml $ Package.revision x]
+                , Xml.node "release" [] [ToXml.toXml $ Package.release x]
                 , Xml.node "route" []
-                    [ ToXml.toXml $ Route.Release (Package.name x) Release.Release
-                        { Release.version = Package.version x
-                        , Release.revision = Just $ Package.revision x
-                        }
+                    [ ToXml.toXml $ Route.Release (Package.name x) (Package.release x)
                     ]
                 , Xml.node "uploadedAt" [] [ToXml.toXml $ Package.uploadedAt x]
                 ])

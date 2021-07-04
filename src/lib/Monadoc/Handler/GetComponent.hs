@@ -134,9 +134,8 @@ handler packageName release componentId context request = do
                 }
             ]
         page = Xml.node "component" []
-            [ Xml.node "package" [] [ToXml.toXml . Package.name $ Model.value package]
-            , Xml.node "version" [] [ToXml.toXml . Package.version $ Model.value package]
-            , Xml.node "revision" [] [ToXml.toXml . Package.revision $ Model.value package]
+            [ Xml.node "package" [] [ToXml.toXml packageName]
+            , Xml.node "release" [] [ToXml.toXml release]
             , Xml.node "tag" [] [ToXml.toXml . Component.tag $ Model.value component]
             , Xml.node "name" [] [ToXml.toXml . Component.name $ Model.value component]
             , Xml.node "dependencies" []

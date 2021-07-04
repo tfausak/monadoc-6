@@ -14,6 +14,7 @@ import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.License as License
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
@@ -164,6 +165,12 @@ migrations =
     , Migration.new 2021 6 8 22 20 0
         "create index package_name on package (name)"
     ]
+
+release :: Package -> Release.Release
+release package = Release.Release
+    { Release.version = version package
+    , Release.revision = Just $ revision package
+    }
 
 insertOrUpdate :: Sql.Connection -> Package -> IO Key
 insertOrUpdate connection package = do
