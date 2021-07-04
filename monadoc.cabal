@@ -118,6 +118,8 @@ library
         Monadoc.Handler.GetVersion
         Monadoc.Handler.PostLogOut
         Monadoc.Handler.PostRevoke
+        Monadoc.Job.FetchDistribution
+        Monadoc.Job.FetchDistributions
         Monadoc.Job.UnpackDistribution
         Monadoc.Job.UnpackDistributions
         Monadoc.Main

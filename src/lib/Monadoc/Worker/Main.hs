@@ -8,8 +8,6 @@ import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Concurrent.STM as Stm
 import qualified Control.Monad as Monad
-import qualified Control.Monad.Catch as Exception
-import qualified Control.Retry as Retry
 import qualified Data.ByteString as ByteString
 import qualified Data.Fixed as Fixed
 import qualified Data.List.NonEmpty as NonEmpty
@@ -40,11 +38,11 @@ import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
+import qualified Monadoc.Job.FetchDistributions as FetchDistributions
 import qualified Monadoc.Job.UnpackDistributions as UnpackDistributions
 import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
-import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.LatestVersion as LatestVersion
@@ -82,7 +80,7 @@ run context = do
         Log.info "beginning worker loop"
         hackageIndex <- upsertHackageIndex context
         processHackageIndex context hackageIndex
-        fetchDistributions context
+        FetchDistributions.run context
         UnpackDistributions.run context
         -- TODO: Process distributions (in other words, parse Haskell modules).
         Log.info "finished worker loop"
@@ -483,49 +481,3 @@ toPackageDescription = Cabal.finalizePD
     (Cabal.Platform Cabal.X86_64 Cabal.Linux)
     (Cabal.unknownCompilerInfo (Cabal.CompilerId Cabal.GHC (Cabal.mkVersion [9, 0, 1])) Cabal.NoAbiTag)
     []
-
-fetchDistributions :: Context.Context -> IO ()
-fetchDistributions context = do
-    hashes <- Context.withConnection context Distribution.selectHashes
-    namesAndVersions <- Context.withConnection context Package.selectNamesAndVersions
-    traverse_ (fetchDistribution context hashes) namesAndVersions
-
-fetchDistribution
-    :: Context.Context
-    -> Map (PackageName.PackageName, Version.Version) Sha256.Sha256
-    -> (PackageName.PackageName, Version.Version)
-    -> IO ()
-fetchDistribution context hashes (package, version) =
-    case Map.lookup (package, version) hashes of
-        Just _ -> pure ()
-        Nothing -> do
-            let id = into @String package <> "-" <> into @String version
-            request <- Client.parseUrlThrow
-                $ Config.hackageUrl (Context.config context)
-                <> "/package/" <> id <> "/" <> id <> ".tar.gz"
-            response <- catch
-                (Retry.recovering
-                    Retry.retryPolicyDefault
-                    [always . Exception.Handler $ \ httpException -> pure $ case httpException of
-                        Client.HttpExceptionRequest _ Client.ResponseTimeout -> True
-                        _ -> False]
-                    . always $ Client.performRequest (Context.manager context) request)
-                (\ httpException -> case httpException of
-                    Client.HttpExceptionRequest _ (Client.StatusCodeException response _) ->
-                        case Http.statusCode $ Client.responseStatus response of
-                            410 -> pure response { Client.responseBody = Gzip.compress $ Tar.write [] }
-                            451 -> pure response { Client.responseBody = Gzip.compress $ Tar.write [] }
-                            _ -> throwM httpException
-                    _ -> throwM httpException)
-            Concurrent.threadDelay 1000000
-            let
-                blob = Blob.fromByteString . into @ByteString $ Client.responseBody response
-                distribution = Distribution.Distribution
-                    { Distribution.hash = Blob.hash blob
-                    , Distribution.package
-                    , Distribution.unpackedAt = Nothing
-                    , Distribution.version
-                    }
-            Context.withConnection context $ \ connection -> do
-                Blob.upsert connection blob
-                Distribution.upsert connection distribution
