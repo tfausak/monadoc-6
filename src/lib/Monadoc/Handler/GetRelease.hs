@@ -17,7 +17,6 @@ import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
-import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Xml as Xml
 
 import qualified Data.List as List
@@ -47,10 +46,9 @@ handler packageName release context request = do
     revision <- case Release.revision release of
         Just revision -> pure revision
         Nothing -> do
-            -- TODO: This can be done entirely in SQL.
-            packages <- Context.withConnection context $ \ connection ->
-                Package.selectByNameAndVersion connection packageName version
-            case Foldable.maximum $ fmap (Package.revision . Model.value) packages of
+            maybeRevision <- Context.withConnection context $ \ connection ->
+                Package.selectLatestRevision connection packageName version
+            case maybeRevision of
                 Nothing -> throwM NotFound.new
                 Just revision -> throwM
                     . Found.new

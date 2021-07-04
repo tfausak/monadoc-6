@@ -257,3 +257,14 @@ escapeLike = foldMap $ \ c -> case c of
 selectNamesAndVersions :: Sql.Connection -> IO [(PackageName.PackageName, Version.Version)]
 selectNamesAndVersions connection = Sql.query_ connection
     "select name, version from package group by name, version"
+
+selectLatestRevision
+    :: Sql.Connection
+    -> PackageName.PackageName
+    -> Version.Version
+    -> IO (Maybe Revision.Revision)
+selectLatestRevision connection name version = do
+    rows <- Sql.query connection
+        "select max(revision) from package where name = ? and version = ?"
+        (name, version)
+    pure . fmap Sql.fromOnly $ Maybe.listToMaybe rows
