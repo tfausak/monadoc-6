@@ -91,6 +91,7 @@ library
     exposed-modules:
         Monadoc
         Monadoc.Class.ToXml
+        Monadoc.Data.Migrations
         Monadoc.Exception.BadHackageIndexSize
         Monadoc.Exception.DuplicateHackageIndex
         Monadoc.Exception.Forbidden

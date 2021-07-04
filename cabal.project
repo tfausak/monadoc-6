@@ -31,12 +31,6 @@ source-repository-package
     tag: 76eb372b3c593ade7d30541bc8d0cf8716474e55
     type: git
 
--- https://github.com/TomMD/entropy/pull/60
-source-repository-package
-    location: https://github.com/l29ah/entropy
-    tag: 779594b9ff34164362c6549b7ebf61f4ed44fa66
-    type: git
-
 -- https://github.com/haskell/haddock/pull/1378
 source-repository-package
     location: https://github.com/haskell/haddock

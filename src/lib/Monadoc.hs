@@ -5,25 +5,11 @@ import Monadoc.Prelude
 import qualified Control.Concurrent.Async as Async
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
-import qualified Data.List as List
 import qualified Data.Pool as Pool
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified GHC.Conc as Ghc
-import qualified Monadoc.Model.Blob as Blob
-import qualified Monadoc.Model.Component as Component
-import qualified Monadoc.Model.Dependency as Dependency
-import qualified Monadoc.Model.Distribution as Distribution
-import qualified Monadoc.Model.File as File
-import qualified Monadoc.Model.HackageIndex as HackageIndex
-import qualified Monadoc.Model.HackageUser as HackageUser
-import qualified Monadoc.Model.LatestVersion as LatestVersion
+import qualified Monadoc.Data.Migrations as Migrations
 import qualified Monadoc.Model.Migration as Migration
-import qualified Monadoc.Model.Module as Module
-import qualified Monadoc.Model.Package as Package
-import qualified Monadoc.Model.PreferredVersions as PreferredVersions
-import qualified Monadoc.Model.Session as Session
-import qualified Monadoc.Model.SourceRepository as SourceRepository
-import qualified Monadoc.Model.User as User
 import qualified Monadoc.Server.Main as Server
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.Config as Config
@@ -51,7 +37,7 @@ mainWith name arguments = do
     Context.withConnection context $ \ connection -> do
         enableWriteAheadLog connection
         Migration.createTable connection
-        Migration.runAll connection migrations
+        Migration.runAll connection Migrations.migrations
     Exception.onException
         (Async.race_ (Server.run context) (Worker.run context))
         . Pool.destroyAllResources $ Context.pool context
@@ -90,21 +76,3 @@ getContext name arguments = do
 
 enableWriteAheadLog :: Sql.Connection -> IO ()
 enableWriteAheadLog c = Sql.execute_ c "pragma journal_mode = wal"
-
-migrations :: [Migration.Migration]
-migrations = List.sortOn Migration.time $ mconcat
-    [ Blob.migrations
-    , Component.migrations
-    , Dependency.migrations
-    , Distribution.migrations
-    , File.migrations
-    , HackageIndex.migrations
-    , HackageUser.migrations
-    , LatestVersion.migrations
-    , Module.migrations
-    , Package.migrations
-    , PreferredVersions.migrations
-    , Session.migrations
-    , SourceRepository.migrations
-    , User.migrations
-    ]
