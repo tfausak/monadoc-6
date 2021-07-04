@@ -14,7 +14,6 @@ import qualified Data.ByteString as ByteString
 import qualified Data.Fixed as Fixed
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
-import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import qualified Data.Time as Time
 import qualified Data.Time.Clock.POSIX as Time
@@ -40,13 +39,12 @@ import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Exception.Mismatch as Mismatch
-import qualified Monadoc.Exception.MissingBlob as MissingBlob
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
+import qualified Monadoc.Job.UnpackDistributions as UnpackDistributions
 import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Dependency as Dependency
 import qualified Monadoc.Model.Distribution as Distribution
-import qualified Monadoc.Model.File as File
 import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Model.HackageUser as HackageUser
 import qualified Monadoc.Model.LatestVersion as LatestVersion
@@ -75,7 +73,6 @@ import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Vendor.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified System.FilePath as FilePath
-import qualified System.FilePath.Posix as FilePath.Posix
 import qualified Text.Read as Read
 
 run :: Context.Context -> IO ()
@@ -86,7 +83,7 @@ run context = do
         hackageIndex <- upsertHackageIndex context
         processHackageIndex context hackageIndex
         fetchDistributions context
-        unpackDistributions context
+        UnpackDistributions.run context
         -- TODO: Process distributions (in other words, parse Haskell modules).
         Log.info "finished worker loop"
         Concurrent.threadDelay 60000000
@@ -532,88 +529,3 @@ fetchDistribution context hashes (package, version) =
             Context.withConnection context $ \ connection -> do
                 Blob.upsert connection blob
                 Distribution.upsert connection distribution
-
-unpackDistributions :: Context.Context -> IO ()
-unpackDistributions context = do
-    distributions <- Context.withConnection context Distribution.selectUnpacked
-    traverse_ (unpackDistribution context) distributions
-
-unpackDistribution :: Context.Context -> Distribution.Model -> IO ()
-unpackDistribution context distribution = do
-    let hash = Distribution.hash $ Model.value distribution
-    maybeBlob <- Context.withConnection context $ \ connection ->
-        Blob.selectByHash connection hash
-    blob <- case maybeBlob of
-        Nothing -> throwM $ MissingBlob.new hash
-        Just blob -> pure blob
-    pathVar <- Stm.newEmptyTMVarIO
-    blob
-        & Model.value
-        & Blob.contents
-        & into @LazyByteString
-        & Gzip.decompress
-        & Tar.read
-        & Tar.foldEntries ((:) . Right) [] (pure . Left)
-        & traverse_ (unpackDistributionItem context (Model.key distribution) pathVar)
-    now <- Time.getCurrentTime
-    Context.withConnection context $ \ connection ->
-        Distribution.updateUnpackedAt connection (Model.key distribution) (Just now)
-
-unpackDistributionItem
-    :: Context.Context
-    -> Distribution.Key
-    -> Stm.TMVar FilePath
-    -> Either Tar.FormatError Tar.Entry
-    -> IO ()
-unpackDistributionItem context distribution pathVar item = case item of
-    Left formatError -> case formatError of
-        Tar.ShortTrailer ->
-            -- Hackage itself ignores this error in many places. See
-            -- <https://github.com/haskell/hackage-server/issues/851>.
-            pure ()
-        _ ->
-            throwM formatError
-    Right entry -> case Tar.entryContent entry of
-        Tar.Directory ->
-            -- We only care about files, so we can safely ignore directories.
-            pure ()
-        Tar.OtherEntryType '5' _ _ ->
-            -- DIRTYPE: These are also directories.
-            pure ()
-        Tar.OtherEntryType 'g' _ _ ->
-            -- XGLTYPE: These @pax\_global\_header@ files can be ignored. See
-            -- <https://github.com/haskell/hackage-server/pull/190>.
-            pure ()
-        Tar.OtherEntryType 'x' _ _ ->
-            -- XHDTYPE: These extended attributes can be ignored. See
-            -- <https://github.com/haskell/hackage-server/issues/858>.
-            pure ()
-        Tar.SymbolicLink _ ->
-            -- No symbolic links appear to be necessary for our purposes. See
-            -- <https://github.com/haskell/hackage-server/issues/858>.
-            pure ()
-        Tar.HardLink _ ->
-            -- Similarly, hard links appear to be unnecessary. See
-            -- <https://github.com/haskell/hackage-server/issues/858>.
-            pure ()
-        Tar.OtherEntryType 'L' contents _ -> do
-            path <- either throwM pure $ tryInto @String contents
-            succeeded <- Stm.atomically $ Stm.tryPutTMVar pathVar path
-            unless succeeded . throwM $ UnexpectedTarEntry.new entry
-        Tar.NormalFile contents _ -> do
-            maybePath <- Stm.atomically $ Stm.tryTakeTMVar pathVar
-            let
-                path = normalizeFilePath $ Maybe.fromMaybe (Tar.entryPath entry) maybePath
-                blob = Blob.fromByteString $ into @ByteString contents
-                file = File.File { File.distribution, File.hash = Blob.hash blob, File.path }
-            Context.withConnection context $ \ connection -> do
-                Blob.upsert connection blob
-                File.upsert connection file
-        _ -> throwM $ UnexpectedTarEntry.new entry
-
--- Note that on Windows, tar entries have Windows-style paths:
---
--- - Windows: base\4.15.0.0\base.cabal
--- - Unix: base/4.15.0.0/base.cabal
-normalizeFilePath :: FilePath -> FilePath
-normalizeFilePath = FilePath.Posix.joinPath . FilePath.splitDirectories
