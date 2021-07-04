@@ -13,13 +13,13 @@ import qualified Monadoc.Utility.Log as Log
 
 run :: Context.Context -> IO ()
 run context = do
-    Log.info "starting worker"
+    Log.info "[worker] initializing"
     Monad.forever $ do
-        Log.info "beginning worker loop"
+        Log.info "[worker] starting loop"
         hackageIndex <- UpsertHackageIndex.run context
         ProcessHackageIndex.run context hackageIndex
         FetchDistributions.run context
         UnpackDistributions.run context
         -- TODO: Process distributions (in other words, parse Haskell modules).
-        Log.info "finished worker loop"
+        Log.info "[worker] finished loop"
         Concurrent.threadDelay 60000000

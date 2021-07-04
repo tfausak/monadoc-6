@@ -28,7 +28,7 @@ fromConfig config = Warp.defaultSettings
     & Warp.setServerName serverName
 
 beforeMainLoop :: Config.Config -> IO ()
-beforeMainLoop config = Log.info $ "[http-server] listening on port " <> show (Config.port config)
+beforeMainLoop config = Log.info $ "[server] listening on port " <> show (Config.port config)
 
 onException :: Maybe Wai.Request -> SomeException -> IO ()
 onException maybeRequest (SomeException e) = Log.warn $ Printf.printf

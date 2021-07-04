@@ -12,7 +12,7 @@ import qualified Monadoc.Vendor.Client as Client
 
 run :: Context.Context -> IO HackageIndex.HackageIndex
 run context = do
-    Log.info "requesting initial Hackage index"
+    Log.info "[worker] getting initial hackage index"
     request <- Client.parseUrlThrow $ Config.hackageUrl (Context.config context) <> "/01-index.tar.gz"
     response <- Client.performRequest (Context.manager context) request
     let
@@ -21,7 +21,7 @@ run context = do
             & into @ByteString
         size = ByteString.length contents
         hackageIndex = HackageIndex.HackageIndex { HackageIndex.contents, HackageIndex.size }
-    Log.info $ "got initial Hackage index (size: " <> show size <> " bytes)"
+    Log.info $ "[worker] got initial hackage index (" <> show size <> ")"
     Context.withConnection context $ \ connection ->
         HackageIndex.insert connection hackageIndex
     pure hackageIndex

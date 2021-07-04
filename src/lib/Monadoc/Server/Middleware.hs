@@ -31,7 +31,7 @@ logRequests f request respond = do
         method <- either throwM pure . tryInto @Text $ Wai.requestMethod request
         path <- either throwM pure . tryInto @Text $ Wai.rawPathInfo request
         query <- either throwM pure . tryInto @Text $ Wai.rawQueryString request
-        Log.info $ Printf.printf "[http-server/%04x] %s %s%s %d %.3f"
+        Log.info $ Printf.printf "[server/%04x] %s %s%s %d %.3f"
             (maybe 0 (into @Word16) $ RequestId.get request)
             method
             path

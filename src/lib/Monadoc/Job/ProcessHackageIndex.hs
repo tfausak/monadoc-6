@@ -65,7 +65,7 @@ import qualified System.FilePath as FilePath
 
 run :: Context.Context -> HackageIndex.HackageIndex -> IO ()
 run context hackageIndex = do
-    Log.info "processing Hackage index"
+    Log.info "[worker] processing hackage index"
     revisionsVar <- Stm.newTVarIO Map.empty
     preferredVersionsVar <- Stm.newTVarIO Map.empty
     hashes <- Context.withConnection context Package.selectHashes
@@ -162,13 +162,14 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
     let hash = Sha256.hash contents
     when (maybeHash /= Just hash) $ do
         Log.info
-            $ into @String hash
-            <> " "
+            $ "[worker] "
             <> into @String packageName
             <> " "
             <> into @String version
             <> " "
             <> show (into @Word revision)
+            <> " "
+            <> into @String hash
         case Cabal.parseGenericPackageDescriptionMaybe contents of
             Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
             Just gpd -> do

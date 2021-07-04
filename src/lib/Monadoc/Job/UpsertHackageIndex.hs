@@ -10,7 +10,7 @@ import qualified Monadoc.Utility.Log as Log
 
 run :: Context.Context -> IO HackageIndex.HackageIndex
 run context = do
-    Log.info "refreshing Hackage index"
+    Log.info "[worker] refreshing hackage index"
     maybeHackageIndex <- Context.withConnection context HackageIndex.select
     case maybeHackageIndex of
         Nothing -> InsertHackageIndex.run context

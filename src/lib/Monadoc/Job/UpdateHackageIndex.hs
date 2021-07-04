@@ -18,7 +18,7 @@ run context model = do
     let
         oldHackageIndex = Model.value model
         oldSize = HackageIndex.size oldHackageIndex
-    Log.info $ "requesting new Hackage index size (old size: " <> show oldSize <> " bytes)"
+    Log.info $ "[worker] checking for new hackage index (" <> show oldSize <> ")"
     request <- Client.parseUrlThrow $ Config.hackageUrl (Context.config context) <> "/01-index.tar"
     headResponse <- Client.performRequest (Context.manager context)
         request { Client.method = Http.methodHead }
@@ -32,19 +32,18 @@ run context model = do
         Just newSize
             | newSize < oldSize -> throwM $ BadHackageIndexSize.new oldSize maybeNewSize
             | newSize == oldSize -> do
-                Log.info "Hackage index has not changed"
+                Log.info "[worker] hackage index has not changed"
                 pure oldHackageIndex
             | otherwise -> do
-                Log.info $ "got new Hackage index size: " <> show newSize <> " bytes"
                 let
                     delta = newSize - oldSize
                     start = oldSize - HackageIndex.offset
                     end = newSize - 1
                     range = into @ByteString $ "bytes=" <> show start <> "-" <> show end
-                Log.info $ "requesting " <> show delta <> " bytes of new Hackage index"
+                Log.info $ "[worker] getting new hackage index (" <> show delta <> ")"
                 rangeResponse <- Client.performRequest (Context.manager context)
                     request { Client.requestHeaders = (Http.hRange, range) : Client.requestHeaders request }
-                Log.info "got new Hackage index"
+                Log.info "[worker] got new hackage index"
                 let
                     before = ByteString.take start $ HackageIndex.contents oldHackageIndex
                     after = into @ByteString $ Client.responseBody rangeResponse

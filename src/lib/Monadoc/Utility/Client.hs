@@ -21,7 +21,7 @@ performRequest manager request = do
     response <- Client.httpLbs request { Client.requestHeaders = newHeaders } manager
     after <- Clock.getMonotonicTime
     method <- either throwM pure . tryInto @Text $ Client.method request
-    Log.info $ Printf.printf "[http-client/%04x] %s %s %d %.3f"
+    Log.info $ Printf.printf "[client/%04x] %s %s %d %.3f"
         (into @Word16 requestId)
         method
         (Uri.uriToString identity (Client.getUri request) "")
