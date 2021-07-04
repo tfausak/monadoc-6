@@ -54,7 +54,7 @@ getHandler request = do
         (Http.GET, Route.HealthCheck) -> Just GetHealthCheck.handler
         (Http.GET, Route.AppleTouchIcon) -> Just $ fileHandler "monadoc.png" "image/png"
         (Http.GET, Route.File packageName release path) -> Just $ GetFile.handler packageName release path
-        (Http.GET, Route.Module p v r c m) -> Just $ GetModule.handler p v r c m
+        (Http.GET, Route.Module p r c m) -> Just $ GetModule.handler p r c m
         (Http.GET, Route.Release p r) -> Just $ GetRelease.handler p r
         _ -> Nothing
 

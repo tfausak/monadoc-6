@@ -25,20 +25,20 @@ import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
-import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
 import qualified System.FilePath.Posix as FilePath.Posix
 
 handler
     :: PackageName.PackageName
-    -> Version.Version
-    -> Revision.Revision
+    -> Release.Release
     -> ComponentId.ComponentId
     -> ModuleName.ModuleName
     -> Handler.Handler
-handler packageName version revision componentId moduleName context request = do
+handler packageName release componentId moduleName context request = do
+    let version = Release.version release
+    revision <- maybe (throwM NotFound.new) pure $ Release.revision release
     maybeUser <- Common.getUser context request
-    let route = Route.Module packageName version revision componentId moduleName
+    let route = Route.Module packageName release componentId moduleName
     package <- do
         maybePackage <- Context.withConnection context $ \ connection ->
             Package.select connection packageName version revision

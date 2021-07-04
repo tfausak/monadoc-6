@@ -8,8 +8,6 @@ import qualified Monadoc.Type.ComponentId as ComponentId
 import qualified Monadoc.Type.ModuleName as ModuleName
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Release as Release
-import qualified Monadoc.Type.Revision as Revision
-import qualified Monadoc.Type.Version as Version
 import qualified Network.HTTP.Types as Http
 
 data Route
@@ -32,8 +30,7 @@ data Route
     | Logo
     | Module
         PackageName.PackageName
-        Version.Version
-        Revision.Revision
+        Release.Release
         ComponentId.ComponentId
         ModuleName.ModuleName
     | Package
@@ -76,10 +73,9 @@ parse path query = case path of
         <$> hush (tryInto @PackageName.PackageName p)
         <*> hush (tryInto @Release.Release r)
         <*> getPath query
-    ["package", p, "version", v, "revision", r, "component", c, "module", m] -> Module
+    ["package", p, "release", r, "component", c, "module", m] -> Module
         <$> hush (tryInto @PackageName.PackageName p)
-        <*> hush (tryInto @Version.Version v)
-        <*> hush (tryInto @Revision.Revision r)
+        <*> hush (tryInto @Release.Release r)
         <*> hush (tryInto @ComponentId.ComponentId c)
         <*> hush (tryInto @ModuleName.ModuleName m)
     ["package", p, "release", r] -> Release
@@ -118,7 +114,7 @@ render route = case route of
     Index -> ([], [])
     LogOut -> (["account", "log-out"], [])
     Logo -> (["static", "monadoc.svg"], [])
-    Module p v r c m -> (["package", into @String p, "version", into @String v, "revision", into @String r, "component", into @String c, "module", into @String m], [])
+    Module p r c m -> (["package", into @String p, "release", into @String r, "component", into @String c, "module", into @String m], [])
     Package p -> (["package", into @String p], [])
     Release p r -> (["package", into @String p, "release", into @String r], [])
     Revoke -> (["account", "revoke"], [])

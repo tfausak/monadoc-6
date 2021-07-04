@@ -159,7 +159,7 @@ handler packageName release componentId context request = do
             , Xml.node "modules" []
             . fmap (\ x -> Xml.node "module" []
                 [ Xml.node "name" [] [ToXml.toXml $ Module.name x]
-                , Xml.node "route" [] [ToXml.toXml $ Route.Module packageName version revision componentId (Module.name x)]
+                , Xml.node "route" [] [ToXml.toXml $ Route.Module packageName release componentId (Module.name x)]
                 ])
             . List.sortOn (CI.mk . into @String . Module.name)
             $ fmap Model.value modules
