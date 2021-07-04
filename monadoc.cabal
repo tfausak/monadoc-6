@@ -118,6 +118,7 @@ library
         Monadoc.Handler.GetVersion
         Monadoc.Handler.PostLogOut
         Monadoc.Handler.PostRevoke
+        Monadoc.Main
         Monadoc.Model.Blob
         Monadoc.Model.Component
         Monadoc.Model.Dependency
