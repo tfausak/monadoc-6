@@ -12,6 +12,7 @@ import qualified Monadoc.Handler.GetHealthCheck as GetHealthCheck
 import qualified Monadoc.Handler.GetIndex as GetIndex
 import qualified Monadoc.Handler.GetModule as GetModule
 import qualified Monadoc.Handler.GetPackage as GetPackage
+import qualified Monadoc.Handler.GetRelease as GetRelease
 import qualified Monadoc.Handler.GetRevision as GetRevision
 import qualified Monadoc.Handler.GetSearch as GetSearch
 import qualified Monadoc.Handler.GetVersion as GetVersion
@@ -58,6 +59,7 @@ getHandler request = do
         (Http.GET, Route.AppleTouchIcon) -> Just $ fileHandler "monadoc.png" "image/png"
         (Http.GET, Route.File packageName version path) -> Just $ GetFile.handler packageName version path
         (Http.GET, Route.Module p v r c m) -> Just $ GetModule.handler p v r c m
+        (Http.GET, Route.Release p r) -> Just $ GetRelease.handler p r
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod

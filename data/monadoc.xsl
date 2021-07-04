@@ -420,4 +420,11 @@
             </dd>
         </dl>
     </xsl:template>
+
+    <xsl:template match="release">
+        <dl>
+            <dt> package </dt> <dd> <xsl:value-of select="package"/> </dd>
+            <dt> release </dt> <dd> <xsl:value-of select="release"/> </dd>
+        </dl>
+    </xsl:template>
 </xsl:stylesheet>

@@ -7,6 +7,7 @@ import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.ComponentId as ComponentId
 import qualified Monadoc.Type.ModuleName as ModuleName
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Version as Version
 import qualified Network.HTTP.Types as Http
@@ -30,6 +31,9 @@ data Route
         ComponentId.ComponentId
         ModuleName.ModuleName
     | Package PackageName.PackageName
+    | Release
+        PackageName.PackageName
+        Release.Release
     | Revision PackageName.PackageName Version.Version Revision.Revision
     | Revoke
     | Robots
@@ -80,6 +84,9 @@ parse path query = case path of
         <*> hush (tryInto @Revision.Revision r)
         <*> hush (tryInto @ComponentId.ComponentId c)
         <*> hush (tryInto @ModuleName.ModuleName m)
+    ["package", p, "release", r] -> Release
+        <$> hush (tryInto @PackageName.PackageName p)
+        <*> hush (tryInto @Release.Release r)
     _ -> Nothing
 
 getPath :: Http.Query -> Maybe FilePath
@@ -115,6 +122,7 @@ render route = case route of
     Logo -> (["static", "monadoc.svg"], [])
     Module p v r c m -> (["package", into @String p, "version", into @String v, "revision", into @String r, "component", into @String c, "module", into @String m], [])
     Package packageName -> (["package", into @String packageName], [])
+    Release p r -> (["package", into @String p, "release", into @String r], [])
     Revision packageName version revision -> (["package", into @String packageName, "version", into @String version, "revision", into @String revision], [])
     Revoke -> (["account", "revoke"], [])
     Robots -> (["robots.txt"], [])
