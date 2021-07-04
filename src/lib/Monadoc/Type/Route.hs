@@ -63,22 +63,22 @@ parse path query = case path of
     ["account"] -> Just Account
     ["account", "log-out"] -> Just LogOut
     ["account", "revoke"] -> Just Revoke
-    ["package", p, "release", r, "component", c] -> Component
+    ["package", p, "version", r, "component", c] -> Component
         <$> hush (tryInto @PackageName.PackageName p)
         <*> hush (tryInto @Release.Release r)
         <*> hush (tryInto @ComponentId.ComponentId c)
     ["health-check"] -> Just HealthCheck
     ["apple-touch-icon.png"] -> Just AppleTouchIcon
-    ["package", p, "release", r, "file"] -> File
+    ["package", p, "version", r, "file"] -> File
         <$> hush (tryInto @PackageName.PackageName p)
         <*> hush (tryInto @Release.Release r)
         <*> getPath query
-    ["package", p, "release", r, "component", c, "module", m] -> Module
+    ["package", p, "version", r, "component", c, "module", m] -> Module
         <$> hush (tryInto @PackageName.PackageName p)
         <*> hush (tryInto @Release.Release r)
         <*> hush (tryInto @ComponentId.ComponentId c)
         <*> hush (tryInto @ModuleName.ModuleName m)
-    ["package", p, "release", r] -> Release
+    ["package", p, "version", r] -> Release
         <$> hush (tryInto @PackageName.PackageName p)
         <*> hush (tryInto @Release.Release r)
     _ -> Nothing
@@ -107,16 +107,16 @@ render route = case route of
     AppleTouchIcon -> (["apple-touch-icon.png"], [])
     Bootstrap -> (["static", "bootstrap.css"], [])
     Callback -> (["account", "callback"], [])
-    Component p r c -> (["package", into @String p, "release", into @String r, "component", into @String c], [])
+    Component p r c -> (["package", into @String p, "version", into @String r, "component", into @String c], [])
     Favicon -> (["favicon.ico"], [])
-    File p r path -> (["package", into @String p, "release", into @String r, "file"], [(into @ByteString "path", Just $ into @ByteString path)])
+    File p r path -> (["package", into @String p, "version", into @String r, "file"], [(into @ByteString "path", Just $ into @ByteString path)])
     HealthCheck -> (["health-check"], [])
     Index -> ([], [])
     LogOut -> (["account", "log-out"], [])
     Logo -> (["static", "monadoc.svg"], [])
-    Module p r c m -> (["package", into @String p, "release", into @String r, "component", into @String c, "module", into @String m], [])
+    Module p r c m -> (["package", into @String p, "version", into @String r, "component", into @String c, "module", into @String m], [])
     Package p -> (["package", into @String p], [])
-    Release p r -> (["package", into @String p, "release", into @String r], [])
+    Release p r -> (["package", into @String p, "version", into @String r], [])
     Revoke -> (["account", "revoke"], [])
     Robots -> (["robots.txt"], [])
     Search maybeQuery -> (["search"], maybe [] (\ query -> [(into @ByteString "query", Just $ into @ByteString query)]) maybeQuery)
