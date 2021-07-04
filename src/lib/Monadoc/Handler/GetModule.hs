@@ -99,7 +99,7 @@ handler packageName version revision componentId moduleName context request = do
                     }
                 , Breadcrumb.Breadcrumb
                     { Breadcrumb.name = into @String componentId
-                    , Breadcrumb.route = Just $ Route.Component packageName version revision componentId
+                    , Breadcrumb.route = Just $ Route.Component packageName Release.Release { Release.version, Release.revision = Just revision } componentId
                     }
                 , Breadcrumb.Breadcrumb
                     { Breadcrumb.name = into @String moduleName

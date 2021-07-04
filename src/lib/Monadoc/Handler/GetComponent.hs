@@ -30,7 +30,6 @@ import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
-import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Monadoc.Vendor.Sql as Sql
@@ -39,11 +38,10 @@ import qualified Monadoc.Vendor.Sql as Sql
 
 handler
     :: PackageName.PackageName
-    -> Version.Version
-    -> Revision.Revision
+    -> Release.Release
     -> ComponentId.ComponentId
     -> Handler.Handler
-handler packageName version revision componentId context request = do
+handler packageName release componentId context request = do
     let
         config = Context.config context
         baseUrl = Config.baseUrl config
@@ -51,10 +49,14 @@ handler packageName version revision componentId context request = do
         isLibrary = componentTag == ComponentTag.Library
         maybeComponentName = ComponentId.name componentId
         namesMatch = maybeComponentName == Just (into @ComponentName.ComponentName packageName)
+        version = Release.version release
+
+    -- TODO: Redirect to the latest release?
+    revision <- maybe (throwM NotFound.new) pure $ Release.revision release
 
     -- Redirect foo:lib:foo to foo:lib.
     when (isLibrary && namesMatch) . throwM . Found.new $ baseUrl <> Route.toString
-        (Route.Component packageName version revision $ ComponentId.ComponentId componentTag Nothing)
+        (Route.Component packageName release $ ComponentId.ComponentId componentTag Nothing)
 
     maybeUser <- Common.getUser context request
     maybePackage <- Context.withConnection context $ \ connection ->
@@ -72,7 +74,7 @@ handler packageName version revision componentId context request = do
             -- Redirect foo:exe to foo:exe:bar when there is only one
             -- executable. Same for all component types except library.
             [component] -> throwM . Found.new $ baseUrl <> Route.toString
-                ( Route.Component packageName version revision
+                ( Route.Component packageName release
                 . ComponentId.ComponentId componentTag
                 . Just
                 . Component.name
@@ -113,7 +115,7 @@ handler packageName version revision componentId context request = do
         else pure []
 
     let
-        route = Route.Component packageName version revision componentId
+        route = Route.Component packageName release componentId
         breadcrumbs =
             [ Breadcrumb.Breadcrumb
                 { Breadcrumb.name = "Home"
@@ -125,10 +127,7 @@ handler packageName version revision componentId context request = do
                 }
             , Breadcrumb.Breadcrumb
                 { Breadcrumb.name = into @String version <> if revision == Revision.zero then "" else "-" <> into @String revision
-                , Breadcrumb.route = Just $ Route.Release packageName Release.Release
-                    { Release.version
-                    , Release.revision = Just revision
-                    }
+                , Breadcrumb.route = Just $ Route.Release packageName release
                 }
             , Breadcrumb.Breadcrumb
                 { Breadcrumb.name = into @String componentId

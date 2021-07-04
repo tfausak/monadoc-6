@@ -50,7 +50,7 @@ getHandler request = do
         (Http.GET, Route.Account) -> Just GetAccount.handler
         (Http.POST, Route.LogOut) -> Just PostLogOut.handler
         (Http.POST, Route.Revoke) -> Just PostRevoke.handler
-        (Http.GET, Route.Component packageName version revision componentId) -> Just $ GetComponent.handler packageName version revision componentId
+        (Http.GET, Route.Component packageName release componentId) -> Just $ GetComponent.handler packageName release componentId
         (Http.GET, Route.HealthCheck) -> Just GetHealthCheck.handler
         (Http.GET, Route.AppleTouchIcon) -> Just $ fileHandler "monadoc.png" "image/png"
         (Http.GET, Route.File packageName release path) -> Just $ GetFile.handler packageName release path

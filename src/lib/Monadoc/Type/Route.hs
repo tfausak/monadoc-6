@@ -19,8 +19,7 @@ data Route
     | Callback
     | Component
         PackageName.PackageName
-        Version.Version
-        Revision.Revision
+        Release.Release
         ComponentId.ComponentId
     | Favicon
     | File
@@ -67,10 +66,9 @@ parse path query = case path of
     ["account"] -> Just Account
     ["account", "log-out"] -> Just LogOut
     ["account", "revoke"] -> Just Revoke
-    ["package", p, "version", v, "revision", r, "component", c] -> Component
+    ["package", p, "release", r, "component", c] -> Component
         <$> hush (tryInto @PackageName.PackageName p)
-        <*> hush (tryInto @Version.Version v)
-        <*> hush (tryInto @Revision.Revision r)
+        <*> hush (tryInto @Release.Release r)
         <*> hush (tryInto @ComponentId.ComponentId c)
     ["health-check"] -> Just HealthCheck
     ["apple-touch-icon.png"] -> Just AppleTouchIcon
@@ -113,7 +111,7 @@ render route = case route of
     AppleTouchIcon -> (["apple-touch-icon.png"], [])
     Bootstrap -> (["static", "bootstrap.css"], [])
     Callback -> (["account", "callback"], [])
-    Component p v r c -> (["package", into @String p, "version", into @String v, "revision", into @String r, "component", into @String c], [])
+    Component p r c -> (["package", into @String p, "release", into @String r, "component", into @String c], [])
     Favicon -> (["favicon.ico"], [])
     File p r path -> (["package", into @String p, "release", into @String r, "file"], [(into @ByteString "path", Just $ into @ByteString path)])
     HealthCheck -> (["health-check"], [])

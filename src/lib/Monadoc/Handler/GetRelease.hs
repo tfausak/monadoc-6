@@ -47,6 +47,7 @@ handler packageName release context request = do
     revision <- case Release.revision release of
         Just revision -> pure revision
         Nothing -> do
+            -- TODO: This can be done entirely in SQL.
             packages <- Context.withConnection context $ \ connection ->
                 Package.selectByNameAndVersion connection packageName version
             case Foldable.maximum $ fmap (Package.revision . Model.value) packages of
@@ -191,7 +192,7 @@ componentRoute package component =
         revision = Package.revision package
         tag = Component.tag component
         componentId = ComponentId.ComponentId tag $ componentName package component
-    in Route.Component name version revision componentId
+    in Route.Component name Release.Release { Release.version, Release.revision = Just revision } componentId
 
 parsedDescription :: Package.Package -> Haddock.DocH Void String
 parsedDescription = Haddock.toRegular
