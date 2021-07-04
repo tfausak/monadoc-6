@@ -17,9 +17,16 @@ data Route
     | AppleTouchIcon
     | Bootstrap
     | Callback
-    | Component PackageName.PackageName Version.Version Revision.Revision ComponentId.ComponentId
+    | Component
+        PackageName.PackageName
+        Version.Version
+        Revision.Revision
+        ComponentId.ComponentId
     | Favicon
-    | File PackageName.PackageName Version.Version FilePath
+    | File
+        PackageName.PackageName
+        Version.Version
+        FilePath
     | HealthCheck
     | Index
     | LogOut
@@ -30,16 +37,23 @@ data Route
         Revision.Revision
         ComponentId.ComponentId
         ModuleName.ModuleName
-    | Package PackageName.PackageName
+    | Package
+        PackageName.PackageName
     | Release
         PackageName.PackageName
         Release.Release
-    | Revision PackageName.PackageName Version.Version Revision.Revision
+    | Revision
+        PackageName.PackageName
+        Version.Version
+        Revision.Revision
     | Revoke
     | Robots
-    | Search (Maybe String)
+    | Search
+        (Maybe String)
     | Template
-    | Version PackageName.PackageName Version.Version
+    | Version
+        PackageName.PackageName
+        Version.Version
     deriving (Eq, Show)
 
 instance ToXml.ToXml Route where
