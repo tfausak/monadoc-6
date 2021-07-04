@@ -91,7 +91,7 @@ handler packageName release context request = do
                 , Breadcrumb.route = Just $ Route.Package packageName
                 }
             , Breadcrumb.Breadcrumb
-                { Breadcrumb.name = into @String version <> if revision == Revision.zero then "" else "-" <> into @String revision
+                { Breadcrumb.name = into @String release
                 , Breadcrumb.route = Nothing
                 }
             ]

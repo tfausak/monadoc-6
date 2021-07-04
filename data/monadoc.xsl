@@ -107,10 +107,8 @@
                         <xsl:value-of select="normalize-space(name)"/>
                         <xsl:text>-</xsl:text>
                         <xsl:value-of select="normalize-space(version)"/>
-                        <xsl:if test="$revision != 0">
-                            <xsl:text>-</xsl:text>
-                            <xsl:value-of select="$revision"/>
-                        </xsl:if>
+                        <xsl:text>-</xsl:text>
+                        <xsl:value-of select="$revision"/>
                     </a>
                 </li>
             </xsl:for-each>
@@ -137,10 +135,8 @@
             <div class="alert alert-warning">
                 Version
                 <xsl:value-of select="$version"/>
-                <xsl:if test="$revision != 0">
-                    <xsl:text>-</xsl:text>
-                    <xsl:value-of select="$revision"/>
-                </xsl:if>
+                <xsl:text>-</xsl:text>
+                <xsl:value-of select="$revision"/>
                 of
                 <xsl:value-of select="$name"/>
                 is out of date.
@@ -154,10 +150,8 @@
                     The latest version is
                     <a href="{$baseUrl}{$latestRoute}">
                         <xsl:value-of select="$latestVersion"/>
-                        <xsl:if test="$latestRevision != 0">
-                            <xsl:text>-</xsl:text>
-                            <xsl:value-of select="$latestRevision"/>
-                        </xsl:if>
+                        <xsl:text>-</xsl:text>
+                        <xsl:value-of select="$latestRevision"/>
                     </a>.
                 </xsl:if>
             </div>
@@ -167,10 +161,8 @@
             <xsl:text> </xsl:text>
             <small class="text-muted">
                 <xsl:value-of select="$version"/>
-                <xsl:if test="$revision != 0">
-                    <xsl:text>-</xsl:text>
-                    <xsl:value-of select="$revision"/>
-                </xsl:if>
+                <xsl:text>-</xsl:text>
+                <xsl:value-of select="$revision"/>
             </small>
         </h2>
         <p>
@@ -277,10 +269,8 @@
                     <xsl:text>: </xsl:text>
                     <a class="{$class}" href="{$baseUrl}{normalize-space(route)}" title="{$title}">
                         <xsl:value-of select="$versionNumber"/>
-                        <xsl:if test="$versionRevision != 0">
-                            <xsl:text>-</xsl:text>
-                            <xsl:value-of select="$versionRevision"/>
-                        </xsl:if>
+                        <xsl:text>-</xsl:text>
+                        <xsl:value-of select="$versionRevision"/>
                     </a>
                 </li>
             </xsl:for-each>
