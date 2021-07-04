@@ -91,14 +91,11 @@ handler packageName release componentId moduleName context request = do
                     }
                 , Breadcrumb.Breadcrumb
                     { Breadcrumb.name = into @String release
-                    , Breadcrumb.route = Just $ Route.Release packageName Release.Release
-                        { Release.version
-                        , Release.revision = Just revision
-                        }
+                    , Breadcrumb.route = Just $ Route.Release packageName release
                     }
                 , Breadcrumb.Breadcrumb
                     { Breadcrumb.name = into @String componentId
-                    , Breadcrumb.route = Just $ Route.Component packageName Release.Release { Release.version, Release.revision = Just revision } componentId
+                    , Breadcrumb.route = Just $ Route.Component packageName release componentId
                     }
                 , Breadcrumb.Breadcrumb
                     { Breadcrumb.name = into @String moduleName
@@ -114,7 +111,7 @@ handler packageName release componentId moduleName context request = do
             , Xml.node "module" [] [ToXml.toXml moduleName]
             , Xml.node "file" []
                 [ Xml.node "path" [] [ToXml.toXml maybeFile]
-                , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName Release.Release { Release.version, Release.revision = Just revision }) maybeFile]
+                , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName release) maybeFile]
                 ]
             ]
         }

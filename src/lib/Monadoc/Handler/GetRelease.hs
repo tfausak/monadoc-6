@@ -131,7 +131,7 @@ handler packageName release context request = do
                 , Xml.node "number" [] [ToXml.toXml $ Package.version x]
                 , Xml.node "preferred" [] [ToXml.toXml $ isPreferred versionRange x]
                 , Xml.node "revision" [] [ToXml.toXml $ Package.revision x]
-                , Xml.node "route" [] [ToXml.toXml $ Route.Release (Package.name x) Release.Release { Release.version = Package.version x, Release.revision = Just $ Package.revision x }]
+                , Xml.node "route" [] [ToXml.toXml $ Route.Release (Package.name x) (Package.release x)]
                 , Xml.node "uploadedAt" [] [ToXml.toXml $ Package.uploadedAt x]
                 ]) sortedPackages
             -- TODO: Include main library component directly on this page?
@@ -161,7 +161,7 @@ handler packageName release context request = do
                 path <- List.stripPrefix prefix $ File.path x
                 pure $ Xml.node "file" []
                     [ Xml.node "path" [] [ToXml.toXml path]
-                    , Xml.node "route" [] [ToXml.toXml . Route.File packageName Release.Release { Release.version, Release.revision = Just revision } $ File.path x]
+                    , Xml.node "route" [] [ToXml.toXml . Route.File packageName release $ File.path x]
                     ])
             . List.sortOn File.path
             $ fmap Model.value files
@@ -186,11 +186,10 @@ componentRoute :: Package.Package -> Component.Component -> Route.Route
 componentRoute package component =
     let
         name = Package.name package
-        version = Package.version package
-        revision = Package.revision package
+        release = Package.release package
         tag = Component.tag component
         componentId = ComponentId.ComponentId tag $ componentName package component
-    in Route.Component name Release.Release { Release.version, Release.revision = Just revision } componentId
+    in Route.Component name release componentId
 
 parsedDescription :: Package.Package -> Haddock.DocH Void String
 parsedDescription = Haddock.toRegular
