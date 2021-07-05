@@ -170,92 +170,87 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
             <> show (into @Word revision)
             <> " "
             <> into @String hash
-        case Cabal.parseGenericPackageDescriptionMaybe contents of
-            Nothing -> throwM $ TryFromException @_ @Cabal.GenericPackageDescription contents Nothing
-            Just gpd -> do
-                pd <- case toPackageDescription gpd of
-                    Left _ -> throwM $ TryFromException @_ @Cabal.PackageDescription gpd Nothing
-                    Right (pd, _) -> pure pd
+        pd <- either throwM pure $ parsePackageDescription contents
+        let
+            otherPackageName = pd
+                & Cabal.package
+                & Cabal.pkgName
+                & into @PackageName.PackageName
+            otherVersion = pd
+                & Cabal.package
+                & Cabal.pkgVersion
+                & into @Version.Version
+        when (otherPackageName /= packageName)
+            . throwM
+            $ Mismatch.new packageName otherPackageName
+        when (otherVersion /= version)
+            . throwM
+            $ Mismatch.new version otherVersion
+        hackageUser <- do
+            let
+                ownership = Tar.entryOwnership entry
+                name = into @HackageName.HackageName $ Tar.ownerName ownership
+                id = into @HackageId.HackageId $ Tar.ownerId ownership
+                value = HackageUser.HackageUser { HackageUser.id, HackageUser.name }
+            maybeModel <- Context.withConnection context $ \ connection ->
+                HackageUser.selectByName connection name
+            case maybeModel of
+                Just model -> pure model
+                Nothing -> do
+                    key <- Context.withConnection context $ \ connection ->
+                        HackageUser.insert connection value
+                    pure Model.Model { Model.key, Model.value }
+        let
+            package = Package.Package
+                { Package.author = into @Text $ Cabal.author pd
+                , Package.bugReports = into @Text $ Cabal.bugReports pd
+                , Package.buildType = into @BuildType.BuildType $ Cabal.buildType pd
+                , Package.cabalVersion = into @CabalVersion.CabalVersion $ Cabal.specVersion pd
+                , Package.category = into @Text $ Cabal.category pd
+                , Package.copyright = into @Text $ Cabal.copyright pd
+                , Package.description = into @Text $ Cabal.description pd
+                , Package.hash
+                , Package.homepage = into @Text $ Cabal.homepage pd
+                , Package.license = into @License.License $ Cabal.license pd
+                , Package.maintainer = into @Text $ Cabal.maintainer pd
+                , Package.name = packageName
+                , Package.pkgUrl = into @Text $ Cabal.pkgUrl pd
+                , Package.revision
+                , Package.stability = into @Text $ Cabal.stability pd
+                , Package.synopsis = into @Text $ Cabal.synopsis pd
+                , Package.uploadedAt = epochTimeToUtcTime $ Tar.entryTime entry
+                , Package.uploadedBy = Model.key hackageUser
+                , Package.version
+                }
+        key <- Context.withConnection context $ \ connection -> do
+            Blob.upsert connection $ Blob.fromByteString contents
+            Package.insertOrUpdate connection package
+        syncSourceRepositories context key $ Cabal.sourceRepos pd
+        pd
+            & Cabal.pkgComponents
+            & traverse_ (\ component -> do
                 let
-                    otherPackageName = pd
-                        & Cabal.package
-                        & Cabal.pkgName
-                        & into @PackageName.PackageName
-                    otherVersion = pd
-                        & Cabal.package
-                        & Cabal.pkgVersion
-                        & into @Version.Version
-                when (otherPackageName /= packageName)
-                    . throwM
-                    $ Mismatch.new packageName otherPackageName
-                when (otherVersion /= version)
-                    . throwM
-                    $ Mismatch.new version otherVersion
-                hackageUser <- do
-                    let
-                        ownership = Tar.entryOwnership entry
-                        name = into @HackageName.HackageName $ Tar.ownerName ownership
-                        id = into @HackageId.HackageId $ Tar.ownerId ownership
-                        value = HackageUser.HackageUser { HackageUser.id, HackageUser.name }
-                    maybeModel <- Context.withConnection context $ \ connection ->
-                        HackageUser.selectByName connection name
-                    case maybeModel of
-                        Just model -> pure model
-                        Nothing -> do
-                            key <- Context.withConnection context $ \ connection ->
-                                HackageUser.insert connection value
-                            pure Model.Model { Model.key, Model.value }
-                let
-                    package = Package.Package
-                        { Package.author = into @Text $ Cabal.author pd
-                        , Package.bugReports = into @Text $ Cabal.bugReports pd
-                        , Package.buildType = into @BuildType.BuildType $ Cabal.buildType pd
-                        , Package.cabalVersion = into @CabalVersion.CabalVersion $ Cabal.specVersion pd
-                        , Package.category = into @Text $ Cabal.category pd
-                        , Package.copyright = into @Text $ Cabal.copyright pd
-                        , Package.description = into @Text $ Cabal.description pd
-                        , Package.hash
-                        , Package.homepage = into @Text $ Cabal.homepage pd
-                        , Package.license = into @License.License $ Cabal.license pd
-                        , Package.maintainer = into @Text $ Cabal.maintainer pd
-                        , Package.name = packageName
-                        , Package.pkgUrl = into @Text $ Cabal.pkgUrl pd
-                        , Package.revision
-                        , Package.stability = into @Text $ Cabal.stability pd
-                        , Package.synopsis = into @Text $ Cabal.synopsis pd
-                        , Package.uploadedAt = epochTimeToUtcTime $ Tar.entryTime entry
-                        , Package.uploadedBy = Model.key hackageUser
-                        , Package.version
-                        }
-                key <- Context.withConnection context $ \ connection -> do
-                    Blob.upsert connection $ Blob.fromByteString contents
-                    Package.insertOrUpdate connection package
-                syncSourceRepositories context key $ Cabal.sourceRepos pd
-                pd
-                    & Cabal.pkgComponents
-                    & traverse_ (\ component -> do
-                        let
-                            tag = case component of
-                                Cabal.CLib _ -> ComponentTag.Library
-                                Cabal.CFLib _ -> ComponentTag.ForeignLibrary
-                                Cabal.CExe _ -> ComponentTag.Executable
-                                Cabal.CTest _ -> ComponentTag.TestSuite
-                                Cabal.CBench _ -> ComponentTag.Benchmark
-                            name = maybe (into @ComponentName.ComponentName packageName) (into @ComponentName.ComponentName)
-                                . Cabal.componentNameString
-                                $ Cabal.componentName component
-                        maybeComponent <- Context.withConnection context $ \ connection ->
-                            Component.select connection key tag name
-                        componentKey <- case maybeComponent of
-                            Just model -> pure $ Model.key model
-                            Nothing -> Context.withConnection context $ \ connection ->
-                                Component.insert connection Component.Component
-                                    { Component.name
-                                    , Component.package = key
-                                    , Component.tag
-                                    }
-                        syncModules context componentKey component
-                        syncDependencies context componentKey component)
+                    tag = case component of
+                        Cabal.CLib _ -> ComponentTag.Library
+                        Cabal.CFLib _ -> ComponentTag.ForeignLibrary
+                        Cabal.CExe _ -> ComponentTag.Executable
+                        Cabal.CTest _ -> ComponentTag.TestSuite
+                        Cabal.CBench _ -> ComponentTag.Benchmark
+                    name = maybe (into @ComponentName.ComponentName packageName) (into @ComponentName.ComponentName)
+                        . Cabal.componentNameString
+                        $ Cabal.componentName component
+                maybeComponent <- Context.withConnection context $ \ connection ->
+                    Component.select connection key tag name
+                componentKey <- case maybeComponent of
+                    Just model -> pure $ Model.key model
+                    Nothing -> Context.withConnection context $ \ connection ->
+                        Component.insert connection Component.Component
+                            { Component.name
+                            , Component.package = key
+                            , Component.tag
+                            }
+                syncModules context componentKey component
+                syncDependencies context componentKey component)
 
 syncModules :: Context.Context -> Component.Key -> Cabal.Component -> IO ()
 syncModules context componentKey component = case component of
@@ -332,16 +327,48 @@ getTarEntryPath entry =
     let (prefix, suffix) = FilePath.splitExtensions $ Tar.entryPath entry
     in (FilePath.splitDirectories prefix, suffix)
 
+parsePackageDescription
+    :: ByteString
+    -> Either
+        (TryFromException ByteString Cabal.PackageDescription)
+        Cabal.PackageDescription
+parsePackageDescription = maybeTryFrom $ \ bs -> do
+    gpd <- hush $ parseGenericPackageDescription bs
+    hush $ toPackageDescription gpd
+
+parseGenericPackageDescription
+    :: ByteString
+    -> Either
+        (TryFromException ByteString Cabal.GenericPackageDescription)
+        Cabal.GenericPackageDescription
+parseGenericPackageDescription = maybeTryFrom Cabal.parseGenericPackageDescriptionMaybe
+
 -- | Although the generic package description type does have a package
 -- description in it, that nested PD isn't actually usable. This function is
 -- necessary in order to choose the platform, compiler, flags, and other stuff.
 toPackageDescription
     :: Cabal.GenericPackageDescription
-    -> Either [Cabal.Dependency] (Cabal.PackageDescription, Cabal.FlagAssignment)
-toPackageDescription = Cabal.finalizePD
-    (Cabal.mkFlagAssignment [])
-    Cabal.ComponentRequestedSpec { Cabal.testsRequested = True, Cabal.benchmarksRequested = True }
-    (always True)
-    (Cabal.Platform Cabal.X86_64 Cabal.Linux)
-    (Cabal.unknownCompilerInfo (Cabal.CompilerId Cabal.GHC (Cabal.mkVersion [9, 0, 1])) Cabal.NoAbiTag)
-    []
+    -> Either
+        (TryFromException Cabal.GenericPackageDescription Cabal.PackageDescription)
+        Cabal.PackageDescription
+toPackageDescription =
+    let
+        flags = Cabal.mkFlagAssignment []
+        components = Cabal.ComponentRequestedSpec
+            { Cabal.benchmarksRequested = True
+            , Cabal.testsRequested = True
+            }
+        satisfiable = always True :: Cabal.Dependency -> Bool
+        platform = Cabal.Platform Cabal.X86_64 Cabal.Linux
+        compiler = Cabal.unknownCompilerInfo
+            (Cabal.CompilerId Cabal.GHC (Cabal.mkVersion [9, 0, 1]))
+            Cabal.NoAbiTag
+        constraints = [] :: [Cabal.PackageVersionConstraint]
+        finalize = Cabal.finalizePD
+            flags
+            components
+            satisfiable
+            platform
+            compiler
+            constraints
+    in maybeTryFrom $ fmap fst . hush . finalize

@@ -92,6 +92,8 @@ handler packageName release componentId context request = do
 
     -- TODO: Mark dependencies that do not allow latest?
 
+    -- TODO: Display licenses of dependencies.
+
     reverseDependencies <- Context.withConnection context $ \ connection -> Sql.query
         connection
         "select package.name \

@@ -82,6 +82,7 @@ handler packageName release componentId moduleName context request = do
         Nothing -> pure Nothing
         Just file -> Context.withConnection context $ \ connection ->
             Blob.selectByHash connection . File.hash $ Model.value file
+    -- TODO: Parse module! And then move this into a worker job.
 
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
