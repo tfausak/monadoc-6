@@ -88,7 +88,7 @@
     </xsl:template>
 
     <xsl:template match="index">
-        <p>
+        <p class="lead">
             &#x1f516; Worse Haskell documentation.
         </p>
         <h2>
@@ -404,6 +404,7 @@
                     <xsl:value-of select="normalize-space(file/path)"/>
                 </a>
             </dd>
+            <dt> contents </dt> <dd> <pre><xsl:value-of select="file/contents"/></pre> </dd>
         </dl>
     </xsl:template>
 </xsl:stylesheet>

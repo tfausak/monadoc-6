@@ -33,8 +33,6 @@ import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Monadoc.Vendor.Sql as Sql
 
--- TODO: Include list of exposed modules.
-
 handler
     :: PackageName.PackageName
     -> Release.Release
@@ -105,7 +103,8 @@ handler packageName release componentId context request = do
         \where dependency.packageName = ? \
         \and dependency.libraryName = ? \
         \and package.name != dependency.packageName \
-        \group by package.name"
+        \group by package.name \
+        \limit 16"
         (packageName, componentName)
 
     modules <- if isLibrary

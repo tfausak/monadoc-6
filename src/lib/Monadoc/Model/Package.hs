@@ -243,7 +243,7 @@ selectRecent c = Sql.query_ c
     "select key, author, bugReports, buildType, cabalVersion, category, copyright, description, hash, homepage, license, maintainer, name, pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, version \
     \from package \
     \order by uploadedAt desc \
-    \limit 32"
+    \limit 16"
 
 selectNamesLike :: Sql.Connection -> String -> IO [PackageName.PackageName]
 selectNamesLike c x = fmap (fmap Sql.fromOnly) $ Sql.query c
@@ -252,7 +252,7 @@ selectNamesLike c x = fmap (fmap Sql.fromOnly) $ Sql.query c
     \where name like ? escape ? \
     \group by name \
     \order by uploadedAt desc \
-    \limit 32" (x, "\\")
+    \limit 16" (x, "\\")
 
 escapeLike :: String -> String
 escapeLike = foldMap $ \ c -> case c of

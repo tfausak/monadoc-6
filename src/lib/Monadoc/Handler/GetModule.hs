@@ -7,6 +7,7 @@ import qualified Distribution.ModuleName as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
+import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.File as File
@@ -72,11 +73,15 @@ handler packageName release componentId moduleName context request = do
             & (FilePath.Posix.pathSeparator :)
             & (<> [FilePath.Posix.extSeparator])
         matches = files
-            & fmap (File.path . Model.value)
-            & filter (List.isInfixOf needle)
+            & filter (List.isInfixOf needle . File.path . Model.value)
         maybeFile = case matches of
             [match] -> Just match
             _ -> Nothing
+
+    maybeBlob <- case maybeFile of
+        Nothing -> pure Nothing
+        Just file -> Context.withConnection context $ \ connection ->
+            Blob.selectByHash connection . File.hash $ Model.value file
 
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
@@ -111,8 +116,11 @@ handler packageName release componentId moduleName context request = do
             , Xml.node "component" [] [ToXml.toXml $ into @String componentId]
             , Xml.node "module" [] [ToXml.toXml moduleName]
             , Xml.node "file" []
-                [ Xml.node "path" [] [ToXml.toXml maybeFile]
-                , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName release) maybeFile]
+                [ Xml.node "contents" [] [ToXml.toXml $ case maybeBlob of
+                    Nothing -> Nothing
+                    Just blob -> hush . tryInto @Text . Blob.contents $ Model.value blob]
+                , Xml.node "path" [] [ToXml.toXml $ fmap (File.path . Model.value) maybeFile]
+                , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName release . File.path . Model.value) maybeFile]
                 ]
             ]
         }
