@@ -6,6 +6,7 @@ import qualified Data.Maybe as Maybe
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Model.Package as Package
+import qualified Monadoc.Type.ComponentId as ComponentId
 import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Key as Key
@@ -46,6 +47,12 @@ migrations =
     , Migration.new 2021 6 12 22 21 0
         "create index component_package on component (package)"
     ]
+
+id :: Component -> ComponentId.ComponentId
+id component = ComponentId.ComponentId
+    { ComponentId.tag = tag component
+    , ComponentId.name = Just $ name component
+    }
 
 select :: Sql.Connection -> Package.Key -> ComponentTag.ComponentTag -> ComponentName.ComponentName -> IO (Maybe Model)
 select connection package tag name = fmap Maybe.listToMaybe $ Sql.query

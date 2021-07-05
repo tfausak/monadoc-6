@@ -72,8 +72,10 @@ module Monadoc.Prelude (
     Data.Bifunctor.second,
     Data.Foldable.foldl',
     Data.Foldable.foldr',
+    Data.Foldable.for_,
     Data.Foldable.sequenceA_,
     Data.Foldable.traverse_,
+    Data.Traversable.for,
     Monadoc.Prelude.Extra.always,
     Monadoc.Prelude.Extra.cons,
     Monadoc.Prelude.Extra.hush,
@@ -196,6 +198,7 @@ import qualified Data.Proxy
 import qualified Data.Ratio
 import qualified Data.Set
 import qualified Data.Text
+import qualified Data.Traversable
 import qualified Data.Void
 import qualified Data.Word
 import qualified Monadoc.Prelude.Extra

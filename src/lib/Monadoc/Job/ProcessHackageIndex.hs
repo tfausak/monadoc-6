@@ -160,6 +160,9 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
         in (revision, newRevisions)
     let maybeHash = Map.lookup (packageName, version, revision) hashes
     let hash = Sha256.hash contents
+    -- TODO: Is it possible to delay processing package descriptions until
+    -- after distributions have been fetched? That way they only need to be
+    -- walked over once.
     when (maybeHash /= Just hash) $ do
         Log.info
             $ "[worker] "

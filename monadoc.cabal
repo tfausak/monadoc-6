@@ -120,6 +120,7 @@ library
         Monadoc.Job.FetchDistribution
         Monadoc.Job.FetchDistributions
         Monadoc.Job.InsertHackageIndex
+        Monadoc.Job.ProcessDistributions
         Monadoc.Job.ProcessHackageIndex
         Monadoc.Job.UnpackDistribution
         Monadoc.Job.UnpackDistributions

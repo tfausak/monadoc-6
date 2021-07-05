@@ -5,6 +5,7 @@ import Monadoc.Prelude
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Monad as Monad
 import qualified Monadoc.Job.FetchDistributions as FetchDistributions
+import qualified Monadoc.Job.ProcessDistributions as ProcessDistributions
 import qualified Monadoc.Job.ProcessHackageIndex as ProcessHackageIndex
 import qualified Monadoc.Job.UnpackDistributions as UnpackDistributions
 import qualified Monadoc.Job.UpsertHackageIndex as UpsertHackageIndex
@@ -20,6 +21,6 @@ run context = do
         ProcessHackageIndex.run context hackageIndex
         FetchDistributions.run context
         UnpackDistributions.run context
-        -- TODO: Process distributions (in other words, parse Haskell modules).
+        when False $ ProcessDistributions.run context -- TODO
         Log.info "[worker] finished loop"
         Concurrent.threadDelay 60000000
