@@ -169,6 +169,7 @@ handler packageName release context request = do
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
             { Meta.breadcrumbs
+            , Meta.title = List.intercalate " - " ["Monadoc", into @String packageName, into @String release]
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Root.page

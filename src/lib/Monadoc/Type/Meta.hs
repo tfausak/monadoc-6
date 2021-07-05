@@ -18,6 +18,7 @@ data Meta = Meta
     , breadcrumbs :: [Breadcrumb.Breadcrumb]
     , clientId :: String
     , routes :: Routes.Routes
+    , title :: String
     , user :: Maybe GithubLogin.GithubLogin
     , version :: Version.Version
     } deriving (Eq, Show)
@@ -28,6 +29,7 @@ instance ToXml.ToXml Meta where
         , Xml.node "breadcrumbs" [] . fmap ToXml.toXml $ breadcrumbs config
         , Xml.node "clientId" [] [ToXml.toXml $ clientId config]
         , ToXml.toXml $ routes config
+        , Xml.node "title" [] [ToXml.toXml $ title config]
         , Xml.node "user" [] [ToXml.toXml $ user config]
         , Xml.node "version" [] [ToXml.toXml $ version config]
         ]
@@ -47,6 +49,7 @@ fromContext context self = Meta
         , Routes.search = Route.Search Nothing
         , Routes.self
         }
+    , title = "Monadoc"
     , user = Nothing
     , version = into @Version.Version This.version
     }

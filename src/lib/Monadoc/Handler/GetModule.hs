@@ -102,6 +102,7 @@ handler packageName release componentId moduleName context request = do
                     , Breadcrumb.route = Nothing
                     }
                 ]
+            , Meta.title = List.intercalate " - " ["Monadoc", into @String packageName, into @String release, into @String componentId, into @String moduleName]
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Root.page = Xml.node "module" []

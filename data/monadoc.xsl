@@ -14,7 +14,7 @@
             <head>
                 <meta content="initial-scale = 1, width = device-width" name="viewport"/>
                 <title>
-                    Monadoc
+                    <xsl:value-of select="normalize-space(/root/meta/title)"/>
                 </title>
                 <link href="{$baseUrl}{normalize-space(meta/routes/bootstrap)}" rel="stylesheet"/>
                 <link
