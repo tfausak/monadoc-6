@@ -274,7 +274,11 @@ syncModules context componentKey component = case component of
             & traverse_ (Module.delete connection . Model.key)
         newModuleNames
             & Set.filter shouldUpsert
-            & traverse_ (Module.upsert connection . Module.Module componentKey)
+            & traverse_ (\ moduleName -> Module.upsert connection Module.Module
+                { Module.component = componentKey
+                , Module.name = moduleName
+                , Module.file = Nothing
+                })
     _ -> pure ()
 
 syncDependencies :: Context.Context -> Component.Key -> Cabal.Component -> IO ()

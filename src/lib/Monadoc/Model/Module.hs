@@ -4,6 +4,7 @@ import Monadoc.Prelude
 
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Model.Component as Component
+import qualified Monadoc.Model.File as File
 import qualified Monadoc.Model.Migration as Migration
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
@@ -17,17 +18,20 @@ type Key = Key.Key Module
 data Module = Module
     { component :: Component.Key
     , name :: ModuleName.ModuleName
+    , file :: Maybe File.Key
     } deriving (Eq, Show)
 
 instance Sql.FromRow Module where
     fromRow = Module
         <$> Sql.field
         <*> Sql.field
+        <*> Sql.field
 
 instance Sql.ToRow Module where
     toRow x =
         [ Sql.toField $ component x
         , Sql.toField $ name x
+        , Sql.toField $ file x
         ]
 
 migrations :: [Migration.Migration]
@@ -37,25 +41,26 @@ migrations =
         \(key integer not null primary key, \
         \component integer not null, \
         \name string not null, \
+        \file integer, \
         \unique (component, name))"
     ]
 
 select :: Sql.Connection -> Component.Key -> ModuleName.ModuleName -> IO (Maybe Model)
 select connection component name = fmap Maybe.listToMaybe $ Sql.query connection
-    "select key, component, name from module where component = ? and name = ?"
+    "select key, component, name, file from module where component = ? and name = ?"
     (component, name)
 
 selectByComponent :: Sql.Connection -> Component.Key -> IO [Model]
 selectByComponent connection component = Sql.query connection
-    "select key, component, name from module where component = ?"
+    "select key, component, name, file from module where component = ?"
     [component]
 
 upsert :: Sql.Connection -> Module -> IO ()
 upsert connection = Sql.execute connection
-    "insert into module (component, name) \
-    \values (?, ?) \
+    "insert into module (component, name, file) \
+    \values (?, ?, ?) \
     \on conflict (component, name) \
-    \do nothing"
+    \do update set file = excluded.file"
 
 delete :: Sql.Connection -> Key -> IO ()
 delete connection key = Sql.execute connection
