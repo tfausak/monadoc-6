@@ -20,7 +20,9 @@ import qualified Monadoc.Type.ComponentId as ComponentId
 import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Model as Model
+import qualified Monadoc.Type.ModuleName as ModuleName
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Log as Log
 import qualified System.FilePath as FilePath
 import qualified System.FilePath.Posix as FilePath.Posix
@@ -64,17 +66,19 @@ run context = Context.withConnection context $ \ connection -> Sqlite.fold
                     Just _ -> pure () -- TODO: Parse module.
                     Nothing ->
                         case findFiles package files buildInfo module_ of
-                            [file] -> Module.upsert connection
+                            file : _ -> Module.upsert connection
                                 (Model.value module_)
                                 { Module.file = Just $ Model.key file }
                             -- haste-compiler appears to be the only package
                             -- that currently returns multiple files for any
                             -- modules. Check version 0.5.2 revision 2, but
                             -- many other releases are affected.
-                            xs -> Log.warn -- TODO
-                                $ "[worker] wrong file count: "
-                                <> show (length xs)
-                                <> " "
+                            --
+                            -- Actually if multiple files match, I think it's
+                            -- reasonable to take the first one. The source
+                            -- directories are ordered after all.
+                            [] -> Log.warn -- TODO
+                                $ "[worker] no files "
                                 <> (into @String . Package.name $ Model.value package)
                                 <> " "
                                 <> (into @String . Package.version $ Model.value package)
@@ -121,24 +125,32 @@ findFiles
     -> [File.Model]
 findFiles package files buildInfo module_ =
     let
-        partialPath = module_
-            & Model.value
-            & Module.name
-            & into @Cabal.ModuleName
-            & Cabal.components
-            & FilePath.Posix.joinPath
-        -- PKG-VER/DIR/MOD.hs
-        toPath directory = UnpackDistribution.normalizeFilePath $ mconcat
-            [ into @String . Package.name $ Model.value package
-            , "-"
-            , into @String . Package.version $ Model.value package
-            , [FilePath.Posix.pathSeparator]
-            , directory
-            , [FilePath.Posix.pathSeparator]
-            , partialPath
-            , [FilePath.extSeparator]
-            , "hs"
-            ]
-        paths = Set.fromList . fmap toPath $ Cabal.hsSourceDirs buildInfo
+        extensions = ["hs", "hs-boot", "chs", "hsc", "lhs", "cpphs"]
+        directories = case Cabal.hsSourceDirs buildInfo of
+            [] -> ["."]
+            ds -> ds
+        toPaths d = fmap (toPath
+            (Package.name $ Model.value package)
+            (Package.version $ Model.value package)
+            d
+            (Module.name $ Model.value module_)) extensions
+        paths = Set.fromList $ foldMap toPaths directories
         isMatch file = Set.member (File.path $ Model.value file) paths
     in filter isMatch files
+
+-- PKG-VER/DIR/MOD.EXT
+toPath
+    :: PackageName.PackageName
+    -> Version.Version
+    -> FilePath
+    -> ModuleName.ModuleName
+    -> String
+    -> FilePath
+toPath p v d m x =
+    FilePath.normalise $ FilePath.addExtension
+        (FilePath.Posix.joinPath
+            [ into @String p <> "-" <> into @String v
+            , UnpackDistribution.normalizeFilePath d
+            , FilePath.Posix.joinPath . Cabal.components $ into @Cabal.ModuleName m
+            ])
+        x
