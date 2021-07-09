@@ -37,6 +37,8 @@ run context = Context.withConnection context $ \ connection -> Sqlite.fold
         \version from package order by name asc, version asc, revision asc")
     ()
     () $ \ () package -> do
+        -- TODO: Figure out some way to avoid even looking at packages that
+        -- haven't changed.
         let packageName = Package.name $ Model.value package
         maybeDistribution <- Distribution.selectByPackageAndVersion connection
             packageName

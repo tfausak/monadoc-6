@@ -3,13 +3,11 @@ module Monadoc.Handler.GetModule where
 import Monadoc.Prelude
 
 import qualified Data.List as List
-import qualified Distribution.ModuleName as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
 import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component
-import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.File as File
 import qualified Monadoc.Model.Module as Module
 import qualified Monadoc.Model.Package as Package
@@ -26,7 +24,6 @@ import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml
-import qualified System.FilePath.Posix as FilePath.Posix
 
 handler
     :: PackageName.PackageName
@@ -51,33 +48,14 @@ handler packageName release componentId moduleName context request = do
                 (ComponentId.tag componentId)
                 (maybe (from packageName) identity $ ComponentId.name componentId)
         maybe (throwM NotFound.new) pure maybeComponent
-    _module <- do
+    module_ <- do
         maybeModule <- Context.withConnection context $ \ connection ->
             Module.select connection (Model.key component) moduleName
         maybe (throwM NotFound.new) pure maybeModule
-
-    -- TODO: This method of locating the module's file is brittle and janky. It
-    -- should be done ahead of time using the `hs-source-dirs` information on
-    -- the component.
-    distribution <- do
-        maybeDistribution <- Context.withConnection context $ \ connection ->
-            Distribution.selectByPackageAndVersion connection packageName version
-        maybe (throwM NotFound.new) pure maybeDistribution
-    files <- Context.withConnection context $ \ connection ->
-        File.selectByDistribution connection $ Model.key distribution
-    let
-        needle = moduleName
-            & into @Cabal.ModuleName
-            & Cabal.components
-            & FilePath.Posix.joinPath
-            & (FilePath.Posix.pathSeparator :)
-            & (<> [FilePath.Posix.extSeparator])
-        matches = files
-            & filter (List.isInfixOf needle . File.path . Model.value)
-        maybeFile = case matches of
-            [match] -> Just match
-            _ -> Nothing
-
+    maybeFile <- case Module.file $ Model.value module_ of
+        Nothing -> pure Nothing
+        Just key -> Context.withConnection context $ \ connection ->
+            File.select connection key
     maybeBlob <- case maybeFile of
         Nothing -> pure Nothing
         Just file -> Context.withConnection context $ \ connection ->

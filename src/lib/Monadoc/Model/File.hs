@@ -44,6 +44,16 @@ migrations =
         \unique (distribution, path))"
     ]
 
+select :: Sql.Connection -> Key -> IO (Maybe Model)
+select connection key = do
+    rows <- Sql.query
+        connection
+        "select key, distribution, hash, path \
+        \from file \
+        \where key = ?"
+        [key]
+    pure $ Maybe.listToMaybe rows
+
 selectByDistribution :: Sql.Connection -> Distribution.Key -> IO [Model]
 selectByDistribution connection distribution = Sql.query
     connection
