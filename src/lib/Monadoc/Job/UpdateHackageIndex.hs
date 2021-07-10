@@ -10,6 +10,7 @@ import qualified Monadoc.Model.HackageIndex as HackageIndex
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Model as Model
+import qualified Monadoc.Utility.Either as Either
 import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Vendor.Client as Client
 import qualified Network.HTTP.Types as Http
@@ -27,7 +28,7 @@ run context model = do
     let
         maybeNewSize = do
             x <- lookup Http.hContentLength $ Client.responseHeaders headResponse
-            y <- hush $ tryInto @String x
+            y <- Either.toMaybe $ tryInto @String x
             Read.readMaybe @Int y
     case maybeNewSize of
         Nothing -> throwM $ BadHackageIndexSize.new oldSize maybeNewSize

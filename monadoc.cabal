@@ -141,7 +141,6 @@ library
         Monadoc.Model.SourceRepository
         Monadoc.Model.User
         Monadoc.Prelude
-        Monadoc.Prelude.Extra
         Monadoc.Prelude.Orphanage
         Monadoc.Server.Application
         Monadoc.Server.Main
@@ -187,6 +186,7 @@ library
         Monadoc.Type.Warning
         Monadoc.Utility.Client
         Monadoc.Utility.Convert
+        Monadoc.Utility.Either
         Monadoc.Utility.Foldable
         Monadoc.Utility.Log
         Monadoc.Utility.Sql

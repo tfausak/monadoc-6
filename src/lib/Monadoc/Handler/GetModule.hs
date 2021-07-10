@@ -25,6 +25,7 @@ import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
+import qualified Monadoc.Utility.Either as Either
 import qualified Monadoc.Utility.Xml as Xml
 
 handler
@@ -99,7 +100,7 @@ handler packageName release componentId moduleName context request = do
             , Xml.node "file" []
                 [ Xml.node "contents" [] [ToXml.toXml $ case maybeBlob of
                     Nothing -> Nothing
-                    Just blob -> hush . tryInto @Text . Blob.contents $ Model.value blob]
+                    Just blob -> Either.toMaybe . tryInto @Text . Blob.contents $ Model.value blob]
                 , Xml.node "path" [] [ToXml.toXml $ fmap (File.path . Model.value) maybeFile]
                 , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName release . File.path . Model.value) maybeFile]
                 ]

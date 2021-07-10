@@ -10,6 +10,7 @@ import qualified Monadoc.Type.ComponentId as ComponentId
 import qualified Monadoc.Type.ModuleName as ModuleName
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Release as Release
+import qualified Monadoc.Utility.Either as Either
 import qualified Network.HTTP.Types as Http
 
 data Route
@@ -60,36 +61,36 @@ parse path query = case path of
     ["static", "monadoc.xsl"] -> Just Template
     ["robots.txt"] -> Just Robots
     ["package", p] -> Package
-        <$> hush (tryInto @PackageName.PackageName p)
+        <$> Either.toMaybe (tryInto @PackageName.PackageName p)
     ["search"] -> Search <$> getQuery query
     ["account"] -> Just Account
     ["account", "log-out"] -> Just LogOut
     ["account", "revoke"] -> Just Revoke
     ["package", p, "version", r, "component", c] -> Component
-        <$> hush (tryInto @PackageName.PackageName p)
-        <*> hush (tryInto @Release.Release r)
-        <*> hush (tryInto @ComponentId.ComponentId c)
+        <$> Either.toMaybe (tryInto @PackageName.PackageName p)
+        <*> Either.toMaybe (tryInto @Release.Release r)
+        <*> Either.toMaybe (tryInto @ComponentId.ComponentId c)
     ["health-check"] -> Just HealthCheck
     ["apple-touch-icon.png"] -> Just AppleTouchIcon
     ["package", p, "version", r, "file"] -> File
-        <$> hush (tryInto @PackageName.PackageName p)
-        <*> hush (tryInto @Release.Release r)
+        <$> Either.toMaybe (tryInto @PackageName.PackageName p)
+        <*> Either.toMaybe (tryInto @Release.Release r)
         <*> getPath query
     ["package", p, "version", r, "component", c, "module", m] -> Module
-        <$> hush (tryInto @PackageName.PackageName p)
-        <*> hush (tryInto @Release.Release r)
-        <*> hush (tryInto @ComponentId.ComponentId c)
-        <*> hush (tryInto @ModuleName.ModuleName m)
+        <$> Either.toMaybe (tryInto @PackageName.PackageName p)
+        <*> Either.toMaybe (tryInto @Release.Release r)
+        <*> Either.toMaybe (tryInto @ComponentId.ComponentId c)
+        <*> Either.toMaybe (tryInto @ModuleName.ModuleName m)
     ["package", p, "version", r] -> Release
-        <$> hush (tryInto @PackageName.PackageName p)
-        <*> hush (tryInto @Release.Release r)
+        <$> Either.toMaybe (tryInto @PackageName.PackageName p)
+        <*> Either.toMaybe (tryInto @Release.Release r)
     _ -> Nothing
 
 getPath :: Http.Query -> Maybe FilePath
 getPath query = do
     maybeByteString <- lookup (into @ByteString "path") query
     byteString <- maybeByteString
-    hush $ tryInto @String byteString
+    Either.toMaybe $ tryInto @String byteString
 
 getQuery :: Http.Query -> Maybe (Maybe String)
 getQuery query = case lookup (into @ByteString "query") query of

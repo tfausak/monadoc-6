@@ -62,6 +62,7 @@ import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Sha256 as Sha256
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
+import qualified Monadoc.Utility.Either as Either
 import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Log as Log
 import qualified System.FilePath as FilePath
@@ -343,8 +344,8 @@ parsePackageDescription
         (TryFromException ByteString Cabal.PackageDescription)
         Cabal.PackageDescription
 parsePackageDescription = maybeTryFrom $ \ bs -> do
-    gpd <- hush $ parseGenericPackageDescription bs
-    hush $ toPackageDescription gpd
+    gpd <- Either.toMaybe $ parseGenericPackageDescription bs
+    Either.toMaybe $ toPackageDescription gpd
 
 parseGenericPackageDescription
     :: ByteString
@@ -381,4 +382,4 @@ toPackageDescription =
             platform
             compiler
             constraints
-    in maybeTryFrom $ fmap fst . hush . finalize
+    in maybeTryFrom $ fmap fst . Either.toMaybe . finalize

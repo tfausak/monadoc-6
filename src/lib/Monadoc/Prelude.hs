@@ -74,7 +74,6 @@ module Monadoc.Prelude (
     Data.Foldable.sequenceA_,
     Data.Foldable.traverse_,
     Data.Traversable.for,
-    Monadoc.Prelude.Extra.hush,
     Prelude.abs,
     Prelude.all,
     Prelude.any,
@@ -196,7 +195,6 @@ import qualified Data.Text
 import qualified Data.Traversable
 import qualified Data.Void
 import qualified Data.Word
-import qualified Monadoc.Prelude.Extra
 import qualified Numeric.Natural
 import qualified Prelude
 import qualified Witch

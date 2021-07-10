@@ -8,6 +8,7 @@ import Monadoc.Prelude
 
 import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
+import qualified Monadoc.Utility.Either as Either
 
 data ComponentId = ComponentId
     { tag :: ComponentTag.ComponentTag
@@ -17,11 +18,11 @@ data ComponentId = ComponentId
 instance TryFrom String ComponentId where
     tryFrom = maybeTryFrom $ \ string -> do
         let (before, after) = break (== ':') string
-        t <- hush $ tryFrom @String before
+        t <- Either.toMaybe $ tryFrom @String before
         case after of
             "" -> pure ComponentId { tag = t, name = Nothing }
             ':' : rest -> do
-                n <- hush $ tryFrom @String rest
+                n <- Either.toMaybe $ tryFrom @String rest
                 pure ComponentId { tag = t, name = Just n }
             _ -> Nothing
 
