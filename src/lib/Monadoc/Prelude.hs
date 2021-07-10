@@ -37,9 +37,6 @@ module Monadoc.Prelude (
     Witch.TryFromException(..),
 
     -- * Functions
-    Data.Foldable.foldl',
-    Data.Foldable.foldr',
-    Data.Foldable.sequenceA_,
     Prelude.abs,
     Prelude.all,
     Prelude.any,
@@ -144,7 +141,6 @@ module Monadoc.Prelude (
 
 import Monadoc.Prelude.Orphanage ()
 
-import qualified Data.Foldable
 import qualified Data.Function
 import qualified Data.Text
 import qualified Prelude
