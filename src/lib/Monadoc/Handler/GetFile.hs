@@ -4,6 +4,7 @@ module Monadoc.Handler.GetFile where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Monadoc.Exception.MissingBlob as MissingBlob
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Model.Blob as Blob
@@ -28,16 +29,16 @@ handler packageName release path context _ = do
     let version = Release.version release
     maybeDistribution <- Context.withConnection context $ \ connection ->
         Distribution.selectByPackageAndVersion connection packageName version
-    distribution <- maybe (throwM NotFound.new) pure maybeDistribution
+    distribution <- maybe (Exception.throwM NotFound.new) pure maybeDistribution
 
     maybeFile <- Context.withConnection context $ \ connection ->
         File.selectByDistributionAndPath connection (Model.key distribution) path
-    file <- maybe (throwM NotFound.new) pure maybeFile
+    file <- maybe (Exception.throwM NotFound.new) pure maybeFile
 
     let hash = File.hash $ Model.value file
     maybeBlob <- Context.withConnection context $ \ connection ->
         Blob.selectByHash connection hash
-    blob <- maybe (throwM $ MissingBlob.new hash) pure maybeBlob
+    blob <- maybe (Exception.throwM $ MissingBlob.new hash) pure maybeBlob
 
     let
         contentType = case FilePath.takeExtensions path of

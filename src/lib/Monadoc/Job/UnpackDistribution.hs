@@ -7,6 +7,7 @@ import Monadoc.Prelude
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent.STM as Stm
+import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
@@ -26,7 +27,7 @@ run context distribution = do
     maybeBlob <- Context.withConnection context $ \ connection ->
         Blob.selectByHash connection hash
     blob <- case maybeBlob of
-        Nothing -> throwM $ MissingBlob.new hash
+        Nothing -> Exception.throwM $ MissingBlob.new hash
         Just blob -> pure blob
     pathVar <- Stm.newEmptyTMVarIO
     blob
@@ -54,7 +55,7 @@ unpackDistributionItem context distribution pathVar item = case item of
             -- <https://github.com/haskell/hackage-server/issues/851>.
             pure ()
         _ ->
-            throwM formatError
+            Exception.throwM formatError
     Right entry -> case Tar.entryContent entry of
         Tar.Directory ->
             -- We only care about files, so we can safely ignore directories.
@@ -79,9 +80,9 @@ unpackDistributionItem context distribution pathVar item = case item of
             -- <https://github.com/haskell/hackage-server/issues/858>.
             pure ()
         Tar.OtherEntryType 'L' contents _ -> do
-            path <- either throwM pure $ tryInto @String contents
+            path <- either Exception.throwM pure $ tryInto @String contents
             succeeded <- Stm.atomically $ Stm.tryPutTMVar pathVar path
-            unless succeeded . throwM $ UnexpectedTarEntry.new entry
+            unless succeeded . Exception.throwM $ UnexpectedTarEntry.new entry
         Tar.NormalFile contents _ -> do
             maybePath <- Stm.atomically $ Stm.tryTakeTMVar pathVar
             let
@@ -91,7 +92,7 @@ unpackDistributionItem context distribution pathVar item = case item of
             Context.withConnection context $ \ connection -> do
                 Blob.upsert connection blob
                 File.upsert connection file
-        _ -> throwM $ UnexpectedTarEntry.new entry
+        _ -> Exception.throwM $ UnexpectedTarEntry.new entry
 
 -- Note that on Windows, tar entries have Windows-style paths:
 --

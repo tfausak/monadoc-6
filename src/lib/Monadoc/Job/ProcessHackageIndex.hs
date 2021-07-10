@@ -7,6 +7,7 @@ import Monadoc.Prelude
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Archive.Tar.Entry as Tar
 import qualified Control.Concurrent.STM as Stm
+import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Fixed as Fixed
@@ -91,7 +92,7 @@ processTarItem
     -> IO ()
 processTarItem context revisionsVar preferredVersionsVar hashes item =
     case item of
-        Left formatError -> throwM formatError
+        Left formatError -> Exception.throwM formatError
         Right entry -> processTarEntry context revisionsVar preferredVersionsVar hashes entry
 
 -- Possible Hackage index tar entry paths:
@@ -107,17 +108,17 @@ processTarEntry
     -> Tar.Entry
     -> IO ()
 processTarEntry context revisionsVar preferredVersionsVar hashes entry = do
-    unless (isValidTarEntry entry) . throwM $ UnexpectedTarEntry.new entry
+    unless (isValidTarEntry entry) . Exception.throwM $ UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
         Tar.NormalFile x _ -> pure $ into @ByteString x
-        _ -> throwM $ UnexpectedTarEntry.new entry
+        _ -> Exception.throwM $ UnexpectedTarEntry.new entry
     case getTarEntryPath entry of
         ([rawPackageName, "preferred-versions"], "") ->
             processPreferredVersions preferredVersionsVar rawPackageName contents
         ([rawPackageName, rawVersion, otherRawPackageName], ".cabal") ->
             processPackageDescription context revisionsVar hashes entry rawPackageName rawVersion otherRawPackageName contents
         ([_, _, "package"], ".json") -> pure ()
-        _ -> throwM $ UnexpectedTarEntry.new entry
+        _ -> Exception.throwM $ UnexpectedTarEntry.new entry
 
 processPreferredVersions
     :: Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
@@ -125,14 +126,14 @@ processPreferredVersions
     -> ByteString
     -> IO ()
 processPreferredVersions preferredVersionsVar rawPackageName contents = do
-    packageName <- either throwM pure $ tryInto @PackageName.PackageName rawPackageName
+    packageName <- either Exception.throwM pure $ tryInto @PackageName.PackageName rawPackageName
     versionRange <- if ByteString.null contents
         then pure VersionRange.any
         else case Cabal.simpleParsecBS contents of
-            Nothing -> throwM $ TryFromException @_ @Cabal.PackageVersionConstraint contents Nothing
+            Nothing -> Exception.throwM $ TryFromException @_ @Cabal.PackageVersionConstraint contents Nothing
             Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
                 when (otherPackageName /= into @Cabal.PackageName packageName)
-                    . throwM
+                    . Exception.throwM
                     . Mismatch.new packageName
                     $ into @PackageName.PackageName otherPackageName
                 pure $ into @VersionRange.VersionRange versionRange
@@ -152,10 +153,10 @@ processPackageDescription
     -> IO ()
 processPackageDescription context revisionsVar hashes entry rawPackageName rawVersion otherRawPackageName contents = do
     when (otherRawPackageName /= rawPackageName)
-        . throwM
+        . Exception.throwM
         $ Mismatch.new rawPackageName otherRawPackageName
-    packageName <- either throwM pure $ tryInto @PackageName.PackageName rawPackageName
-    version <- either throwM pure $ tryInto @Version.Version rawVersion
+    packageName <- either Exception.throwM pure $ tryInto @PackageName.PackageName rawPackageName
+    version <- either Exception.throwM pure $ tryInto @Version.Version rawVersion
     revision <- Stm.atomically . Stm.stateTVar revisionsVar $ \ revisions ->
         let
             key = (packageName, version)
@@ -177,7 +178,7 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
             <> show (into @Word revision)
             <> " "
             <> into @String hash
-        pd <- either throwM pure $ parsePackageDescription contents
+        pd <- either Exception.throwM pure $ parsePackageDescription contents
         let
             otherPackageName = pd
                 & Cabal.package
@@ -188,10 +189,10 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                 & Cabal.pkgVersion
                 & into @Version.Version
         when (otherPackageName /= packageName)
-            . throwM
+            . Exception.throwM
             $ Mismatch.new packageName otherPackageName
         when (otherVersion /= version)
-            . throwM
+            . Exception.throwM
             $ Mismatch.new version otherVersion
         hackageUser <- do
             let

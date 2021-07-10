@@ -33,7 +33,7 @@ run context hashes (package, version) =
             request <- Client.parseUrlThrow
                 $ Config.hackageUrl (Context.config context)
                 <> "/package/" <> pv <> "/" <> pv <> ".tar.gz"
-            response <- catch
+            response <- Exception.catch
                 (Retry.recovering
                     Retry.retryPolicyDefault
                     [const . Exception.Handler $ \ httpException -> pure $ case httpException of
@@ -45,8 +45,8 @@ run context hashes (package, version) =
                         case Http.statusCode $ Client.responseStatus response of
                             410 -> pure response { Client.responseBody = Gzip.compress $ Tar.write [] }
                             451 -> pure response { Client.responseBody = Gzip.compress $ Tar.write [] }
-                            _ -> throwM httpException
-                    _ -> throwM httpException)
+                            _ -> Exception.throwM httpException
+                    _ -> Exception.throwM httpException)
             Concurrent.threadDelay 1000000
             let
                 blob = Blob.fromByteString . into @ByteString $ Client.responseBody response

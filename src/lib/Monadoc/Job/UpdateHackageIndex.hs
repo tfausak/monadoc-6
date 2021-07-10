@@ -4,6 +4,7 @@ module Monadoc.Job.UpdateHackageIndex where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
 import qualified Monadoc.Exception.BadHackageIndexSize as BadHackageIndexSize
 import qualified Monadoc.Model.HackageIndex as HackageIndex
@@ -31,9 +32,9 @@ run context model = do
             y <- Either.toMaybe $ tryInto @String x
             Read.readMaybe @Int y
     case maybeNewSize of
-        Nothing -> throwM $ BadHackageIndexSize.new oldSize maybeNewSize
+        Nothing -> Exception.throwM $ BadHackageIndexSize.new oldSize maybeNewSize
         Just newSize
-            | newSize < oldSize -> throwM $ BadHackageIndexSize.new oldSize maybeNewSize
+            | newSize < oldSize -> Exception.throwM $ BadHackageIndexSize.new oldSize maybeNewSize
             | newSize == oldSize -> do
                 Log.info "[worker] hackage index has not changed"
                 pure oldHackageIndex

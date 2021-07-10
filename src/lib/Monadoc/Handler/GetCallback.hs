@@ -4,6 +4,7 @@ module Monadoc.Handler.GetCallback where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.Time as Time
@@ -31,7 +32,7 @@ handler :: Handler.Handler
 handler context request = do
     code <- case lookup (into @ByteString "code") $ Wai.queryString request of
         Just (Just code) -> pure code
-        _ -> throwM $ MissingCode.new request
+        _ -> Exception.throwM $ MissingCode.new request
     let
         config = Context.config context
         baseUrl = Config.baseUrl config
@@ -41,7 +42,7 @@ handler context request = do
     guid <- Guid.random
     userAgent <- case Wai.requestHeaderUserAgent request of
         Nothing -> pure ""
-        Just rawUserAgent -> either throwM pure $ tryInto @String rawUserAgent
+        Just rawUserAgent -> either Exception.throwM pure $ tryInto @String rawUserAgent
     let
         user = User.User
             { User.createdAt = now
@@ -98,7 +99,7 @@ getAccessToken context code = do
     res <- Client.performRequest manager req
     let responseBody = Client.responseBody res
     case Aeson.eitherDecode responseBody of
-        Left message -> throwM $ InvalidJson.new message responseBody
+        Left message -> Exception.throwM $ InvalidJson.new message responseBody
         Right oAuthResponse -> pure $ OAuthResponse.accessToken oAuthResponse
 
 getGithubUser :: Context.Context -> GithubToken.GithubToken -> IO GithubUser.GithubUser
@@ -113,5 +114,5 @@ getGithubUser context accessToken = do
     res <- Client.performRequest manager req
     let responseBody = Client.responseBody res
     case Aeson.eitherDecode responseBody of
-        Left message -> throwM $ InvalidJson.new message responseBody
+        Left message -> Exception.throwM $ InvalidJson.new message responseBody
         Right githubUser -> pure githubUser

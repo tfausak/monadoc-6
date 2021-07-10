@@ -2,6 +2,7 @@ module Monadoc.Handler.GetPackage where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Model.Package as Package
@@ -30,11 +31,11 @@ handler packageName context _ = do
             , Package.version x
             , Package.revision x
             ))
-        & maybe (throwM NotFound.new) pure
+        & maybe (Exception.throwM NotFound.new) pure
     let
         config = Context.config context
         baseUrl = Config.baseUrl config
         release = Package.release package
         route = Route.Release packageName release
         location = baseUrl <> Route.toString route
-    throwM $ Found.new location
+    Exception.throwM $ Found.new location

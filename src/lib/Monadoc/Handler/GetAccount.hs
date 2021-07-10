@@ -2,6 +2,7 @@ module Monadoc.Handler.GetAccount where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 import qualified Data.Ord as Ord
@@ -22,7 +23,7 @@ import qualified Monadoc.Utility.Xml as Xml
 handler :: Handler.Handler
 handler context request = do
     maybeUser <- Common.getUser context request
-    user <- maybe (throwM Forbidden.new) pure maybeUser
+    user <- maybe (Exception.throwM Forbidden.new) pure maybeUser
     sessions <- Context.withConnection context $ \ connection ->
         Session.selectByGithubId connection . User.githubId $ Model.value user
     let

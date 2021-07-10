@@ -4,6 +4,7 @@ module Monadoc.Handler.GetRelease where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 import qualified Data.Ord as Ord
@@ -51,8 +52,8 @@ handler packageName release context request = do
             maybeRevision <- Context.withConnection context $ \ connection ->
                 Package.selectLatestRevision connection packageName version
             case maybeRevision of
-                Nothing -> throwM NotFound.new
-                Just revision -> throwM
+                Nothing -> Exception.throwM NotFound.new
+                Just revision -> Exception.throwM
                     . Found.new
                     . Route.toString
                     $ Route.Release packageName release { Release.revision = Just revision }
@@ -60,7 +61,7 @@ handler packageName release context request = do
     maybeUser <- Common.getUser context request
     maybePackage <- Context.withConnection context $ \ connection ->
         Package.select connection packageName version revision
-    package <- maybe (throwM NotFound.new) pure maybePackage
+    package <- maybe (Exception.throwM NotFound.new) pure maybePackage
     packages <- Context.withConnection context $ \ connection ->
         Package.selectByName connection packageName
     let
@@ -76,7 +77,7 @@ handler packageName release context request = do
         SourceRepository.selectByPackage connection $ Model.key package
     maybeDistribution <- Context.withConnection context $ \ connection ->
         Distribution.selectByPackageAndVersion connection packageName version
-    distribution <- maybe (throwM NotFound.new) pure maybeDistribution
+    distribution <- maybe (Exception.throwM NotFound.new) pure maybeDistribution
     files <- Context.withConnection context $ \ connection ->
         File.selectByDistribution connection $ Model.key distribution
     maybeLatestVersion <- Context.withConnection context $ \ connection ->

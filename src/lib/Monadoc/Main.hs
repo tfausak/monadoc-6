@@ -48,10 +48,10 @@ setDefaultExceptionHandler :: IO ()
 setDefaultExceptionHandler = do
     originalExceptionHandler <- Ghc.getUncaughtExceptionHandler
     Ghc.setUncaughtExceptionHandler
-        $ handle originalExceptionHandler
+        $ Exception.handle originalExceptionHandler
         . defaultExceptionHandler
 
-defaultExceptionHandler :: SomeException -> IO ()
+defaultExceptionHandler :: Exception.SomeException -> IO ()
 defaultExceptionHandler = Settings.onException Nothing
 
 getContext :: String -> [String] -> IO Context.Context

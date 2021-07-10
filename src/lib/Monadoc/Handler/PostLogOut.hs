@@ -4,6 +4,7 @@ module Monadoc.Handler.PostLogOut where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.Time as Time
 import qualified Monadoc.Exception.Forbidden as Forbidden
@@ -23,7 +24,7 @@ handler :: Handler.Handler
 handler context request = do
     maybeSession <- Common.getSession context request
     session <- case maybeSession of
-        Nothing -> throwM Forbidden.new
+        Nothing -> Exception.throwM Forbidden.new
         Just session -> pure session
     Context.withConnection context $ \ connection ->
         Session.delete connection $ Model.key session

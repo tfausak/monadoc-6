@@ -4,7 +4,7 @@ module Monadoc.Server.Settings where
 
 import Monadoc.Prelude
 
-import qualified Control.Exception as Exception
+import qualified Control.Monad.Catch as Exception
 import qualified Data.Typeable as Typeable
 import qualified Data.Word as Word
 import qualified Monadoc.Exception.Forbidden as Forbidden
@@ -33,14 +33,14 @@ fromConfig config = Warp.defaultSettings
 beforeMainLoop :: Config.Config -> IO ()
 beforeMainLoop config = Log.info $ "[server] listening on port " <> show (Config.port config)
 
-onException :: Maybe Wai.Request -> SomeException -> IO ()
-onException maybeRequest (SomeException e) = Log.warn $ Printf.printf
+onException :: Maybe Wai.Request -> Exception.SomeException -> IO ()
+onException maybeRequest (Exception.SomeException e) = Log.warn $ Printf.printf
     "[exception/%s] [%04x] %s"
     (show $ Typeable.typeOf e)
     (maybe 0 (maybe 0 (into @Word.Word16) . RequestId.get) maybeRequest)
-    (displayException e)
+    (Exception.displayException e)
 
-onExceptionResponse :: SomeException -> Wai.Response
+onExceptionResponse :: Exception.SomeException -> Wai.Response
 onExceptionResponse e
     | Just (Found.Found location) <- Exception.fromException e =
         Response.status Http.found302 [(Http.hLocation, into @ByteString location)]

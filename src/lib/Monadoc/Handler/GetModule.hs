@@ -4,6 +4,7 @@ module Monadoc.Handler.GetModule where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
@@ -36,13 +37,13 @@ handler
     -> Handler.Handler
 handler packageName release componentId moduleName context request = do
     let version = Release.version release
-    revision <- maybe (throwM NotFound.new) pure $ Release.revision release
+    revision <- maybe (Exception.throwM NotFound.new) pure $ Release.revision release
     maybeUser <- Common.getUser context request
     let route = Route.Module packageName release componentId moduleName
     package <- do
         maybePackage <- Context.withConnection context $ \ connection ->
             Package.select connection packageName version revision
-        maybe (throwM NotFound.new) pure maybePackage
+        maybe (Exception.throwM NotFound.new) pure maybePackage
     component <- do
         -- TODO: More accurately handle component IDs.
         maybeComponent <- Context.withConnection context $ \ connection ->
@@ -50,11 +51,11 @@ handler packageName release componentId moduleName context request = do
                 (Model.key package)
                 (ComponentId.tag componentId)
                 (maybe (from packageName) id $ ComponentId.name componentId)
-        maybe (throwM NotFound.new) pure maybeComponent
+        maybe (Exception.throwM NotFound.new) pure maybeComponent
     module_ <- do
         maybeModule <- Context.withConnection context $ \ connection ->
             Module.select connection (Model.key component) moduleName
-        maybe (throwM NotFound.new) pure maybeModule
+        maybe (Exception.throwM NotFound.new) pure maybeModule
     maybeFile <- case Module.file $ Model.value module_ of
         Nothing -> pure Nothing
         Just key -> Context.withConnection context $ \ connection ->

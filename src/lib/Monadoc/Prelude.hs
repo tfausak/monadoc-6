@@ -1,7 +1,5 @@
 module Monadoc.Prelude (
     -- * Type classes
-    Control.Monad.Catch.Exception,
-    Control.Monad.Catch.MonadThrow,
     Prelude.Applicative,
     Prelude.Eq,
     Prelude.Foldable,
@@ -21,7 +19,6 @@ module Monadoc.Prelude (
     Witch.TryFrom,
 
     -- * Data types
-    Control.Monad.Catch.SomeException(SomeException),
     Data.ByteString.ByteString,
     Data.Map.Map,
     Data.Proxy.Proxy(Proxy),
@@ -44,11 +41,6 @@ module Monadoc.Prelude (
     Witch.TryFromException(..),
 
     -- * Functions
-    Control.Monad.Catch.bracket,
-    Control.Monad.Catch.catch,
-    Control.Monad.Catch.displayException,
-    Control.Monad.Catch.handle,
-    Control.Monad.Catch.throwM,
     Control.Monad.guard,
     Control.Monad.unless,
     Control.Monad.void,
@@ -163,7 +155,6 @@ module Monadoc.Prelude (
 import Monadoc.Prelude.Orphanage ()
 
 import qualified Control.Monad
-import qualified Control.Monad.Catch
 import qualified Data.ByteString
 import qualified Data.Foldable
 import qualified Data.Function

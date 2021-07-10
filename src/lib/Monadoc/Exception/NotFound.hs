@@ -2,11 +2,13 @@ module Monadoc.Exception.NotFound where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
+
 data NotFound
     = NotFound
     deriving (Eq, Show)
 
-instance Exception NotFound
+instance Exception.Exception NotFound
 
 new :: NotFound
 new = NotFound

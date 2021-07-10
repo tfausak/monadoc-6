@@ -4,6 +4,7 @@ module Monadoc.Server.Application where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.GetAccount as GetAccount
 import qualified Monadoc.Handler.GetCallback as GetCallback
@@ -30,7 +31,7 @@ import qualified System.FilePath as FilePath
 application :: Context.Context -> Wai.Application
 application context request respond = do
     handler <- case getHandler request of
-        Nothing -> throwM NotFound.new
+        Nothing -> Exception.throwM NotFound.new
         Just handler -> pure handler
     response <- handler context request
     respond response

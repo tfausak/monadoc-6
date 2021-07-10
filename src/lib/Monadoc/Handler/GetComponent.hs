@@ -4,6 +4,7 @@ module Monadoc.Handler.GetComponent where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.CaseInsensitive as CI
 import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
@@ -51,28 +52,28 @@ handler packageName release componentId context request = do
         version = Release.version release
 
     -- TODO: Redirect to the latest release?
-    revision <- maybe (throwM NotFound.new) pure $ Release.revision release
+    revision <- maybe (Exception.throwM NotFound.new) pure $ Release.revision release
 
     -- Redirect foo:lib:foo to foo:lib.
-    when (isLibrary && namesMatch) . throwM . Found.new $ baseUrl <> Route.toString
+    when (isLibrary && namesMatch) . Exception.throwM . Found.new $ baseUrl <> Route.toString
         (Route.Component packageName release $ ComponentId.ComponentId componentTag Nothing)
 
     maybeUser <- Common.getUser context request
     maybePackage <- Context.withConnection context $ \ connection ->
         Package.select connection packageName version revision
-    package <- maybe (throwM NotFound.new) pure maybePackage
+    package <- maybe (Exception.throwM NotFound.new) pure maybePackage
     allComponents <- Context.withConnection context $ \ connection ->
         Component.selectByPackage connection $ Model.key package
     let componentsByTag = Foldable.groupBy (Component.tag . Model.value) allComponents
     components <- case Map.lookup (ComponentId.tag componentId) componentsByTag of
-        Nothing -> throwM NotFound.new
+        Nothing -> Exception.throwM NotFound.new
         Just components -> pure components
 
     when (not isLibrary && Maybe.isNothing maybeComponentName)
         $ case NonEmpty.toList components of
             -- Redirect foo:exe to foo:exe:bar when there is only one
             -- executable. Same for all component types except library.
-            [component] -> throwM . Found.new $ baseUrl <> Route.toString
+            [component] -> Exception.throwM . Found.new $ baseUrl <> Route.toString
                 ( Route.Component packageName release
                 . ComponentId.ComponentId componentTag
                 . Just
@@ -80,12 +81,12 @@ handler packageName release componentId context request = do
                 $ Model.value component
                 )
             -- Otherwise this route is ambiguous.
-            _ -> throwM NotFound.new
+            _ -> Exception.throwM NotFound.new
 
     let componentName = Maybe.fromMaybe (into @ComponentName.ComponentName packageName) maybeComponentName
     component <- components
         & List.find ((== componentName) . Component.name . Model.value)
-        & maybe (throwM NotFound.new) pure
+        & maybe (Exception.throwM NotFound.new) pure
     dependencies <- Context.withConnection context $ \ connection ->
         Dependency.selectByComponent connection $ Model.key component
 

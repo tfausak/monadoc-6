@@ -4,6 +4,7 @@ module Monadoc.Job.ProcessDistributions where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.Set as Set
 import qualified Database.SQLite.Simple as Sqlite
 import qualified Distribution.ModuleName as Cabal
@@ -45,23 +46,23 @@ run context = Context.withConnection context $ \ connection -> Sqlite.fold
         maybeDistribution <- Distribution.selectByPackageAndVersion connection
             packageName
             (Package.version $ Model.value package)
-        distribution <- maybe (throwM NotFound.new) pure maybeDistribution
+        distribution <- maybe (Exception.throwM NotFound.new) pure maybeDistribution
         files <- File.selectByDistribution connection $ Model.key distribution
         maybePackageBlob <- Blob.selectByHash connection
             . Package.hash
             $ Model.value package
-        packageBlob <- maybe (throwM NotFound.new) pure maybePackageBlob
-        packageDescription <- either throwM pure
+        packageBlob <- maybe (Exception.throwM NotFound.new) pure maybePackageBlob
+        packageDescription <- either Exception.throwM pure
             . ProcessHackageIndex.parsePackageDescription
             . Blob.contents
             $ Model.value packageBlob
         components <- Component.selectByPackage connection $ Model.key package
         for_ components $ \ component -> do
-            componentName <- either throwM pure
+            componentName <- either Exception.throwM pure
                 . componentIdToComponentName packageName
                 . Component.id
                 $ Model.value component
-            cabalComponent <- maybe (throwM NotFound.new) pure
+            cabalComponent <- maybe (Exception.throwM NotFound.new) pure
                 $ Cabal.lookupComponent packageDescription componentName
             let buildInfo = componentToBuildInfo cabalComponent
             modules <- Module.selectByComponent connection $ Model.key component

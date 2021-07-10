@@ -4,6 +4,7 @@ module Monadoc.Type.Flag where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Monadoc.Exception.OptionError as OptionError
 import qualified Monadoc.Type.Warning as Warning
@@ -22,7 +23,7 @@ data Flag
     | Version
     deriving (Eq, Show)
 
-fromArguments :: MonadThrow m => [String] -> m ([Warning.Warning], [Flag])
+fromArguments :: Exception.MonadThrow m => [String] -> m ([Warning.Warning], [Flag])
 fromArguments arguments = do
     let
         (flags, unexpectedArguments, unrecognizedOptions, errorMessages) =
@@ -30,7 +31,7 @@ fromArguments arguments = do
         warnings = fmap Warning.UnexpectedArgument unexpectedArguments
             <> fmap Warning.UnrecognizedOption unrecognizedOptions
     case tryInto @(NonEmpty.NonEmpty String) errorMessages of
-        Right xs -> throwM $ OptionError.new xs
+        Right xs -> Exception.throwM $ OptionError.new xs
         Left _ -> pure (warnings, flags)
 
 options :: [Console.OptDescr Flag]

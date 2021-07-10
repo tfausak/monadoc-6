@@ -4,6 +4,7 @@ module Monadoc.Handler.PostRevoke where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad.Catch as Exception
 import qualified Monadoc.Exception.Forbidden as Forbidden
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
@@ -23,24 +24,24 @@ handler :: Handler.Handler
 handler context request = do
     maybeUser <- Common.getUser context request
     user <- case maybeUser of
-        Nothing -> throwM Forbidden.new
+        Nothing -> Exception.throwM Forbidden.new
         Just user -> pure user
     body <- Wai.lazyRequestBody request
     let query = Http.parseQueryText $ into @ByteString body
     rawGuid <- case lookup (into @Text "guid") query of
         Just (Just rawGuid) -> pure rawGuid
-        _ -> throwM NotFound.new
-    guid <- either throwM pure $ tryInto @Guid.Guid rawGuid
+        _ -> Exception.throwM NotFound.new
+    guid <- either Exception.throwM pure $ tryInto @Guid.Guid rawGuid
     maybeSession <- Context.withConnection context $ \ connection ->
         Session.selectByGuid connection guid
     session <- case maybeSession of
-        Nothing -> throwM NotFound.new
+        Nothing -> Exception.throwM NotFound.new
         Just session -> pure session
-    when (Session.userGithubId (Model.value session) /= User.githubId (Model.value user)) $ throwM Forbidden.new
+    when (Session.userGithubId (Model.value session) /= User.githubId (Model.value user)) $ Exception.throwM Forbidden.new
     Context.withConnection context $ \ connection ->
         Session.delete connection $ Model.key session
     let
         config = Context.config context
         baseUrl = Config.baseUrl config
         location = baseUrl <> Route.toString Route.Account
-    throwM $ Found.new location
+    Exception.throwM $ Found.new location
