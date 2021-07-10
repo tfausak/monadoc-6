@@ -13,6 +13,3 @@ identity = Prelude.id
 
 hush :: Prelude.Either x a -> Prelude.Maybe a
 hush = Prelude.either (always Prelude.Nothing) Prelude.Just
-
-note :: a -> Prelude.Maybe b -> Prelude.Either a b
-note x = Prelude.maybe (Prelude.Left x) Prelude.Right
