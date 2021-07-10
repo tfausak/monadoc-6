@@ -4,6 +4,7 @@ module Monadoc.Job.ProcessDistributions where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Set as Set
 import qualified Database.SQLite.Simple as Sqlite
@@ -57,7 +58,7 @@ run context = Context.withConnection context $ \ connection -> Sqlite.fold
             . Blob.contents
             $ Model.value packageBlob
         components <- Component.selectByPackage connection $ Model.key package
-        for_ components $ \ component -> do
+        Monad.forM_ components $ \ component -> do
             componentName <- either Exception.throwM pure
                 . componentIdToComponentName packageName
                 . Component.id
@@ -66,7 +67,7 @@ run context = Context.withConnection context $ \ connection -> Sqlite.fold
                 $ Cabal.lookupComponent packageDescription componentName
             let buildInfo = componentToBuildInfo cabalComponent
             modules <- Module.selectByComponent connection $ Model.key component
-            for_ modules $ \ module_ ->
+            Monad.forM_ modules $ \ module_ ->
                 case Module.file $ Model.value module_ of
                     Just _ -> pure () -- TODO: Parse module.
                     Nothing ->

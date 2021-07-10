@@ -39,7 +39,6 @@ module Monadoc.Prelude (
     -- * Functions
     Data.Foldable.foldl',
     Data.Foldable.foldr',
-    Data.Foldable.for_,
     Data.Foldable.sequenceA_,
     Data.Traversable.for,
     Prelude.abs,
