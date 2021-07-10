@@ -4,6 +4,7 @@ import Monadoc.Prelude
 
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
+import qualified Data.Text as Text
 import qualified Data.Time as Time
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.HackageUser as HackageUser
@@ -24,7 +25,7 @@ type Model = Model.Model Package
 type Key = Key.Key Package
 
 data Package = Package
-    { author :: Text
+    { author :: Text.Text
     -- ^ This is a free form text field. It is usually empty. Often it matches
     -- one of these patterns:
     --
@@ -39,7 +40,7 @@ data Package = Package
     -- - AUTHORS
     --     - Presumably a file name that's included in the package tarball.
     -- - Acme Software LLC
-    , bugReports :: Text
+    , bugReports :: Text.Text
     -- ^ This is a free form text field. It is usually empty. Often it matches
     -- one of these patterns:
     --
@@ -47,11 +48,11 @@ data Package = Package
     -- - mailto:jane@doe.example
     , buildType :: BuildType.BuildType
     , cabalVersion :: CabalVersion.CabalVersion
-    , category :: Text
+    , category :: Text.Text
     -- ^ This is a free form text field. Somewhat surprisingly, it is not
     -- usually empty. It's almost always a comma separated list of categories.
     -- There is not fixed set of categories to pick from.
-    , copyright :: Text
+    , copyright :: Text.Text
     -- ^ This is a free form text field. It is usually empty. Often it looks
     -- like the author field, but with some additional data like years. For
     -- example:
@@ -62,9 +63,9 @@ data Package = Package
     -- - (c) 1970 Jane Doe
     -- - 1970 Jane Doe
     -- - 1970-2021 Jane Doe
-    , description :: Text
+    , description :: Text.Text
     , hash :: Sha256.Sha256
-    , homepage :: Text
+    , homepage :: Text.Text
     -- ^ This is a free form text field. It is usually empty. Often it matches
     -- one of these patterns:
     --
@@ -72,19 +73,19 @@ data Package = Package
     -- - https://some-package.github.io
     -- - https://some-package.example
     , license :: License.License
-    , maintainer :: Text
+    , maintainer :: Text.Text
     -- ^ This is a free form text field. It's very similar to the author field,
     -- except it is usually not empty.
     , name :: PackageName.PackageName
-    , pkgUrl :: Text
+    , pkgUrl :: Text.Text
     -- ^ This is a free form text field. It's almost always empty. It's similar
     -- to the bug reports and homepage fields, but people seem to use it for
     -- source code.
     , revision :: Revision.Revision
-    , stability :: Text
+    , stability :: Text.Text
     -- ^ This is a free form text field. It's usually empty. There's no fixed
     -- set of stabilities, but people often pick "experimental" or "stable".
-    , synopsis :: Text
+    , synopsis :: Text.Text
     , uploadedAt :: Time.UTCTime
     , uploadedBy :: HackageUser.Key
     , version :: Version.Version

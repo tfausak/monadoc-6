@@ -6,6 +6,7 @@ module Monadoc.Class.ToXml where
 import Monadoc.Prelude
 
 import qualified Data.Int as Int
+import qualified Data.Text as Text
 import qualified Data.Time as Time
 import qualified Data.Void as Void
 import qualified Documentation.Haddock.Types as Haddock
@@ -16,10 +17,10 @@ class ToXml a where
     toXml :: a -> Xml.Node
 
 instance ToXml String where
-    toXml = toXml . into @Text
+    toXml = toXml . into @Text.Text
 
 instance ToXml a => ToXml (Maybe a) where
-    toXml = maybe (toXml $ into @Text "") toXml
+    toXml = maybe (toXml $ into @Text.Text "") toXml
 
 instance ToXml Int where
     toXml = toXml . show
@@ -27,7 +28,7 @@ instance ToXml Int where
 instance ToXml Word where
     toXml = toXml . show
 
-instance ToXml Text where
+instance ToXml Text.Text where
     toXml = Xml.NodeContent
 
 instance ToXml Time.UTCTime where

@@ -8,6 +8,7 @@ import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Control.Retry as Retry
 import qualified Data.Proxy as Proxy
+import qualified Data.Text as Text
 import qualified Data.Typeable as Typeable
 import qualified Data.Word as Word
 import qualified Database.SQLite.Simple as Sql
@@ -61,7 +62,7 @@ query connection sql input = do
                 (into @Word.Word16 requestId)
                 number
                 (show retryStatus)
-            Sql.query connection (Sql.Query $ into @Text sql) input
+            Sql.query connection (Sql.Query $ into @Text.Text sql) input
     after <- Clock.getMonotonicTime
     Log.info $ Printf.printf "[sql/%04x] %s -- %.3f"
         (into @Word.Word16 requestId)

@@ -6,6 +6,7 @@ module Monadoc.Type.Guid where
 import Monadoc.Prelude
 
 import qualified Data.Proxy as Proxy
+import qualified Data.Text as Text
 import qualified Data.UUID as Uuid
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Vendor.Sql as Sql
@@ -16,10 +17,10 @@ newtype Guid
     deriving (Eq, Show)
 
 instance Sql.FromField Guid where
-    fromField = Sql.defaultFromField @Text Proxy.Proxy
+    fromField = Sql.defaultFromField @Text.Text Proxy.Proxy
 
 instance Sql.ToField Guid where
-    toField = Sql.toField . into @Text
+    toField = Sql.toField . into @Text.Text
 
 instance Random.Uniform Guid where
     uniformM = fmap (from @Uuid.UUID) . Random.uniformM
@@ -28,14 +29,14 @@ instance From Uuid.UUID Guid
 
 instance From Guid Uuid.UUID
 
-instance From Guid Text where
+instance From Guid Text.Text where
     from = Uuid.toText . into @Uuid.UUID
 
-instance TryFrom Text Guid where
+instance TryFrom Text.Text Guid where
     tryFrom = maybeTryFrom $ fmap (from @Uuid.UUID) . Uuid.fromText
 
 instance ToXml.ToXml Guid where
-    toXml = ToXml.toXml . into @Text
+    toXml = ToXml.toXml . into @Text.Text
 
 random :: IO Guid
 random = Random.getStdRandom Random.uniform

@@ -15,6 +15,7 @@ import qualified Data.Fixed as Fixed
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import qualified Data.Text as Text
 import qualified Data.Time as Time
 import qualified Data.Time.Clock.POSIX as Time
 import qualified Distribution.Compat.Lens as Lens
@@ -211,22 +212,22 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                     pure Model.Model { Model.key = key, Model.value = value }
         let
             package = Package.Package
-                { Package.author = into @Text $ Cabal.author pd
-                , Package.bugReports = into @Text $ Cabal.bugReports pd
+                { Package.author = into @Text.Text $ Cabal.author pd
+                , Package.bugReports = into @Text.Text $ Cabal.bugReports pd
                 , Package.buildType = into @BuildType.BuildType $ Cabal.buildType pd
                 , Package.cabalVersion = into @CabalVersion.CabalVersion $ Cabal.specVersion pd
-                , Package.category = into @Text $ Cabal.category pd
-                , Package.copyright = into @Text $ Cabal.copyright pd
-                , Package.description = into @Text $ Cabal.description pd
+                , Package.category = into @Text.Text $ Cabal.category pd
+                , Package.copyright = into @Text.Text $ Cabal.copyright pd
+                , Package.description = into @Text.Text $ Cabal.description pd
                 , Package.hash = hash
-                , Package.homepage = into @Text $ Cabal.homepage pd
+                , Package.homepage = into @Text.Text $ Cabal.homepage pd
                 , Package.license = into @License.License $ Cabal.license pd
-                , Package.maintainer = into @Text $ Cabal.maintainer pd
+                , Package.maintainer = into @Text.Text $ Cabal.maintainer pd
                 , Package.name = packageName
-                , Package.pkgUrl = into @Text $ Cabal.pkgUrl pd
+                , Package.pkgUrl = into @Text.Text $ Cabal.pkgUrl pd
                 , Package.revision = revision
-                , Package.stability = into @Text $ Cabal.stability pd
-                , Package.synopsis = into @Text $ Cabal.synopsis pd
+                , Package.stability = into @Text.Text $ Cabal.stability pd
+                , Package.synopsis = into @Text.Text $ Cabal.synopsis pd
                 , Package.uploadedAt = epochTimeToUtcTime $ Tar.entryTime entry
                 , Package.uploadedBy = Model.key hackageUser
                 , Package.version = version

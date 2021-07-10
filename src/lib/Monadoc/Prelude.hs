@@ -19,7 +19,6 @@ module Monadoc.Prelude (
     Witch.TryFrom,
 
     -- * Data types
-    Data.Text.Text,
     Prelude.Bool(False, True),
     Prelude.Char,
     Prelude.Double,
@@ -142,6 +141,5 @@ module Monadoc.Prelude (
 import Monadoc.Prelude.Orphanage ()
 
 import qualified Data.Function
-import qualified Data.Text
 import qualified Prelude
 import qualified Witch

@@ -10,6 +10,7 @@ import qualified Data.Fixed as Fixed
 import qualified Data.Int as Int
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
+import qualified Data.Text as Text
 import qualified Data.Time as Time
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Exception.Mismatch as Mismatch
@@ -23,7 +24,7 @@ type Key = Key.Key Migration
 
 data Migration = Migration
     { migratedAt :: Maybe Time.UTCTime
-    , sql :: Text
+    , sql :: Text.Text
     , time :: Time.UTCTime
     } deriving (Eq, Show)
 
@@ -59,7 +60,7 @@ new
     -> Migration
 new year month day hour minute sec q = Migration
     { migratedAt = Nothing
-    , sql = into @Text q
+    , sql = into @Text.Text q
     , time = Time.UTCTime (Time.fromGregorian year month day)
         . Time.timeOfDayToTime
         $ Time.TimeOfDay hour minute sec

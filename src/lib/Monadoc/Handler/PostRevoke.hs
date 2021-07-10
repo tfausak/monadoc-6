@@ -7,6 +7,7 @@ import Monadoc.Prelude
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
+import qualified Data.Text as Text
 import qualified Monadoc.Exception.Forbidden as Forbidden
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
@@ -30,7 +31,7 @@ handler context request = do
         Just user -> pure user
     body <- Wai.lazyRequestBody request
     let query = Http.parseQueryText $ into @ByteString.ByteString body
-    rawGuid <- case lookup (into @Text "guid") query of
+    rawGuid <- case lookup (into @Text.Text "guid") query of
         Just (Just rawGuid) -> pure rawGuid
         _ -> Exception.throwM NotFound.new
     guid <- either Exception.throwM pure $ tryInto @Guid.Guid rawGuid

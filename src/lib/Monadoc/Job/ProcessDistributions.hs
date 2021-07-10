@@ -7,6 +7,7 @@ import Monadoc.Prelude
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Set as Set
+import qualified Data.Text as Text
 import qualified Database.SQLite.Simple as Sqlite
 import qualified Distribution.ModuleName as Cabal
 import qualified Distribution.PackageDescription as Cabal
@@ -34,7 +35,7 @@ import qualified System.FilePath.Posix as FilePath.Posix
 run :: Context.Context -> IO ()
 run context = Context.withConnection context $ \ connection -> Sqlite.fold
     connection
-    (Sqlite.Query $ into @Text
+    (Sqlite.Query $ into @Text.Text
         "select key, author, bugReports, buildType, cabalVersion, category, \
         \copyright, description, hash, homepage, license, maintainer, name, \
         \pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, \

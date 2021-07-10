@@ -7,6 +7,7 @@ import Monadoc.Prelude
 import qualified Control.Monad.Catch as Exception
 import qualified Data.CaseInsensitive as CI
 import qualified Data.ByteString as ByteString
+import qualified Data.Text as Text
 import qualified Data.Word as Word
 import qualified GHC.Clock as Clock
 import qualified Monadoc.Server.Settings as Settings
@@ -33,9 +34,9 @@ logRequests f request respond = do
     before <- Clock.getMonotonicTime
     f request $ \ response -> do
         after <- Clock.getMonotonicTime
-        method <- either Exception.throwM pure . tryInto @Text $ Wai.requestMethod request
-        path <- either Exception.throwM pure . tryInto @Text $ Wai.rawPathInfo request
-        query <- either Exception.throwM pure . tryInto @Text $ Wai.rawQueryString request
+        method <- either Exception.throwM pure . tryInto @Text.Text $ Wai.requestMethod request
+        path <- either Exception.throwM pure . tryInto @Text.Text $ Wai.rawPathInfo request
+        query <- either Exception.throwM pure . tryInto @Text.Text $ Wai.rawQueryString request
         Log.info $ Printf.printf "[server/%04x] %s %s%s %d %.3f"
             (maybe 0 (into @Word.Word16) $ RequestId.get request)
             method

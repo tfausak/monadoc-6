@@ -7,6 +7,7 @@ import Monadoc.Prelude
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.Text as Text
 import qualified Data.Word as Word
 import qualified GHC.Clock as Clock
 import qualified Monadoc.Server.Settings as Settings
@@ -26,7 +27,7 @@ performRequest manager request = do
     before <- Clock.getMonotonicTime
     response <- Client.httpLbs request { Client.requestHeaders = newHeaders } manager
     after <- Clock.getMonotonicTime
-    method <- either Exception.throwM pure . tryInto @Text $ Client.method request
+    method <- either Exception.throwM pure . tryInto @Text.Text $ Client.method request
     Log.info $ Printf.printf "[client/%04x] %s %s %d %.3f"
         (into @Word.Word16 requestId)
         method

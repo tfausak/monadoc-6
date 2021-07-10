@@ -6,6 +6,7 @@ import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
+import qualified Data.Text as Text
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
@@ -101,7 +102,7 @@ handler packageName release componentId moduleName context request = do
             , Xml.node "file" []
                 [ Xml.node "contents" [] [ToXml.toXml $ case maybeBlob of
                     Nothing -> Nothing
-                    Just blob -> Either.toMaybe . tryInto @Text . Blob.contents $ Model.value blob]
+                    Just blob -> Either.toMaybe . tryInto @Text.Text . Blob.contents $ Model.value blob]
                 , Xml.node "path" [] [ToXml.toXml $ fmap (File.path . Model.value) maybeFile]
                 , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName release . File.path . Model.value) maybeFile]
                 ]

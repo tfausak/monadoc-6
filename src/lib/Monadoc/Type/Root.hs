@@ -4,6 +4,7 @@ module Monadoc.Type.Root where
 
 import Monadoc.Prelude
 
+import qualified Data.Text as Text
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Route as Route
@@ -20,8 +21,8 @@ toDocument root =
     let
         href = Xml.escape $ Meta.baseUrl (meta root) <> Route.toString Route.Template
         instruction = Xml.Instruction
-            (into @Text "xml-stylesheet")
-            (into @Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> href <> "\"")
+            (into @Text.Text "xml-stylesheet")
+            (into @Text.Text $ "type=\"text/xsl\" charset=\"UTF-8\" href=\"" <> href <> "\"")
     in Xml.Document
         (Xml.Prologue [Xml.MiscInstruction instruction] Nothing [])
         (toElement root)
