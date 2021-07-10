@@ -1,12 +1,9 @@
-{-# LANGUAGE TypeApplications #-}
-
 module Monadoc.Type.GithubUser where
 
 import qualified Data.Aeson as Aeson
-import qualified Data.Text as Text
 import qualified Monadoc.Type.GithubId as GithubId
 import qualified Monadoc.Type.GithubLogin as GithubLogin
-import qualified Witch
+import qualified Monadoc.Utility.Aeson as Aeson
 
 data GithubUser = GithubUser
     { id_ :: GithubId.GithubId
@@ -15,8 +12,8 @@ data GithubUser = GithubUser
 
 instance Aeson.FromJSON GithubUser where
     parseJSON = Aeson.withObject "GithubUser" $ \ object -> do
-        i <- object Aeson..: Witch.into @Text.Text "id"
-        l <- object Aeson..: Witch.into @Text.Text "login"
+        i <- Aeson.required object "id"
+        l <- Aeson.required object "login"
         pure GithubUser
             { id_ = i
             , login = l

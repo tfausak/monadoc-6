@@ -179,6 +179,7 @@ library
         Monadoc.Type.Version
         Monadoc.Type.VersionRange
         Monadoc.Type.Warning
+        Monadoc.Utility.Aeson
         Monadoc.Utility.Cabal
         Monadoc.Utility.Client
         Monadoc.Utility.Convert
