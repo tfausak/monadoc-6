@@ -4,7 +4,6 @@
 
 module Monadoc.Type.VersionRange where
 
-import qualified Data.Proxy as Proxy
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Distribution.Types.VersionRange as Cabal
@@ -26,10 +25,10 @@ instance Witch.From Cabal.VersionRange VersionRange
 instance Witch.From VersionRange Cabal.VersionRange
 
 instance Witch.TryFrom String VersionRange where
-    tryFrom = Cabal.parsecTryFrom @Cabal.VersionRange Proxy.Proxy
+    tryFrom = Cabal.parsecTryFrom @Cabal.VersionRange []
 
 instance Sql.FromField VersionRange where
-    fromField = Sql.defaultFromField @String Proxy.Proxy
+    fromField = Sql.defaultFromField @String []
 
 instance Sql.ToField VersionRange where
     toField = Sql.toField . Witch.into @String

@@ -4,7 +4,6 @@
 
 module Monadoc.Type.License where
 
-import qualified Data.Proxy as Proxy
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.SPDX.License as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
@@ -21,13 +20,13 @@ instance Witch.From Cabal.License License
 instance Witch.From License Cabal.License
 
 instance Witch.TryFrom String License where
-    tryFrom = Cabal.parsecTryFrom @Cabal.License Proxy.Proxy
+    tryFrom = Cabal.parsecTryFrom @Cabal.License []
 
 instance Witch.From License String where
     from = Cabal.prettyShow . Witch.into @Cabal.License
 
 instance Sql.FromField License where
-    fromField = Sql.defaultFromField @String Proxy.Proxy
+    fromField = Sql.defaultFromField @String []
 
 instance Sql.ToField License where
     toField = Sql.toField . Witch.into @String

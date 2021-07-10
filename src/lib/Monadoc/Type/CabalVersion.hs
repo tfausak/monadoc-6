@@ -4,7 +4,6 @@
 
 module Monadoc.Type.CabalVersion where
 
-import qualified Data.Proxy as Proxy
 import qualified Distribution.CabalSpecVersion as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Version as Version
@@ -32,7 +31,7 @@ instance Witch.From CabalVersion Version.Version where
     from = Witch.into @Version.Version . Witch.into @[Int]
 
 instance Sql.FromField CabalVersion where
-    fromField = Sql.defaultFromField @Version.Version Proxy.Proxy
+    fromField = Sql.defaultFromField @Version.Version []
 
 instance Sql.ToField CabalVersion where
     toField = Sql.toField . Witch.into @Version.Version

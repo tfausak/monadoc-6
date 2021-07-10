@@ -4,7 +4,6 @@
 
 module Monadoc.Type.Version where
 
-import qualified Data.Proxy as Proxy
 import qualified Data.Version as Version
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Distribution.Pretty as Cabal
@@ -37,10 +36,10 @@ instance Witch.From Version Version.Version where
     from = Version.makeVersion . Witch.into @[Int]
 
 instance Witch.TryFrom String Version where
-    tryFrom = Cabal.parsecTryFrom @Cabal.Version Proxy.Proxy
+    tryFrom = Cabal.parsecTryFrom @Cabal.Version []
 
 instance Sql.FromField Version where
-    fromField = Sql.defaultFromField @String Proxy.Proxy
+    fromField = Sql.defaultFromField @String []
 
 instance Sql.ToField Version where
     toField = Sql.toField . Witch.into @String

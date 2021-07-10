@@ -4,7 +4,6 @@
 
 module Monadoc.Type.ComponentTag where
 
-import qualified Data.Proxy as Proxy
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Witch
@@ -35,7 +34,7 @@ instance Witch.From ComponentTag String where
         TestSuite -> "test"
 
 instance Sql.FromField ComponentTag where
-    fromField = Sql.defaultFromField @String Proxy.Proxy
+    fromField = Sql.defaultFromField @String []
 
 instance Sql.ToField ComponentTag where
     toField = Sql.toField . Witch.into @String

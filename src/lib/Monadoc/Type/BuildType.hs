@@ -4,7 +4,6 @@
 
 module Monadoc.Type.BuildType where
 
-import qualified Data.Proxy as Proxy
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.BuildType as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
@@ -21,13 +20,13 @@ instance Witch.From Cabal.BuildType BuildType
 instance Witch.From BuildType Cabal.BuildType
 
 instance Witch.TryFrom String BuildType where
-    tryFrom = Cabal.parsecTryFrom @Cabal.BuildType Proxy.Proxy
+    tryFrom = Cabal.parsecTryFrom @Cabal.BuildType []
 
 instance Witch.From BuildType String where
     from = Cabal.prettyShow . Witch.into @Cabal.BuildType
 
 instance Sql.FromField BuildType where
-    fromField = Sql.defaultFromField @String Proxy.Proxy
+    fromField = Sql.defaultFromField @String []
 
 instance Sql.ToField BuildType where
     toField = Sql.toField . Witch.into @String

@@ -3,7 +3,6 @@
 
 module Monadoc.Type.Guid where
 
-import qualified Data.Proxy as Proxy
 import qualified Data.Text as Text
 import qualified Data.UUID as Uuid
 import qualified Monadoc.Class.ToXml as ToXml
@@ -16,7 +15,7 @@ newtype Guid
     deriving (Eq, Show)
 
 instance Sql.FromField Guid where
-    fromField = Sql.defaultFromField @Text.Text Proxy.Proxy
+    fromField = Sql.defaultFromField @Text.Text []
 
 instance Sql.ToField Guid where
     toField = Sql.toField . Witch.into @Text.Text

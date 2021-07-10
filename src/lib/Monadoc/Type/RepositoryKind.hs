@@ -4,7 +4,6 @@
 
 module Monadoc.Type.RepositoryKind where
 
-import qualified Data.Proxy as Proxy
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
@@ -21,13 +20,13 @@ instance Witch.From Cabal.RepoKind RepositoryKind
 instance Witch.From RepositoryKind Cabal.RepoKind
 
 instance Witch.TryFrom String RepositoryKind where
-    tryFrom = Cabal.parsecTryFrom @Cabal.RepoKind Proxy.Proxy
+    tryFrom = Cabal.parsecTryFrom @Cabal.RepoKind []
 
 instance Witch.From RepositoryKind String where
     from = Cabal.prettyShow . Witch.into @Cabal.RepoKind
 
 instance Sql.FromField RepositoryKind where
-    fromField = Sql.defaultFromField @String Proxy.Proxy
+    fromField = Sql.defaultFromField @String []
 
 instance Sql.ToField RepositoryKind where
     toField = Sql.toField . Witch.into @String

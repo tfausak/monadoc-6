@@ -6,7 +6,6 @@ module Monadoc.Type.Sha256 where
 
 import qualified Crypto.Hash as Crypto
 import qualified Data.ByteString as ByteString
-import qualified Data.Proxy as Proxy
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Text.Read as Read
 import qualified Witch
@@ -26,7 +25,7 @@ instance Witch.TryFrom String Sha256 where
     tryFrom = Witch.maybeTryFrom $ fmap (Witch.from @(Crypto.Digest Crypto.SHA256)) . Read.readMaybe
 
 instance Sql.FromField Sha256 where
-    fromField = Sql.defaultFromField @String Proxy.Proxy
+    fromField = Sql.defaultFromField @String []
 
 instance Sql.ToField Sha256 where
     toField = Sql.toField . Witch.into @String

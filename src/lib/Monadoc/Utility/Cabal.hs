@@ -7,7 +7,7 @@ import qualified Witch
 
 parsecTryFrom
     :: (Cabal.Parsec a, Witch.From a b)
-    => Proxy.Proxy a
+    => proxy a
     -> String
     -> Either (Witch.TryFromException String b) b
 parsecTryFrom proxy string = case Cabal.eitherParsec string of
@@ -16,4 +16,4 @@ parsecTryFrom proxy string = case Cabal.eitherParsec string of
         . Just
         . Exception.toException
         $ userError message
-    Right x -> Right . Witch.from $ Proxy.asProxyTypeOf x proxy
+    Right a -> Right . Witch.from $ Proxy.asProxyTypeOf a proxy
