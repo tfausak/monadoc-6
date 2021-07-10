@@ -20,7 +20,6 @@ module Monadoc.Prelude (
 
     -- * Data types
     Data.Proxy.Proxy(Proxy),
-    Data.Set.Set,
     Data.Text.Text,
     Prelude.Bool(False, True),
     Prelude.Char,
@@ -151,7 +150,6 @@ import Monadoc.Prelude.Orphanage ()
 import qualified Data.Foldable
 import qualified Data.Function
 import qualified Data.Proxy
-import qualified Data.Set
 import qualified Data.Text
 import qualified Data.Traversable
 import qualified Prelude
