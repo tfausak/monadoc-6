@@ -24,5 +24,5 @@ source-repository-package
 -- https://github.com/jacobstanley/unix-compat/pull/47
 source-repository-package
     location: https://github.com/tfausak/unix-compat
-    tag: d2020b4ad0443fd59d46bc44dcf2c19e539f37e0
+    tag: 154c3a63f154cb49c51d5f9d13488e8119631d8a
     type: git
