@@ -1,8 +1,15 @@
 packages: .
 
 allow-newer:
+    , aeson:time
     , cryptohash-md5:bytestring
     , cryptohash-sha1:bytestring
+    , directory:time
+    , tar:time
+    , time-compat:time
+    , unix:time
+    , uuid:time
+    , witch:time
 
     -- https://github.com/haskell/cabal/pull/7051
     , Cabal:bytestring
