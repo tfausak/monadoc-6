@@ -6,6 +6,7 @@ import Monadoc.Prelude
 
 import qualified Control.Exception as Exception
 import qualified Data.Typeable as Typeable
+import qualified Data.Word as Word
 import qualified Monadoc.Exception.Forbidden as Forbidden
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
@@ -36,7 +37,7 @@ onException :: Maybe Wai.Request -> SomeException -> IO ()
 onException maybeRequest (SomeException e) = Log.warn $ Printf.printf
     "[exception/%s] [%04x] %s"
     (show $ Typeable.typeOf e)
-    (maybe 0 (maybe 0 (into @Word16) . RequestId.get) maybeRequest)
+    (maybe 0 (maybe 0 (into @Word.Word16) . RequestId.get) maybeRequest)
     (displayException e)
 
 onExceptionResponse :: SomeException -> Wai.Response

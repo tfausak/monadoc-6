@@ -6,20 +6,21 @@ module Monadoc.Type.RequestId where
 import Monadoc.Prelude
 
 import qualified Data.Vault.Lazy as Vault
+import qualified Data.Word as Word
 import qualified Network.Wai as Wai
 import qualified System.IO.Unsafe as Unsafe
 import qualified System.Random as Random
 
 newtype RequestId
-    = RequestId Word16
+    = RequestId Word.Word16
     deriving (Eq, Show)
 
-instance From Word16 RequestId
+instance From Word.Word16 RequestId
 
-instance From RequestId Word16
+instance From RequestId Word.Word16
 
 random :: IO RequestId
-random = from @Word16 <$> Random.randomIO
+random = from @Word.Word16 <$> Random.randomIO
 
 key :: Vault.Key RequestId
 key = Unsafe.unsafePerformIO Vault.newKey

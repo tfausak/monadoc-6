@@ -5,6 +5,7 @@ module Monadoc.Utility.Client where
 import Monadoc.Prelude
 
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.Word as Word
 import qualified GHC.Clock as Clock
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.RequestId as RequestId
@@ -25,7 +26,7 @@ performRequest manager request = do
     after <- Clock.getMonotonicTime
     method <- either throwM pure . tryInto @Text $ Client.method request
     Log.info $ Printf.printf "[client/%04x] %s %s %d %.3f"
-        (into @Word16 requestId)
+        (into @Word.Word16 requestId)
         method
         (Uri.uriToString id (Client.getUri request) "")
         (Http.statusCode $ Client.responseStatus response)

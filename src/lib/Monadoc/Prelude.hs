@@ -30,10 +30,6 @@ module Monadoc.Prelude (
     Data.Set.Set,
     Data.Text.Text,
     Data.Void.Void,
-    Data.Word.Word16,
-    Data.Word.Word32,
-    Data.Word.Word64,
-    Data.Word.Word8,
     Prelude.Bool(False, True),
     Prelude.Char,
     Prelude.Double,
@@ -184,6 +180,5 @@ import qualified Data.Set
 import qualified Data.Text
 import qualified Data.Traversable
 import qualified Data.Void
-import qualified Data.Word
 import qualified Prelude
 import qualified Witch

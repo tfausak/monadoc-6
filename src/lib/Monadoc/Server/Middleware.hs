@@ -5,6 +5,7 @@ module Monadoc.Server.Middleware where
 import Monadoc.Prelude
 
 import qualified Data.CaseInsensitive as CI
+import qualified Data.Word as Word
 import qualified GHC.Clock as Clock
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.RequestId as RequestId
@@ -34,7 +35,7 @@ logRequests f request respond = do
         path <- either throwM pure . tryInto @Text $ Wai.rawPathInfo request
         query <- either throwM pure . tryInto @Text $ Wai.rawQueryString request
         Log.info $ Printf.printf "[server/%04x] %s %s%s %d %.3f"
-            (maybe 0 (into @Word16) $ RequestId.get request)
+            (maybe 0 (into @Word.Word16) $ RequestId.get request)
             method
             path
             query

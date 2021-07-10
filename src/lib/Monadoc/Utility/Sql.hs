@@ -8,6 +8,7 @@ import qualified Control.Monad.Catch as Exception
 import qualified Control.Retry as Retry
 import qualified Data.Proxy as Proxy
 import qualified Data.Typeable as Typeable
+import qualified Data.Word as Word
 import qualified Database.SQLite.Simple as Sql
 import qualified Database.SQLite.Simple.FromField as Sql
 import qualified GHC.Clock as Clock
@@ -56,13 +57,13 @@ query connection sql input = do
         $ \ retryStatus -> do
             let number = Retry.rsIterNumber retryStatus
             when (number > 0) . Log.info $ Printf.printf "[sql/%04x] [retry/%d] %s"
-                (into @Word16 requestId)
+                (into @Word.Word16 requestId)
                 number
                 (show retryStatus)
             Sql.query connection (Sql.Query $ into @Text sql) input
     after <- Clock.getMonotonicTime
     Log.info $ Printf.printf "[sql/%04x] %s -- %.3f"
-        (into @Word16 requestId)
+        (into @Word.Word16 requestId)
         sql
         (after - before)
     pure result
