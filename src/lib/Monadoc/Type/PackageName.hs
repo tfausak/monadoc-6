@@ -7,16 +7,16 @@ module Monadoc.Type.PackageName where
 import Monadoc.Prelude
 
 import qualified Monadoc.Vendor.Sql as Sql
-import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Types.PackageName as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Utility.Cabal as Cabal
 
 newtype PackageName
     = PackageName Cabal.PackageName
     deriving (Eq, Ord, Show)
 
 instance TryFrom String PackageName where
-    tryFrom = eitherTryFrom $ bimap userError (from @Cabal.PackageName) . Cabal.eitherParsec
+    tryFrom = Cabal.parsecTryFrom @Cabal.PackageName Proxy
 
 instance From PackageName String where
     from = Cabal.unPackageName . into @Cabal.PackageName

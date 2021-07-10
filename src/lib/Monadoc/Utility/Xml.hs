@@ -4,7 +4,6 @@ module Monadoc.Utility.Xml where
 
 import Monadoc.Prelude
 
-import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Map as Map
 import qualified Text.XML as Xml
 
@@ -32,4 +31,4 @@ node n xs = Xml.NodeElement . element n xs
 element :: String -> [(String, String)] -> [Xml.Node] -> Xml.Element
 element n = Xml.Element (name n)
     . Map.fromList
-    . fmap (Bifunctor.bimap name (into @Text))
+    . fmap (\ (k, v) -> (name k, into @Text v))

@@ -7,10 +7,10 @@ module Monadoc.Type.License where
 import Monadoc.Prelude
 
 import qualified Monadoc.Vendor.Sql as Sql
-import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.SPDX.License as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Utility.Cabal as Cabal
 
 newtype License
     = License Cabal.License
@@ -21,7 +21,7 @@ instance From Cabal.License License
 instance From License Cabal.License
 
 instance TryFrom String License where
-    tryFrom = eitherTryFrom $ bimap userError (from @Cabal.License) . Cabal.eitherParsec
+    tryFrom = Cabal.parsecTryFrom @Cabal.License Proxy
 
 instance From License String where
     from = Cabal.prettyShow . into @Cabal.License

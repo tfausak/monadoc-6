@@ -8,10 +8,10 @@ import Monadoc.Prelude
 
 import qualified Data.Version as Version
 import qualified Monadoc.Vendor.Sql as Sql
-import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Utility.Cabal as Cabal
 
 newtype Version
     = Version Cabal.Version
@@ -37,7 +37,7 @@ instance From Version Version.Version where
     from = Version.makeVersion . into @[Int]
 
 instance TryFrom String Version where
-    tryFrom = eitherTryFrom $ bimap userError (from @Cabal.Version) . Cabal.eitherParsec
+    tryFrom = Cabal.parsecTryFrom @Cabal.Version Proxy
 
 instance Sql.FromField Version where
     fromField = Sql.defaultFromField @String Proxy

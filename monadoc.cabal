@@ -184,6 +184,7 @@ library
         Monadoc.Type.Version
         Monadoc.Type.VersionRange
         Monadoc.Type.Warning
+        Monadoc.Utility.Cabal
         Monadoc.Utility.Client
         Monadoc.Utility.Convert
         Monadoc.Utility.Either

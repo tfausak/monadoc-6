@@ -7,10 +7,10 @@ module Monadoc.Type.RepositoryType where
 import Monadoc.Prelude
 
 import qualified Monadoc.Vendor.Sql as Sql
-import qualified Distribution.Parsec as Cabal
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Utility.Cabal as Cabal
 
 newtype RepositoryType
     = RepositoryType Cabal.RepoType
@@ -21,7 +21,7 @@ instance From Cabal.RepoType RepositoryType
 instance From RepositoryType Cabal.RepoType
 
 instance TryFrom String RepositoryType where
-    tryFrom = eitherTryFrom $ bimap userError (from @Cabal.RepoType) . Cabal.eitherParsec
+    tryFrom = Cabal.parsecTryFrom @Cabal.RepoType Proxy
 
 instance From RepositoryType String where
     from = Cabal.prettyShow . into @Cabal.RepoType

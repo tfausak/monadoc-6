@@ -65,9 +65,6 @@ module Monadoc.Prelude (
     Control.Monad.unless,
     Control.Monad.void,
     Control.Monad.when,
-    Data.Bifunctor.bimap,
-    Data.Bifunctor.first,
-    Data.Bifunctor.second,
     Data.Foldable.foldl',
     Data.Foldable.foldr',
     Data.Foldable.for_,
@@ -180,7 +177,6 @@ import Monadoc.Prelude.Orphanage ()
 
 import qualified Control.Monad
 import qualified Control.Monad.Catch
-import qualified Data.Bifunctor
 import qualified Data.ByteString
 import qualified Data.Foldable
 import qualified Data.Function
