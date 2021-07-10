@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module Monadoc.Type.HackageId where
 
 import Monadoc.Prelude

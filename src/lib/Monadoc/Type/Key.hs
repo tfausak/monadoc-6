@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module Monadoc.Type.Key where
 
 import Monadoc.Prelude

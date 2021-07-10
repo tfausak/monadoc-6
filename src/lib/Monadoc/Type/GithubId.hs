@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module Monadoc.Type.GithubId where
 
 import Monadoc.Prelude
