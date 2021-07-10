@@ -77,7 +77,6 @@ module Monadoc.Prelude (
     Data.Foldable.traverse_,
     Data.Traversable.for,
     Monadoc.Prelude.Extra.always,
-    Monadoc.Prelude.Extra.cons,
     Monadoc.Prelude.Extra.hush,
     Monadoc.Prelude.Extra.identity,
     Monadoc.Prelude.Extra.note,

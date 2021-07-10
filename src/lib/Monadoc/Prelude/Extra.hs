@@ -11,9 +11,6 @@ type LazyText = Data.Text.Lazy.Text
 always :: a -> b -> a
 always = Prelude.const
 
-cons :: a -> [a] -> [a]
-cons = (:)
-
 identity :: a -> a
 identity = Prelude.id
 
