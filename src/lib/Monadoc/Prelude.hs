@@ -138,7 +138,6 @@ module Monadoc.Prelude (
 
     -- * Operators
     (Data.Function.&),
-    (Data.Functor.$>),
     (Prelude.-),
     (Prelude..),
     (Prelude.*),
@@ -168,7 +167,6 @@ import qualified Control.Monad.Catch
 import qualified Data.ByteString
 import qualified Data.Foldable
 import qualified Data.Function
-import qualified Data.Functor
 import qualified Data.Map
 import qualified Data.Proxy
 import qualified Data.Set
