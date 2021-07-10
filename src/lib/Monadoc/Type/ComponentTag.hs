@@ -6,8 +6,9 @@ module Monadoc.Type.ComponentTag where
 
 import Monadoc.Prelude
 
-import qualified Monadoc.Vendor.Sql as Sql
+import qualified Data.Proxy as Proxy
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Vendor.Sql as Sql
 
 data ComponentTag
     = Library
@@ -35,7 +36,7 @@ instance From ComponentTag String where
         TestSuite -> "test"
 
 instance Sql.FromField ComponentTag where
-    fromField = Sql.defaultFromField @String Proxy
+    fromField = Sql.defaultFromField @String Proxy.Proxy
 
 instance Sql.ToField ComponentTag where
     toField = Sql.toField . into @String

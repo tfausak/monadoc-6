@@ -7,11 +7,12 @@ module Monadoc.Type.ComponentName where
 import Monadoc.Prelude
 
 import qualified Control.Monad as Monad
-import qualified Monadoc.Vendor.Sql as Sql
+import qualified Data.Proxy as Proxy
 import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.UnqualComponentName as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.PackageName as PackageName
+import qualified Monadoc.Vendor.Sql as Sql
 
 newtype ComponentName
     = ComponentName Cabal.UnqualComponentName
@@ -33,7 +34,7 @@ instance From ComponentName String where
     from = Cabal.unUnqualComponentName . into @Cabal.UnqualComponentName
 
 instance Sql.FromField ComponentName where
-    fromField = Sql.defaultFromField @String Proxy
+    fromField = Sql.defaultFromField @String Proxy.Proxy
 
 instance Sql.ToField ComponentName where
     toField = Sql.toField . into @String

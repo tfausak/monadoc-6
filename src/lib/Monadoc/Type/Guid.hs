@@ -5,9 +5,10 @@ module Monadoc.Type.Guid where
 
 import Monadoc.Prelude
 
+import qualified Data.Proxy as Proxy
 import qualified Data.UUID as Uuid
-import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Class.ToXml as ToXml
+import qualified Monadoc.Vendor.Sql as Sql
 import qualified System.Random.Stateful as Random
 
 newtype Guid
@@ -15,7 +16,7 @@ newtype Guid
     deriving (Eq, Show)
 
 instance Sql.FromField Guid where
-    fromField = Sql.defaultFromField @Text Proxy
+    fromField = Sql.defaultFromField @Text Proxy.Proxy
 
 instance Sql.ToField Guid where
     toField = Sql.toField . into @Text

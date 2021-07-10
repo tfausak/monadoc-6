@@ -8,7 +8,7 @@ import qualified Distribution.Parsec as Cabal
 
 parsecTryFrom
     :: (Cabal.Parsec a, From a b)
-    => Proxy a
+    => Proxy.Proxy a
     -> String
     -> Either (TryFromException String b) b
 parsecTryFrom proxy string = case Cabal.eitherParsec string of

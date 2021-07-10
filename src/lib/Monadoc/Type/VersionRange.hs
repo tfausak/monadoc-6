@@ -6,13 +6,14 @@ module Monadoc.Type.VersionRange where
 
 import Monadoc.Prelude
 
-import qualified Monadoc.Vendor.Sql as Sql
+import qualified Data.Proxy as Proxy
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.Version as Cabal
 import qualified Distribution.Types.VersionRange as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Cabal as Cabal
+import qualified Monadoc.Vendor.Sql as Sql
 
 newtype VersionRange
     = VersionRange Cabal.VersionRange
@@ -26,10 +27,10 @@ instance From Cabal.VersionRange VersionRange
 instance From VersionRange Cabal.VersionRange
 
 instance TryFrom String VersionRange where
-    tryFrom = Cabal.parsecTryFrom @Cabal.VersionRange Proxy
+    tryFrom = Cabal.parsecTryFrom @Cabal.VersionRange Proxy.Proxy
 
 instance Sql.FromField VersionRange where
-    fromField = Sql.defaultFromField @String Proxy
+    fromField = Sql.defaultFromField @String Proxy.Proxy
 
 instance Sql.ToField VersionRange where
     toField = Sql.toField . into @String

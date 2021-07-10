@@ -6,11 +6,12 @@ module Monadoc.Type.BuildType where
 
 import Monadoc.Prelude
 
-import qualified Monadoc.Vendor.Sql as Sql
+import qualified Data.Proxy as Proxy
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.BuildType as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Utility.Cabal as Cabal
+import qualified Monadoc.Vendor.Sql as Sql
 
 newtype BuildType
     = BuildType Cabal.BuildType
@@ -21,13 +22,13 @@ instance From Cabal.BuildType BuildType
 instance From BuildType Cabal.BuildType
 
 instance TryFrom String BuildType where
-    tryFrom = Cabal.parsecTryFrom @Cabal.BuildType Proxy
+    tryFrom = Cabal.parsecTryFrom @Cabal.BuildType Proxy.Proxy
 
 instance From BuildType String where
     from = Cabal.prettyShow . into @Cabal.BuildType
 
 instance Sql.FromField BuildType where
-    fromField = Sql.defaultFromField @String Proxy
+    fromField = Sql.defaultFromField @String Proxy.Proxy
 
 instance Sql.ToField BuildType where
     toField = Sql.toField . into @String

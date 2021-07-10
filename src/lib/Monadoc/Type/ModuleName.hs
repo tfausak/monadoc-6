@@ -6,11 +6,12 @@ module Monadoc.Type.ModuleName where
 
 import Monadoc.Prelude
 
-import qualified Distribution.Pretty as Cabal
+import qualified Data.Proxy as Proxy
 import qualified Distribution.ModuleName as Cabal
-import qualified Monadoc.Vendor.Sql as Sql
+import qualified Distribution.Pretty as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Utility.Cabal as Cabal
+import qualified Monadoc.Vendor.Sql as Sql
 
 newtype ModuleName
     = ModuleName Cabal.ModuleName
@@ -21,13 +22,13 @@ instance From Cabal.ModuleName ModuleName
 instance From ModuleName Cabal.ModuleName
 
 instance TryFrom String ModuleName where
-    tryFrom = Cabal.parsecTryFrom @Cabal.ModuleName Proxy
+    tryFrom = Cabal.parsecTryFrom @Cabal.ModuleName Proxy.Proxy
 
 instance From ModuleName String where
     from = Cabal.prettyShow . into @Cabal.ModuleName
 
 instance Sql.FromField ModuleName where
-    fromField = Sql.defaultFromField @String Proxy
+    fromField = Sql.defaultFromField @String Proxy.Proxy
 
 instance Sql.ToField ModuleName where
     toField = Sql.toField . into @String

@@ -19,7 +19,6 @@ module Monadoc.Prelude (
     Witch.TryFrom,
 
     -- * Data types
-    Data.Proxy.Proxy(Proxy),
     Data.Text.Text,
     Prelude.Bool(False, True),
     Prelude.Char,
@@ -149,7 +148,6 @@ import Monadoc.Prelude.Orphanage ()
 
 import qualified Data.Foldable
 import qualified Data.Function
-import qualified Data.Proxy
 import qualified Data.Text
 import qualified Data.Traversable
 import qualified Prelude

@@ -6,11 +6,12 @@ module Monadoc.Type.RepositoryKind where
 
 import Monadoc.Prelude
 
-import qualified Monadoc.Vendor.Sql as Sql
+import qualified Data.Proxy as Proxy
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Utility.Cabal as Cabal
+import qualified Monadoc.Vendor.Sql as Sql
 
 newtype RepositoryKind
     = RepositoryKind Cabal.RepoKind
@@ -21,13 +22,13 @@ instance From Cabal.RepoKind RepositoryKind
 instance From RepositoryKind Cabal.RepoKind
 
 instance TryFrom String RepositoryKind where
-    tryFrom = Cabal.parsecTryFrom @Cabal.RepoKind Proxy
+    tryFrom = Cabal.parsecTryFrom @Cabal.RepoKind Proxy.Proxy
 
 instance From RepositoryKind String where
     from = Cabal.prettyShow . into @Cabal.RepoKind
 
 instance Sql.FromField RepositoryKind where
-    fromField = Sql.defaultFromField @String Proxy
+    fromField = Sql.defaultFromField @String Proxy.Proxy
 
 instance Sql.ToField RepositoryKind where
     toField = Sql.toField . into @String

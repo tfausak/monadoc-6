@@ -8,6 +8,7 @@ import Monadoc.Prelude
 
 import qualified Crypto.Hash as Crypto
 import qualified Data.ByteString as ByteString
+import qualified Data.Proxy as Proxy
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Text.Read as Read
 
@@ -26,7 +27,7 @@ instance TryFrom String Sha256 where
     tryFrom = maybeTryFrom $ fmap (from @(Crypto.Digest Crypto.SHA256)) . Read.readMaybe
 
 instance Sql.FromField Sha256 where
-    fromField = Sql.defaultFromField @String Proxy
+    fromField = Sql.defaultFromField @String Proxy.Proxy
 
 instance Sql.ToField Sha256 where
     toField = Sql.toField . into @String
