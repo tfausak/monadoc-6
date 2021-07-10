@@ -38,7 +38,6 @@ module Monadoc.Prelude (
     Data.Word.Word32,
     Data.Word.Word64,
     Data.Word.Word8,
-    Numeric.Natural.Natural,
     Prelude.Bool(False, True),
     Prelude.Char,
     Prelude.Double,
@@ -191,6 +190,5 @@ import qualified Data.Text
 import qualified Data.Traversable
 import qualified Data.Void
 import qualified Data.Word
-import qualified Numeric.Natural
 import qualified Prelude
 import qualified Witch
