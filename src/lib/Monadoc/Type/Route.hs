@@ -2,8 +2,6 @@
 
 module Monadoc.Type.Route where
 
-import Monadoc.Prelude
-
 import qualified Data.ByteString as ByteString
 import qualified Data.List as List
 import qualified Monadoc.Class.ToXml as ToXml

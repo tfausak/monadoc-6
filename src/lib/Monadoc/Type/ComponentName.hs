@@ -4,8 +4,6 @@
 
 module Monadoc.Type.ComponentName where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad as Monad
 import qualified Data.Proxy as Proxy
 import qualified Distribution.Types.PackageName as Cabal

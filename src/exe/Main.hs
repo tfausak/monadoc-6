@@ -1,5 +1,3 @@
-import Prelude
-
 import qualified Monadoc
 
 main :: IO ()

@@ -1,7 +1,5 @@
 module Monadoc.Type.Model where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Type.Key as Key
 

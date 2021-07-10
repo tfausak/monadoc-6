@@ -4,8 +4,6 @@
 
 module Monadoc.Type.Release where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Version as Version

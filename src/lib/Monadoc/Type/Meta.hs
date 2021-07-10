@@ -2,8 +2,6 @@
 
 module Monadoc.Type.Meta where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Breadcrumb as Breadcrumb
 import qualified Monadoc.Type.Config as Config

@@ -4,8 +4,6 @@
 
 module Monadoc.Type.Version where
 
-import Monadoc.Prelude
-
 import qualified Data.Proxy as Proxy
 import qualified Data.Version as Version
 import qualified Monadoc.Vendor.Sql as Sql

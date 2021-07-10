@@ -4,8 +4,6 @@
 
 module Monadoc.Type.Revision where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Text.Read as Read

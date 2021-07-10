@@ -4,8 +4,6 @@
 
 module Monadoc.Type.GithubToken where
 
-import Monadoc.Prelude
-
 import qualified Data.Aeson as Aeson
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Witch

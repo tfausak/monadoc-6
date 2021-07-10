@@ -1,7 +1,5 @@
 module Monadoc.Handler.GetPackage where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad.Catch as Exception
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound

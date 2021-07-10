@@ -1,7 +1,5 @@
 module Monadoc.Job.UpdatePreferredVersions where
 
-import Monadoc.Prelude
-
 import qualified Control.Concurrent.STM as Stm
 import qualified Data.Map as Map
 import qualified Monadoc.Model.PreferredVersions as PreferredVersions

@@ -3,8 +3,6 @@
 
 module Monadoc.Type.HackageId where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Witch
 

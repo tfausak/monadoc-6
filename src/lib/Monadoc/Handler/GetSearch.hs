@@ -1,7 +1,5 @@
 module Monadoc.Handler.GetSearch where
 
-import Monadoc.Prelude
-
 import qualified Data.Containers.ListUtils as Containers
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Class.ToXml as ToXml

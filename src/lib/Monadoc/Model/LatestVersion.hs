@@ -1,7 +1,5 @@
 module Monadoc.Model.LatestVersion where
 
-import Monadoc.Prelude
-
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Model.Migration as Migration

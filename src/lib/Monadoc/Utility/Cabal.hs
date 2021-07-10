@@ -1,7 +1,5 @@
 module Monadoc.Utility.Cabal where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Proxy as Proxy
 import qualified Distribution.Parsec as Cabal

@@ -1,7 +1,5 @@
 module Monadoc.Exception.Mismatch where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Typeable as Typeable
 

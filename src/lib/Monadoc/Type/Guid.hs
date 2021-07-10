@@ -3,8 +3,6 @@
 
 module Monadoc.Type.Guid where
 
-import Monadoc.Prelude
-
 import qualified Data.Proxy as Proxy
 import qualified Data.Text as Text
 import qualified Data.UUID as Uuid

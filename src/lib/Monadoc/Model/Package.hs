@@ -1,7 +1,5 @@
 module Monadoc.Model.Package where
 
-import Monadoc.Prelude
-
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Data.Text as Text

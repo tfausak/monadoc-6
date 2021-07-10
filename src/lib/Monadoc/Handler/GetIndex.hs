@@ -1,7 +1,5 @@
 module Monadoc.Handler.GetIndex where
 
-import Monadoc.Prelude
-
 import qualified Data.List as List
 import qualified Data.Ord as Ord
 import qualified Monadoc.Class.ToXml as ToXml

@@ -2,8 +2,6 @@
 
 module Monadoc.Server.Response where
 
-import Monadoc.Prelude
-
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Monadoc.Class.ToXml as ToXml

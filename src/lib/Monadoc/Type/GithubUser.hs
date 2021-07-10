@@ -2,8 +2,6 @@
 
 module Monadoc.Type.GithubUser where
 
-import Monadoc.Prelude
-
 import qualified Data.Aeson as Aeson
 import qualified Data.Text as Text
 import qualified Monadoc.Type.GithubId as GithubId

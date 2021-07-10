@@ -3,8 +3,6 @@
 
 module Monadoc.Class.ToXml where
 
-import Monadoc.Prelude
-
 import qualified Data.Int as Int
 import qualified Data.Text as Text
 import qualified Data.Time as Time

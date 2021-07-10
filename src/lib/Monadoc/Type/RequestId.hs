@@ -3,8 +3,6 @@
 
 module Monadoc.Type.RequestId where
 
-import Monadoc.Prelude
-
 import qualified Data.Vault.Lazy as Vault
 import qualified Data.Word as Word
 import qualified Network.Wai as Wai

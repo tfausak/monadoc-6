@@ -2,8 +2,6 @@
 
 module Monadoc.Handler.GetHealthCheck where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad as Monad
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Context as Context

@@ -1,7 +1,5 @@
 module Monadoc.Job.UpsertHackageIndex where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Job.InsertHackageIndex as InsertHackageIndex
 import qualified Monadoc.Job.UpdateHackageIndex as UpdateHackageIndex
 import qualified Monadoc.Model.HackageIndex as HackageIndex

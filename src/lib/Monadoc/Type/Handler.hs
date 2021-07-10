@@ -1,7 +1,5 @@
 module Monadoc.Type.Handler where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Type.Context as Context
 import qualified Network.Wai as Wai
 

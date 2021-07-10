@@ -2,8 +2,6 @@
 
 module Monadoc.Model.Dependency where
 
-import Monadoc.Prelude
-
 import qualified Data.Int as Int
 import qualified Distribution.Compat.NonEmptySet as NonEmptySet
 import qualified Distribution.Types.Dependency as Cabal

@@ -4,8 +4,6 @@
 
 module Monadoc.Type.CabalVersion where
 
-import Monadoc.Prelude
-
 import qualified Data.Proxy as Proxy
 import qualified Distribution.CabalSpecVersion as Cabal
 import qualified Monadoc.Class.ToXml as ToXml

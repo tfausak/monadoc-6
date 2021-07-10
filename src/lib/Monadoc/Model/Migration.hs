@@ -2,8 +2,6 @@
 
 module Monadoc.Model.Migration where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Fixed as Fixed

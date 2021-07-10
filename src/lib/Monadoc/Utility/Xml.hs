@@ -2,8 +2,6 @@
 
 module Monadoc.Utility.Xml where
 
-import Monadoc.Prelude
-
 import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Text.XML as Xml

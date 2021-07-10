@@ -2,8 +2,6 @@
 
 module Monadoc.Handler.GetCallback where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString as ByteString

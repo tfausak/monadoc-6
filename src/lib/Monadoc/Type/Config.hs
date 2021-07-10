@@ -2,8 +2,6 @@
 
 module Monadoc.Type.Config where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List

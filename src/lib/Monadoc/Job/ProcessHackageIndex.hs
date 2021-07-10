@@ -2,8 +2,6 @@
 
 module Monadoc.Job.ProcessHackageIndex where
 
-import Monadoc.Prelude
-
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Archive.Tar.Entry as Tar
 import qualified Control.Concurrent.STM as Stm

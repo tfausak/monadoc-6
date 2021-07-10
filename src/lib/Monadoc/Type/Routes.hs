@@ -1,7 +1,5 @@
 module Monadoc.Type.Routes where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Xml as Xml

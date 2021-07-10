@@ -2,8 +2,6 @@
 
 module Monadoc.Main where
 
-import Monadoc.Prelude
-
 import qualified Control.Concurrent.Async as Async
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception

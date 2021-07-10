@@ -4,8 +4,6 @@
 
 module Monadoc.Type.PackageName where
 
-import Monadoc.Prelude
-
 import qualified Data.Proxy as Proxy
 import qualified Distribution.Types.PackageName as Cabal
 import qualified Monadoc.Class.ToXml as ToXml

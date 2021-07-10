@@ -1,7 +1,5 @@
 module Monadoc.Model.Blob where
 
-import Monadoc.Prelude
-
 import qualified Data.ByteString as ByteString
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Model.Migration as Migration

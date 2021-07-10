@@ -4,8 +4,6 @@
 
 module Monadoc.Type.GithubLogin where
 
-import Monadoc.Prelude
-
 import qualified Data.Aeson as Aeson
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Vendor.Sql as Sql

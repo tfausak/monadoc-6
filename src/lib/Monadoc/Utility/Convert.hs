@@ -1,7 +1,5 @@
 module Monadoc.Utility.Convert where
 
-import Monadoc.Prelude
-
 import qualified Data.String as String
 import qualified Data.Time as Time
 import qualified Network.Wai.Handler.Warp as Warp

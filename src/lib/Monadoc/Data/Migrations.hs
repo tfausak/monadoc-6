@@ -1,7 +1,5 @@
 module Monadoc.Data.Migrations where
 
-import Monadoc.Prelude
-
 import qualified Data.List as List
 import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Component as Component

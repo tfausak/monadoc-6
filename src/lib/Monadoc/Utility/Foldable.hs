@@ -1,7 +1,5 @@
 module Monadoc.Utility.Foldable where
 
-import Monadoc.Prelude
-
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
 import qualified Data.Ord as Ord

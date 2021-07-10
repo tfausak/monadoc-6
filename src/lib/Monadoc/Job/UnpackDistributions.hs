@@ -1,7 +1,5 @@
 module Monadoc.Job.UnpackDistributions (run) where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Job.UnpackDistribution as UnpackDistribution
 import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Type.Context as Context

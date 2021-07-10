@@ -4,8 +4,6 @@
 
 module Monadoc.Type.Port where
 
-import Monadoc.Prelude
-
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Text.Read as Read
 import qualified Witch

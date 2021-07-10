@@ -2,8 +2,6 @@
 
 module Monadoc.Handler.Common where
 
-import Monadoc.Prelude
-
 import qualified Data.ByteString as ByteString
 import qualified Data.CaseInsensitive as CI
 import qualified Data.UUID as Uuid

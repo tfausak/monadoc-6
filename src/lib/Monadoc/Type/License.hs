@@ -4,8 +4,6 @@
 
 module Monadoc.Type.License where
 
-import Monadoc.Prelude
-
 import qualified Data.Proxy as Proxy
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.SPDX.License as Cabal

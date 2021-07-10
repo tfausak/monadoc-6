@@ -2,8 +2,6 @@
 
 module Monadoc.Handler.GetRelease where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe

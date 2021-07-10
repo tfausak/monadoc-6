@@ -4,8 +4,6 @@
 
 module Monadoc.Type.ComponentTag where
 
-import Monadoc.Prelude
-
 import qualified Data.Proxy as Proxy
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Vendor.Sql as Sql

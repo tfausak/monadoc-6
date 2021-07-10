@@ -1,7 +1,5 @@
 module Monadoc.Exception.DuplicateHackageIndex where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad.Catch as Exception
 
 data DuplicateHackageIndex

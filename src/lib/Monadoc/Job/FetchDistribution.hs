@@ -2,8 +2,6 @@
 
 module Monadoc.Job.FetchDistribution where
 
-import Monadoc.Prelude
-
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent

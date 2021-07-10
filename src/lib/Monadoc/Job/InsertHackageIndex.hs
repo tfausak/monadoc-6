@@ -2,8 +2,6 @@
 
 module Monadoc.Job.InsertHackageIndex where
 
-import Monadoc.Prelude
-
 import qualified Codec.Compression.GZip as Gzip
 import qualified Data.ByteString as ByteString
 import qualified Monadoc.Model.HackageIndex as HackageIndex

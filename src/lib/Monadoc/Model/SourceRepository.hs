@@ -2,8 +2,6 @@
 
 module Monadoc.Model.SourceRepository where
 
-import Monadoc.Prelude
-
 import qualified Data.Int as Int
 import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Monadoc.Vendor.Sql as Sql

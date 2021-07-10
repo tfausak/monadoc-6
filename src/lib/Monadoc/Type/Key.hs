@@ -3,8 +3,6 @@
 
 module Monadoc.Type.Key where
 
-import Monadoc.Prelude
-
 import qualified Data.Int as Int
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Class.ToXml as ToXml

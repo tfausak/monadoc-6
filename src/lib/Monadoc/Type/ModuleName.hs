@@ -4,8 +4,6 @@
 
 module Monadoc.Type.ModuleName where
 
-import Monadoc.Prelude
-
 import qualified Data.Proxy as Proxy
 import qualified Distribution.ModuleName as Cabal
 import qualified Distribution.Pretty as Cabal

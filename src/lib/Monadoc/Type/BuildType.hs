@@ -4,8 +4,6 @@
 
 module Monadoc.Type.BuildType where
 
-import Monadoc.Prelude
-
 import qualified Data.Proxy as Proxy
 import qualified Distribution.Pretty as Cabal
 import qualified Distribution.Types.BuildType as Cabal

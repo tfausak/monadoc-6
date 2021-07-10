@@ -2,8 +2,6 @@
 
 module Monadoc.Handler.PostLogOut where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder

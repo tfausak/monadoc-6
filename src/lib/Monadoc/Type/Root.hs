@@ -2,8 +2,6 @@
 
 module Monadoc.Type.Root where
 
-import Monadoc.Prelude
-
 import qualified Data.Text as Text
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Meta as Meta

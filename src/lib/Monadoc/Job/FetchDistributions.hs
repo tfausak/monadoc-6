@@ -1,7 +1,5 @@
 module Monadoc.Job.FetchDistributions where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Job.FetchDistribution as FetchDistribution
 import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.Package as Package

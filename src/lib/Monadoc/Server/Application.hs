@@ -2,8 +2,6 @@
 
 module Monadoc.Server.Application where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
 import qualified Monadoc.Exception.NotFound as NotFound

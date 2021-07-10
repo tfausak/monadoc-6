@@ -1,7 +1,5 @@
 module Monadoc.Model.Module where
 
-import Monadoc.Prelude
-
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Model.Component as Component
 import qualified Monadoc.Model.File as File

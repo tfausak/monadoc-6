@@ -4,8 +4,6 @@
 
 module Monadoc.Type.ComponentId where
 
-import Monadoc.Prelude
-
 import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Utility.Either as Either

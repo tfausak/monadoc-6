@@ -1,7 +1,5 @@
 module Monadoc.Model.File where
 
-import Monadoc.Prelude
-
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Model.Distribution as Distribution
 import qualified Monadoc.Model.Migration as Migration

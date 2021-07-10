@@ -1,7 +1,5 @@
 module Monadoc.Exception.MissingBlob where
 
-import Monadoc.Prelude
-
 import qualified Control.Monad.Catch as Exception
 import qualified Monadoc.Type.Sha256 as Sha256
 

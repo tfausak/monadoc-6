@@ -4,8 +4,6 @@
 
 module Monadoc.Type.Sha256 where
 
-import Monadoc.Prelude
-
 import qualified Crypto.Hash as Crypto
 import qualified Data.ByteString as ByteString
 import qualified Data.Proxy as Proxy

@@ -1,7 +1,5 @@
 module Monadoc.Job.UpdateLatestVersions where
 
-import Monadoc.Prelude
-
 import qualified Control.Concurrent.STM as Stm
 import qualified Data.Map as Map
 import qualified Data.Set as Set

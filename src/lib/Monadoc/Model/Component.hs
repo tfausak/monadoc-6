@@ -2,8 +2,6 @@
 
 module Monadoc.Model.Component where
 
-import Monadoc.Prelude
-
 import qualified Data.Int as Int
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Vendor.Sql as Sql

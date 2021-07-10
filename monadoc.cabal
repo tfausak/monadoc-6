@@ -27,8 +27,6 @@ common basics
     build-depends:
         , base ^>= 4.15.0
         , witch ^>= 0.3.3
-    default-extensions:
-        NoImplicitPrelude
     default-language: Haskell2010
     ghc-options:
         -Weverything
@@ -36,7 +34,6 @@ common basics
         -Wno-implicit-prelude
         -Wno-missing-deriving-strategies
         -Wno-missing-export-lists
-        -Wno-missing-exported-signatures
         -Wno-missing-import-lists
         -Wno-missing-safe-haskell-mode
         -Wno-prepositive-qualified-module
@@ -140,7 +137,6 @@ library
         Monadoc.Model.Session
         Monadoc.Model.SourceRepository
         Monadoc.Model.User
-        Monadoc.Prelude
         Monadoc.Server.Application
         Monadoc.Server.Main
         Monadoc.Server.Middleware
@@ -200,6 +196,7 @@ library
 executable monadoc
     import: executable
 
+    ghc-options: -Wno-unused-packages
     hs-source-dirs: src/exe
     main-is: Main.hs
 
