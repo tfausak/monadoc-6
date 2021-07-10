@@ -101,8 +101,8 @@ componentIdToComponentName
     -> Either
         (TryFromException ComponentId.ComponentId Cabal.ComponentName)
         Cabal.ComponentName
-componentIdToComponentName package = maybeTryFrom $ \ id ->
-    case (ComponentId.tag id, ComponentId.name id) of
+componentIdToComponentName package = maybeTryFrom $ \ ci ->
+    case (ComponentId.tag ci, ComponentId.name ci) of
         (ComponentTag.Library, Nothing) -> Just $ Cabal.CLibName Cabal.LMainLibName
         (ComponentTag.Library, Just name)
             | name == from package -> Just $ Cabal.CLibName Cabal.LMainLibName

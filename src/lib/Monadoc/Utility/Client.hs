@@ -27,7 +27,7 @@ performRequest manager request = do
     Log.info $ Printf.printf "[client/%04x] %s %s %d %.3f"
         (into @Word16 requestId)
         method
-        (Uri.uriToString identity (Client.getUri request) "")
+        (Uri.uriToString id (Client.getUri request) "")
         (Http.statusCode $ Client.responseStatus response)
         (after - before)
     pure response

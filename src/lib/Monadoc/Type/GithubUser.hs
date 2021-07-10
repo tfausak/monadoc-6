@@ -9,7 +9,7 @@ import qualified Monadoc.Type.GithubId as GithubId
 import qualified Monadoc.Type.GithubLogin as GithubLogin
 
 data GithubUser = GithubUser
-    { id :: GithubId.GithubId
+    { id_ :: GithubId.GithubId
     , login :: GithubLogin.GithubLogin
     } deriving (Eq, Show)
 
@@ -18,6 +18,6 @@ instance Aeson.FromJSON GithubUser where
         i <- object Aeson..: into @Text "id"
         l <- object Aeson..: into @Text "login"
         pure GithubUser
-            { id = i
+            { id_ = i
             , login = l
             }

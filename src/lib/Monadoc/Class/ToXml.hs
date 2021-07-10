@@ -115,4 +115,4 @@ instance ToXml Void where
     toXml = Void.absurd
 
 instance ToXml Xml.Node where
-    toXml = identity
+    toXml = id

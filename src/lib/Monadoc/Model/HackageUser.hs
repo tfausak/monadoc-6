@@ -19,7 +19,7 @@ type Key = Key.Key HackageUser
 -- | This model represents a user on Hackage. You can find a user on Hackage at
 -- @https:\/\/hackage.haskell.org\/user\/:name@.
 data HackageUser = HackageUser
-    { id :: HackageId.HackageId
+    { id_ :: HackageId.HackageId
     -- ^ Hackage exposes this ID in the package index, but it doesn't appear to
     -- use it anywhere else.
     , name :: HackageName.HackageName
@@ -34,7 +34,7 @@ instance Sql.FromRow HackageUser where
 
 instance Sql.ToRow HackageUser where
     toRow hackageUser =
-        [ Sql.toField $ id hackageUser
+        [ Sql.toField $ id_ hackageUser
         , Sql.toField $ name hackageUser
         ]
 

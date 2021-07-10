@@ -196,8 +196,8 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
             let
                 ownership = Tar.entryOwnership entry
                 name = into @HackageName.HackageName $ Tar.ownerName ownership
-                id = into @HackageId.HackageId $ Tar.ownerId ownership
-                value = HackageUser.HackageUser { HackageUser.id = id, HackageUser.name = name }
+                hi = into @HackageId.HackageId $ Tar.ownerId ownership
+                value = HackageUser.HackageUser { HackageUser.id_ = hi, HackageUser.name = name }
             maybeModel <- Context.withConnection context $ \ connection ->
                 HackageUser.selectByName connection name
             case maybeModel of

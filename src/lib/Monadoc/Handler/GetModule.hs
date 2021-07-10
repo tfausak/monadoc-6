@@ -48,7 +48,7 @@ handler packageName release componentId moduleName context request = do
             Component.select connection
                 (Model.key package)
                 (ComponentId.tag componentId)
-                (maybe (from packageName) identity $ ComponentId.name componentId)
+                (maybe (from packageName) id $ ComponentId.name componentId)
         maybe (throwM NotFound.new) pure maybeComponent
     module_ <- do
         maybeModule <- Context.withConnection context $ \ connection ->

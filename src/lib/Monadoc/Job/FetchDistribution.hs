@@ -29,10 +29,10 @@ run context hashes (package, version) =
     case Map.lookup (package, version) hashes of
         Just _ -> pure ()
         Nothing -> do
-            let id = into @String package <> "-" <> into @String version
+            let pv = into @String package <> "-" <> into @String version
             request <- Client.parseUrlThrow
                 $ Config.hackageUrl (Context.config context)
-                <> "/package/" <> id <> "/" <> id <> ".tar.gz"
+                <> "/package/" <> pv <> "/" <> pv <> ".tar.gz"
             response <- catch
                 (Retry.recovering
                     Retry.retryPolicyDefault
