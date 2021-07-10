@@ -52,7 +52,7 @@ migrations =
         "alter table distribution add column unpackedAt text"
     ]
 
-selectHashes :: Sql.Connection -> IO (Map (PackageName.PackageName, Version.Version) Sha256.Sha256)
+selectHashes :: Sql.Connection -> IO (Map.Map (PackageName.PackageName, Version.Version) Sha256.Sha256)
 selectHashes connection = do
     rows <- Sql.query_ connection
         "select package, version, hash from distribution group by package, version"

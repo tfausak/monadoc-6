@@ -216,7 +216,7 @@ select c n v r = fmap Maybe.listToMaybe $ Sql.query c
 
 selectHashes
     :: Sql.Connection
-    -> IO (Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256)
+    -> IO (Map.Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256)
 selectHashes connection = do
     rows <- Sql.query_ connection "select name, version, revision, hash from package"
     pure $ foldr (\ (n, v, r, h) -> Map.insert (n, v, r) h) Map.empty rows

@@ -89,7 +89,7 @@ runAll connection toRun = do
     let migrationsByTime = Foldable.indexBy (time . Model.value) migrations
     traverse_ (runOne connection migrationsByTime) toRun
 
-runOne :: Sql.Connection -> Map Time.UTCTime Model -> Migration -> IO ()
+runOne :: Sql.Connection -> Map.Map Time.UTCTime Model -> Migration -> IO ()
 runOne connection migrations migration =
     case Map.lookup (time migration) migrations of
         Just model -> do

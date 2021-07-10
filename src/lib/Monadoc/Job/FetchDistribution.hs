@@ -23,7 +23,7 @@ import qualified Network.HTTP.Types as Http
 
 run
     :: Context.Context
-    -> Map (PackageName.PackageName, Version.Version) Sha256.Sha256
+    -> Map.Map (PackageName.PackageName, Version.Version) Sha256.Sha256
     -> (PackageName.PackageName, Version.Version)
     -> IO ()
 run context hashes (package, version) =

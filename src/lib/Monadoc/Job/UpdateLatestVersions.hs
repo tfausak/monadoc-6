@@ -15,8 +15,8 @@ import qualified Monadoc.Utility.Foldable as Foldable
 
 run
     :: Context.Context
-    -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
-    -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
+    -> Stm.TVar (Map.Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    -> Stm.TVar (Map.Map PackageName.PackageName VersionRange.VersionRange)
     -> IO ()
 run context revisionsVar preferredVersionsVar = do
     oldLatestVersions <- Context.withConnection context LatestVersion.selectAll

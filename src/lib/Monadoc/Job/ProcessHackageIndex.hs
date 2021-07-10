@@ -86,9 +86,9 @@ run context hackageIndex = do
 
 processTarItem
     :: Context.Context
-    -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
-    -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
-    -> Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256
+    -> Stm.TVar (Map.Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    -> Stm.TVar (Map.Map PackageName.PackageName VersionRange.VersionRange)
+    -> Map.Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256
     -> Either Tar.FormatError Tar.Entry
     -> IO ()
 processTarItem context revisionsVar preferredVersionsVar hashes item =
@@ -103,9 +103,9 @@ processTarItem context revisionsVar preferredVersionsVar hashes item =
 -- - PKG_NAME/PKD_VERSION/package.json
 processTarEntry
     :: Context.Context
-    -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
-    -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
-    -> Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256
+    -> Stm.TVar (Map.Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    -> Stm.TVar (Map.Map PackageName.PackageName VersionRange.VersionRange)
+    -> Map.Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256
     -> Tar.Entry
     -> IO ()
 processTarEntry context revisionsVar preferredVersionsVar hashes entry = do
@@ -122,7 +122,7 @@ processTarEntry context revisionsVar preferredVersionsVar hashes entry = do
         _ -> Exception.throwM $ UnexpectedTarEntry.new entry
 
 processPreferredVersions
-    :: Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
+    :: Stm.TVar (Map.Map PackageName.PackageName VersionRange.VersionRange)
     -> String
     -> ByteString.ByteString
     -> IO ()
@@ -144,8 +144,8 @@ processPreferredVersions preferredVersionsVar rawPackageName contents = do
 
 processPackageDescription
     :: Context.Context
-    -> Stm.TVar (Map (PackageName.PackageName, Version.Version) Revision.Revision)
-    -> Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256
+    -> Stm.TVar (Map.Map (PackageName.PackageName, Version.Version) Revision.Revision)
+    -> Map.Map (PackageName.PackageName, Version.Version, Revision.Revision) Sha256.Sha256
     -> Tar.Entry
     -> String
     -> String
@@ -292,7 +292,7 @@ syncDependencies context componentKey component = Context.withConnection context
     old <- Dependency.selectByComponent connection componentKey
     let
         toKey x = (Dependency.packageName x, Dependency.libraryName x)
-        toMap :: [Dependency.Dependency] -> Map (PackageName.PackageName, ComponentName.ComponentName) VersionRange.VersionRange
+        toMap :: [Dependency.Dependency] -> Map.Map (PackageName.PackageName, ComponentName.ComponentName) VersionRange.VersionRange
         toMap = fmap (VersionRange.unions . NonEmpty.toList . fmap Dependency.versionRange) . Foldable.groupBy toKey
         oldMap = toMap $ fmap Model.value old
         new = foldMap (Dependency.fromDependency componentKey) $ Lens.view Cabal.targetBuildDepends component

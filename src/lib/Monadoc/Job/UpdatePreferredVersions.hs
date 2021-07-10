@@ -11,7 +11,7 @@ import qualified Monadoc.Type.VersionRange as VersionRange
 
 run
     :: Context.Context
-    -> Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
+    -> Stm.TVar (Map.Map PackageName.PackageName VersionRange.VersionRange)
     -> IO ()
 run context preferredVersionsVar = do
     oldPreferredVersions <- Context.withConnection context PreferredVersions.selectAll

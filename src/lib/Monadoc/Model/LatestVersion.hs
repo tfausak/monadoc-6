@@ -48,7 +48,7 @@ migrations =
 new :: PackageName.PackageName -> Version.Version -> Revision.Revision -> LatestVersion
 new = LatestVersion
 
-selectAll :: Sql.Connection -> IO (Map PackageName.PackageName (Version.Version, Revision.Revision))
+selectAll :: Sql.Connection -> IO (Map.Map PackageName.PackageName (Version.Version, Revision.Revision))
 selectAll connection = do
     rows <- Sql.query_ connection "select package, version, revision from latestVersion"
     pure . Map.fromList $ fmap (\ (p, v, r) -> (p, (v, r))) rows
