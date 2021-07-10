@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Monadoc.Type.Revision where
 
 import Monadoc.Prelude

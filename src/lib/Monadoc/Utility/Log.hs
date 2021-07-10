@@ -27,4 +27,4 @@ withLock = bracket
 
 lock :: Stm.TMVar ()
 lock = Unsafe.unsafePerformIO $ Stm.newTMVarIO ()
-{-# noinline lock #-}
+{-# NOINLINE lock #-}

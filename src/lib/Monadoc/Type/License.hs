@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Monadoc.Type.License where
 
 import Monadoc.Prelude

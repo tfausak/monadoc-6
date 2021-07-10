@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Monadoc.Type.HackageName where
 
 import Monadoc.Prelude

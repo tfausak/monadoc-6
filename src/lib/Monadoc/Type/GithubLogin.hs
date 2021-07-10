@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Monadoc.Type.GithubLogin where
 
 import Monadoc.Prelude

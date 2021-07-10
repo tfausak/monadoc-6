@@ -27,7 +27,6 @@ common basics
     build-depends:
         , base ^>= 4.15.0
     default-extensions:
-        FlexibleInstances
         NoImplicitPrelude
         MultiParamTypeClasses
         TypeApplications

@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Monadoc.Class.ToXml where
 
 import Monadoc.Prelude

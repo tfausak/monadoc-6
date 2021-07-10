@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Monadoc.Type.ComponentTag where
 
 import Monadoc.Prelude

@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Monadoc.Type.RepositoryKind where
 
 import Monadoc.Prelude

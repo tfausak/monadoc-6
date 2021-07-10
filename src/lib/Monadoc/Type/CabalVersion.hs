@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Monadoc.Type.CabalVersion where
 
 import Monadoc.Prelude
