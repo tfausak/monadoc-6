@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Model.Migration where
 
 import Monadoc.Prelude

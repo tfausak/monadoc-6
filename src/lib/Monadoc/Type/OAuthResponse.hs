@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Type.OAuthResponse where
 
 import Monadoc.Prelude

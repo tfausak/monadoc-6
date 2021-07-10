@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Handler.GetCallback where
 
 import Monadoc.Prelude

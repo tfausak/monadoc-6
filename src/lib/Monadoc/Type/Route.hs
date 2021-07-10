@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Type.Route where
 
 import Monadoc.Prelude

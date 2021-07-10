@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Job.UnpackDistribution where
 
 import Monadoc.Prelude

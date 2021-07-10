@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Handler.GetRelease where
 
 import Monadoc.Prelude

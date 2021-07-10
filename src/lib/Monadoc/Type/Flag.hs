@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Type.Flag where
 
 import Monadoc.Prelude

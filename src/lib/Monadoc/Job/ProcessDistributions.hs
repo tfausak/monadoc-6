@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Job.ProcessDistributions where
 
 import Monadoc.Prelude

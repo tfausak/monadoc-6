@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Model.HackageUser where
 
 import Monadoc.Prelude

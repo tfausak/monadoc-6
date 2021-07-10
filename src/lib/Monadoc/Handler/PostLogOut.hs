@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Handler.PostLogOut where
 
 import Monadoc.Prelude

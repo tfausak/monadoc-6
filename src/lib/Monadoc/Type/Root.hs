@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Type.Root where
 
 import Monadoc.Prelude

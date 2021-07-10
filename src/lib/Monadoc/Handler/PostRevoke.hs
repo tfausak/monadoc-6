@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Handler.PostRevoke where
 
 import Monadoc.Prelude

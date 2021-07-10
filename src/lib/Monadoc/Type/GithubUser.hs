@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Type.GithubUser where
 
 import Monadoc.Prelude

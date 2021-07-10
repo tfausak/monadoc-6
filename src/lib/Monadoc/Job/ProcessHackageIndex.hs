@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Job.ProcessHackageIndex where
 
 import Monadoc.Prelude

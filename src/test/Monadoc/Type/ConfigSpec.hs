@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Type.ConfigSpec where
 
 import Monadoc.Prelude

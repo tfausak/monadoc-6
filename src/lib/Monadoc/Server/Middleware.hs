@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Server.Middleware where
 
 import Monadoc.Prelude

@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Utility.Client where
 
 import Monadoc.Prelude

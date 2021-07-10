@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Job.FetchDistribution where
 
 import Monadoc.Prelude

@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Server.Response where
 
 import Monadoc.Prelude

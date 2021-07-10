@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Monadoc.Job.UpdateHackageIndex where
 
 import Monadoc.Prelude
