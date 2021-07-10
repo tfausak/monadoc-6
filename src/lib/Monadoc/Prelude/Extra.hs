@@ -1,7 +1,6 @@
 module Monadoc.Prelude.Extra where
 
 import qualified Data.ByteString.Lazy
-import qualified Data.Semigroup
 import qualified Data.Text.Lazy
 import qualified Prelude
 
@@ -23,6 +22,3 @@ hush = Prelude.either (always Prelude.Nothing) Prelude.Just
 
 note :: a -> Prelude.Maybe b -> Prelude.Either a b
 note x = Prelude.maybe (Prelude.Left x) Prelude.Right
-
-sappend :: Data.Semigroup.Semigroup a => a -> a -> a
-sappend = (Data.Semigroup.<>)
