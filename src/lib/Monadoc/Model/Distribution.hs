@@ -65,13 +65,13 @@ selectUnpacked connection = Sql.query_ connection
     \where unpackedAt is null"
 
 selectByPackageAndVersion :: Sql.Connection -> PackageName.PackageName -> Version.Version -> IO (Maybe Model)
-selectByPackageAndVersion connection package version = fmap Maybe.listToMaybe $ Sql.query
+selectByPackageAndVersion connection p v = fmap Maybe.listToMaybe $ Sql.query
     connection
     "select key, hash, package, unpackedAt, version \
     \from distribution \
     \where package = ? \
     \and version = ?"
-    (package, version)
+    (p, v)
 
 upsert :: Sql.Connection -> Distribution -> IO ()
 upsert connection = Sql.execute connection
@@ -82,6 +82,6 @@ upsert connection = Sql.execute connection
     \unpackedAt = excluded.unpackedAt"
 
 updateUnpackedAt :: Sql.Connection -> Key -> Maybe Time.UTCTime -> IO ()
-updateUnpackedAt connection key unpackedAt = Sql.execute connection
+updateUnpackedAt connection key ua = Sql.execute connection
     "update distribution set unpackedAt = ? where key = ?"
-    (unpackedAt, key)
+    (ua, key)

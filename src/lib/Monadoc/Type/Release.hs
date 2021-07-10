@@ -14,12 +14,12 @@ data Release = Release
 instance TryFrom String Release where
     tryFrom = maybeTryFrom $ \ string -> do
         let (before, after) = break (== '-') string
-        version <- hush $ tryFrom @String before
+        v <- hush $ tryFrom @String before
         case after of
-            "" -> pure Release { version, revision = Nothing }
+            "" -> pure Release { version = v, revision = Nothing }
             '-' : rest -> do
-                revision <- hush $ tryFrom @String rest
-                pure Release { version, revision = Just revision }
+                r <- hush $ tryFrom @String rest
+                pure Release { version = v, revision = Just r }
             _ -> Nothing
 
 instance From Release String where

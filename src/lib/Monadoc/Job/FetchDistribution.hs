@@ -50,9 +50,9 @@ run context hashes (package, version) =
                 blob = Blob.fromByteString . into @ByteString $ Client.responseBody response
                 distribution = Distribution.Distribution
                     { Distribution.hash = Blob.hash blob
-                    , Distribution.package
+                    , Distribution.package = package
                     , Distribution.unpackedAt = Nothing
-                    , Distribution.version
+                    , Distribution.version = version
                     }
             Context.withConnection context $ \ connection -> do
                 Blob.upsert connection blob

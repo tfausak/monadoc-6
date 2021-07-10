@@ -54,7 +54,7 @@ handler context request = do
             , Session.deletedAt = Nothing
             , Session.guid = guid
             , Session.updatedAt = now
-            , Session.userAgent
+            , Session.userAgent = userAgent
             , Session.userGithubId = User.githubId user
             }
     Context.withConnection context $ \ connection -> do

@@ -62,4 +62,4 @@ offset :: Int
 offset = 1024
 
 fromByteString :: ByteString -> HackageIndex
-fromByteString contents = HackageIndex { contents, size = ByteString.length contents }
+fromByteString c = HackageIndex { contents = c, size = ByteString.length c }

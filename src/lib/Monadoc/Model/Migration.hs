@@ -65,10 +65,10 @@ selectAll connection =
     Sql.query_ connection "select key, migratedAt, sql, time from migration"
 
 selectByTime :: Sql.Connection -> Time.UTCTime -> IO (Maybe Model)
-selectByTime connection time = fmap Maybe.listToMaybe $ Sql.query
+selectByTime connection t = fmap Maybe.listToMaybe $ Sql.query
     connection
     "select key, migratedAt, sql, time from migration where time = ?"
-    [time]
+    [t]
 
 insert :: Sql.Connection -> Migration -> IO Key
 insert connection migration = do

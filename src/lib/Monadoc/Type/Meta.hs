@@ -47,7 +47,7 @@ fromContext context self = Meta
         , Routes.logOut = Route.LogOut
         , Routes.revoke = Route.Revoke
         , Routes.search = Route.Search Nothing
-        , Routes.self
+        , Routes.self = self
         }
     , title = "Monadoc"
     , user = Nothing

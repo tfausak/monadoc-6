@@ -46,14 +46,14 @@ migrations =
     ]
 
 select :: Sql.Connection -> Component.Key -> ModuleName.ModuleName -> IO (Maybe Model)
-select connection component name = fmap Maybe.listToMaybe $ Sql.query connection
+select connection c n = fmap Maybe.listToMaybe $ Sql.query connection
     "select key, component, name, file from module where component = ? and name = ?"
-    (component, name)
+    (c, n)
 
 selectByComponent :: Sql.Connection -> Component.Key -> IO [Model]
-selectByComponent connection component = Sql.query connection
+selectByComponent connection c = Sql.query connection
     "select key, component, name, file from module where component = ?"
-    [component]
+    [c]
 
 upsert :: Sql.Connection -> Module -> IO ()
 upsert connection = Sql.execute connection

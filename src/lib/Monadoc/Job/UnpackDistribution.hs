@@ -84,7 +84,7 @@ unpackDistributionItem context distribution pathVar item = case item of
             let
                 path = normalizeFilePath $ Maybe.fromMaybe (Tar.entryPath entry) maybePath
                 blob = Blob.fromByteString $ into @ByteString contents
-                file = File.File { File.distribution, File.hash = Blob.hash blob, File.path }
+                file = File.File { File.distribution = distribution, File.hash = Blob.hash blob, File.path = path }
             Context.withConnection context $ \ connection -> do
                 Blob.upsert connection blob
                 File.upsert connection file

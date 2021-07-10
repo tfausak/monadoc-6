@@ -13,12 +13,12 @@ data ComponentId = ComponentId
 instance TryFrom String ComponentId where
     tryFrom = maybeTryFrom $ \ string -> do
         let (before, after) = break (== ':') string
-        tag <- hush $ tryFrom @String before
+        t <- hush $ tryFrom @String before
         case after of
-            "" -> pure ComponentId { tag, name = Nothing }
+            "" -> pure ComponentId { tag = t, name = Nothing }
             ':' : rest -> do
-                name <- hush $ tryFrom @String rest
-                pure ComponentId { tag, name = Just name }
+                n <- hush $ tryFrom @String rest
+                pure ComponentId { tag = t, name = Just n }
             _ -> Nothing
 
 instance From ComponentId String where

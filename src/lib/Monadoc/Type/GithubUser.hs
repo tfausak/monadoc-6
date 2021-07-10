@@ -13,9 +13,9 @@ data GithubUser = GithubUser
 
 instance Aeson.FromJSON GithubUser where
     parseJSON = Aeson.withObject "GithubUser" $ \ object -> do
-        id <- object Aeson..: into @Text "id"
-        login <- object Aeson..: into @Text "login"
+        i <- object Aeson..: into @Text "id"
+        l <- object Aeson..: into @Text "login"
         pure GithubUser
-            { id
-            , login
+            { id = i
+            , login = l
             }

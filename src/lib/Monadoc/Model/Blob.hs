@@ -44,10 +44,10 @@ migrations =
     ]
 
 fromByteString :: ByteString -> Blob
-fromByteString contents = Blob
-    { contents
-    , hash = Sha256.hash contents
-    , size = ByteString.length contents
+fromByteString c = Blob
+    { contents = c
+    , hash = Sha256.hash c
+    , size = ByteString.length c
     }
 
 upsert :: Sql.Connection -> Blob -> IO ()

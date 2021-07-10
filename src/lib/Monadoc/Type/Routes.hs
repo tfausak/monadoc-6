@@ -30,7 +30,7 @@ instance ToXml.ToXml Routes where
         ]
 
 fromRoute :: Route.Route -> Routes
-fromRoute self = Routes
+fromRoute s = Routes
     { account = Route.Account
     , bootstrap = Route.Bootstrap
     , callback = Route.Callback
@@ -38,5 +38,5 @@ fromRoute self = Routes
     , logOut = Route.LogOut
     , revoke = Route.Revoke
     , search = Route.Search Nothing
-    , self
+    , self = s
     }

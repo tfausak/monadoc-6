@@ -270,8 +270,8 @@ selectLatestRevision
     -> PackageName.PackageName
     -> Version.Version
     -> IO (Maybe Revision.Revision)
-selectLatestRevision connection name version = do
+selectLatestRevision connection n v = do
     rows <- Sql.query connection
         "select max(revision) from package where name = ? and version = ?"
-        (name, version)
+        (n, v)
     pure . fmap Sql.fromOnly $ Maybe.listToMaybe rows

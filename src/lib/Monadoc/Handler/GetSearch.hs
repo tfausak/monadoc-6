@@ -49,9 +49,9 @@ handler maybeQuery context request = do
             ]
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
-            { Meta.breadcrumbs
+            { Meta.breadcrumbs = breadcrumbs
             , Meta.title = "Monadoc - Search"
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Root.page
+        , Root.page = page
         }

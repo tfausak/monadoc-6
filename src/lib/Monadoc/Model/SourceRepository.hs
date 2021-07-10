@@ -91,20 +91,20 @@ delete connection key = Sql.execute
     [key]
 
 selectByPackage :: Sql.Connection -> Package.Key -> IO [Model]
-selectByPackage connection package = Sql.query
+selectByPackage connection p = Sql.query
     connection
     "select key, branch, kind, location, module, package, subdir, tag, type \
     \from sourceRepository \
     \where package = ?"
-    [package]
+    [p]
 
 fromSourceRepo :: Package.Key -> Cabal.SourceRepo -> SourceRepository
-fromSourceRepo package sourceRepo = SourceRepository
+fromSourceRepo p sourceRepo = SourceRepository
     { branch = Cabal.repoBranch sourceRepo
     , kind = into @RepositoryKind.RepositoryKind $ Cabal.repoKind sourceRepo
     , location = Cabal.repoLocation sourceRepo
     , module_ = Cabal.repoModule sourceRepo
-    , package
+    , package = p
     , subdir = Cabal.repoSubdir sourceRepo
     , tag = Cabal.repoTag sourceRepo
     , type_ = fmap (into @RepositoryType.RepositoryType) $ Cabal.repoType sourceRepo

@@ -55,16 +55,16 @@ id component = ComponentId.ComponentId
     }
 
 select :: Sql.Connection -> Package.Key -> ComponentTag.ComponentTag -> ComponentName.ComponentName -> IO (Maybe Model)
-select connection package tag name = fmap Maybe.listToMaybe $ Sql.query
+select connection p t n = fmap Maybe.listToMaybe $ Sql.query
     connection
     "select key, name, package, tag from component where package = ? and tag = ? and name = ?"
-    (package, tag, name)
+    (p, t, n)
 
 selectByPackage :: Sql.Connection -> Package.Key -> IO [Model]
-selectByPackage connection package = Sql.query
+selectByPackage connection p = Sql.query
     connection
     "select key, name, package, tag from component where package = ?"
-    [package]
+    [p]
 
 insert :: Sql.Connection -> Component -> IO Key
 insert connection component = do

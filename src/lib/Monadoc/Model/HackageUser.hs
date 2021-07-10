@@ -46,10 +46,10 @@ migrations =
     ]
 
 selectByName :: Sql.Connection -> HackageName.HackageName -> IO (Maybe Model)
-selectByName connection name = fmap Maybe.listToMaybe $ Sql.query
+selectByName connection n = fmap Maybe.listToMaybe $ Sql.query
     connection
     "select key, id, name from hackageUser where name = ?"
-    [name]
+    [n]
 
 insert :: Sql.Connection -> HackageUser -> IO Key
 insert connection hackageUser = do

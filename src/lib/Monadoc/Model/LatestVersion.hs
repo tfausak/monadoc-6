@@ -62,12 +62,12 @@ upsert connection = Sql.execute connection
     \revision = excluded.revision"
 
 deleteByPackage :: Sql.Connection -> PackageName.PackageName -> IO ()
-deleteByPackage connection package = Sql.execute connection
-    "delete from latestVersion where package = ?" [package]
+deleteByPackage connection p = Sql.execute connection
+    "delete from latestVersion where package = ?" [p]
 
 selectByPackage :: Sql.Connection -> PackageName.PackageName -> IO (Maybe Model)
-selectByPackage connection package = fmap Maybe.listToMaybe $ Sql.query connection
+selectByPackage connection p = fmap Maybe.listToMaybe $ Sql.query connection
     "select key, package, version, revision \
     \from latestVersion \
     \where package = ?"
-    [package]
+    [p]

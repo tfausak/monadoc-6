@@ -20,7 +20,7 @@ run context = do
             & Gzip.decompress
             & into @ByteString
         size = ByteString.length contents
-        hackageIndex = HackageIndex.HackageIndex { HackageIndex.contents, HackageIndex.size }
+        hackageIndex = HackageIndex.HackageIndex { HackageIndex.contents = contents, HackageIndex.size = size }
     Log.info $ "[worker] got initial hackage index (" <> show size <> ")"
     Context.withConnection context $ \ connection ->
         HackageIndex.insert connection hackageIndex

@@ -165,9 +165,9 @@ handler packageName release componentId context request = do
             ]
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
-            { Meta.breadcrumbs
+            { Meta.breadcrumbs = breadcrumbs
             , Meta.title = List.intercalate " - " ["Monadoc", into @String packageName, into @String release, into @String componentId]
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
-        , Root.page
+        , Root.page = page
         }

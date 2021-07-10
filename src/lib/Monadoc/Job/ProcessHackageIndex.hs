@@ -194,7 +194,7 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                 ownership = Tar.entryOwnership entry
                 name = into @HackageName.HackageName $ Tar.ownerName ownership
                 id = into @HackageId.HackageId $ Tar.ownerId ownership
-                value = HackageUser.HackageUser { HackageUser.id, HackageUser.name }
+                value = HackageUser.HackageUser { HackageUser.id = id, HackageUser.name = name }
             maybeModel <- Context.withConnection context $ \ connection ->
                 HackageUser.selectByName connection name
             case maybeModel of
@@ -202,7 +202,7 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                 Nothing -> do
                     key <- Context.withConnection context $ \ connection ->
                         HackageUser.insert connection value
-                    pure Model.Model { Model.key, Model.value }
+                    pure Model.Model { Model.key = key, Model.value = value }
         let
             package = Package.Package
                 { Package.author = into @Text $ Cabal.author pd
@@ -212,18 +212,18 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                 , Package.category = into @Text $ Cabal.category pd
                 , Package.copyright = into @Text $ Cabal.copyright pd
                 , Package.description = into @Text $ Cabal.description pd
-                , Package.hash
+                , Package.hash = hash
                 , Package.homepage = into @Text $ Cabal.homepage pd
                 , Package.license = into @License.License $ Cabal.license pd
                 , Package.maintainer = into @Text $ Cabal.maintainer pd
                 , Package.name = packageName
                 , Package.pkgUrl = into @Text $ Cabal.pkgUrl pd
-                , Package.revision
+                , Package.revision = revision
                 , Package.stability = into @Text $ Cabal.stability pd
                 , Package.synopsis = into @Text $ Cabal.synopsis pd
                 , Package.uploadedAt = epochTimeToUtcTime $ Tar.entryTime entry
                 , Package.uploadedBy = Model.key hackageUser
-                , Package.version
+                , Package.version = version
                 }
         key <- Context.withConnection context $ \ connection -> do
             Blob.upsert connection $ Blob.fromByteString contents
@@ -248,9 +248,9 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                     Just model -> pure $ Model.key model
                     Nothing -> Context.withConnection context $ \ connection ->
                         Component.insert connection Component.Component
-                            { Component.name
+                            { Component.name = name
                             , Component.package = key
-                            , Component.tag
+                            , Component.tag = tag
                             }
                 syncModules context componentKey component
                 syncDependencies context componentKey component)

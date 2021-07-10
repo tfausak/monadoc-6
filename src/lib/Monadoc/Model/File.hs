@@ -55,21 +55,21 @@ select connection key = do
     pure $ Maybe.listToMaybe rows
 
 selectByDistribution :: Sql.Connection -> Distribution.Key -> IO [Model]
-selectByDistribution connection distribution = Sql.query
+selectByDistribution connection d = Sql.query
     connection
     "select key, distribution, hash, path \
     \from file \
     \where distribution = ?"
-    [distribution]
+    [d]
 
 selectByDistributionAndPath :: Sql.Connection -> Distribution.Key -> FilePath -> IO (Maybe Model)
-selectByDistributionAndPath connection distribution path = fmap Maybe.listToMaybe $ Sql.query
+selectByDistributionAndPath connection d p = fmap Maybe.listToMaybe $ Sql.query
     connection
     "select key, distribution, hash, path \
     \from file \
     \where distribution = ? \
     \and path = ?"
-    (distribution, path)
+    (d, p)
 
 upsert :: Sql.Connection -> File -> IO ()
 upsert connection = Sql.execute connection

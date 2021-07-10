@@ -56,15 +56,15 @@ applyFlags flags config = Monad.foldM (flip applyFlag) config flags
 
 applyFlag :: MonadThrow m => Flag.Flag -> Config -> m Config
 applyFlag flag config = case flag of
-    Flag.BaseUrl baseUrl -> pure config { baseUrl }
-    Flag.ClientId clientId -> pure config { clientId }
-    Flag.ClientSecret clientSecret -> pure config { clientSecret }
-    Flag.Database database -> pure config { database }
-    Flag.DataDirectory dataDirectory -> pure config { dataDirectory }
-    Flag.HackageUrl hackageUrl -> pure config { hackageUrl }
+    Flag.BaseUrl bu -> pure config { baseUrl = bu }
+    Flag.ClientId ci -> pure config { clientId = ci }
+    Flag.ClientSecret cs -> pure config { clientSecret = cs }
+    Flag.Database d -> pure config { database = d }
+    Flag.DataDirectory dd -> pure config { dataDirectory = dd }
+    Flag.HackageUrl hu -> pure config { hackageUrl = hu }
     Flag.Help -> pure config { help = True }
-    Flag.Host x -> pure config { host = Convert.stringToHost x }
+    Flag.Host h -> pure config { host = Convert.stringToHost h }
     Flag.Port string -> do
-        port <- either throwM pure $ tryFrom string
-        pure config { port }
+        p <- either throwM pure $ tryFrom string
+        pure config { port = p }
     Flag.Version -> pure config { version = True }

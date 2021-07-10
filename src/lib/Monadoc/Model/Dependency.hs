@@ -79,12 +79,12 @@ migrations =
     ]
 
 selectByComponent :: Sql.Connection -> Component.Key -> IO [Model]
-selectByComponent connection component = Sql.query
+selectByComponent connection c = Sql.query
     connection
     "select key, component, packageName, libraryName, versionRange \
     \from dependency \
     \where component = ?"
-    [component]
+    [c]
 
 delete :: Sql.Connection -> Key -> IO ()
 delete connection key = Sql.execute
@@ -106,10 +106,10 @@ fromDependency componentKey dependency =
     $ Cabal.depLibraries dependency
 
 fromLibraryName :: Component.Key -> Cabal.Dependency -> Cabal.LibraryName -> Dependency
-fromLibraryName componentKey dependency libraryName = Dependency
+fromLibraryName componentKey dependency l = Dependency
     { component = componentKey
     , packageName = into @PackageName.PackageName $ Cabal.depPkgName dependency
-    , libraryName = case libraryName of
+    , libraryName = case l of
         Cabal.LMainLibName -> via @PackageName.PackageName $ Cabal.depPkgName dependency
         Cabal.LSubLibName n -> into @ComponentName.ComponentName n
     , versionRange = into @VersionRange.VersionRange $ Cabal.depVerRange dependency
