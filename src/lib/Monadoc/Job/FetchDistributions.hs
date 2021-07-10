@@ -11,4 +11,4 @@ run :: Context.Context -> IO ()
 run context = do
     hashes <- Context.withConnection context Distribution.selectHashes
     namesAndVersions <- Context.withConnection context Package.selectNamesAndVersions
-    traverse_ (FetchDistribution.run context hashes) namesAndVersions
+    mapM_ (FetchDistribution.run context hashes) namesAndVersions

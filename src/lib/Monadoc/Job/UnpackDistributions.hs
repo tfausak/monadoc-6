@@ -9,4 +9,4 @@ import qualified Monadoc.Type.Context as Context
 run :: Context.Context -> IO ()
 run context = do
     distributions <- Context.withConnection context Distribution.selectUnpacked
-    traverse_ (UnpackDistribution.run context) distributions
+    mapM_ (UnpackDistribution.run context) distributions

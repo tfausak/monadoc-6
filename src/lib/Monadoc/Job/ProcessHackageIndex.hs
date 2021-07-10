@@ -80,7 +80,7 @@ run context hackageIndex = do
         & into @LazyByteString.ByteString
         & Tar.read
         & Tar.foldEntries ((:) . Right) [] (pure . Left)
-        & traverse_ (processTarItem context revisionsVar preferredVersionsVar hashes)
+        & mapM_ (processTarItem context revisionsVar preferredVersionsVar hashes)
     UpdatePreferredVersions.run context preferredVersionsVar
     UpdateLatestVersions.run context revisionsVar preferredVersionsVar
 
@@ -237,7 +237,7 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
         syncSourceRepositories context key $ Cabal.sourceRepos pd
         pd
             & Cabal.pkgComponents
-            & traverse_ (\ component -> do
+            & mapM_ (\ component -> do
                 let
                     tag = case component of
                         Cabal.CLib _ -> ComponentTag.Library
@@ -277,10 +277,10 @@ syncModules context componentKey component = case component of
             shouldUpsert x = Set.notMember x oldModuleNames
         oldModules
             & filter shouldDelete
-            & traverse_ (Module.delete connection . Model.key)
+            & mapM_ (Module.delete connection . Model.key)
         newModuleNames
             & Set.filter shouldUpsert
-            & traverse_ (\ moduleName -> Module.upsert connection Module.Module
+            & mapM_ (\ moduleName -> Module.upsert connection Module.Module
                 { Module.component = componentKey
                 , Module.name = moduleName
                 , Module.file = Nothing
@@ -301,8 +301,8 @@ syncDependencies context componentKey component = Context.withConnection context
         toDelete = fmap Model.key $ filter shouldDelete old
         shouldInsert x = Map.notMember (toKey x) oldMap
         toInsert = filter shouldInsert new
-    traverse_ (Dependency.delete connection) toDelete
-    traverse_ (Dependency.insert connection) toInsert
+    mapM_ (Dependency.delete connection) toDelete
+    mapM_ (Dependency.insert connection) toInsert
 
 syncSourceRepositories
     :: Context.Context
@@ -319,8 +319,8 @@ syncSourceRepositories context packageKey sourceRepos = Context.withConnection c
         toDelete = fmap Model.key $ filter shouldDelete old
         shouldInsert x = Set.notMember x oldSet
         toInsert = filter shouldInsert new
-    traverse_ (SourceRepository.delete connection) toDelete
-    traverse_ (SourceRepository.insert connection) toInsert
+    mapM_ (SourceRepository.delete connection) toDelete
+    mapM_ (SourceRepository.insert connection) toInsert
 
 epochTimeToUtcTime :: Tar.EpochTime -> Time.UTCTime
 epochTimeToUtcTime = into @Time.UTCTime

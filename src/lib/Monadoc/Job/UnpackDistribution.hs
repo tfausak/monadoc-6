@@ -39,7 +39,7 @@ run context distribution = do
         & Gzip.decompress
         & Tar.read
         & Tar.foldEntries ((:) . Right) [] (pure . Left)
-        & traverse_ (unpackDistributionItem context (Model.key distribution) pathVar)
+        & mapM_ (unpackDistributionItem context (Model.key distribution) pathVar)
     now <- Time.getCurrentTime
     Context.withConnection context $ \ connection ->
         Distribution.updateUnpackedAt connection (Model.key distribution) (Just now)

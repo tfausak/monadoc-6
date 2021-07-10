@@ -87,7 +87,7 @@ runAll :: Sql.Connection -> [Migration] -> IO ()
 runAll connection toRun = do
     migrations <- selectAll connection
     let migrationsByTime = Foldable.indexBy (time . Model.value) migrations
-    traverse_ (runOne connection migrationsByTime) toRun
+    mapM_ (runOne connection migrationsByTime) toRun
 
 runOne :: Sql.Connection -> Map.Map Time.UTCTime Model -> Migration -> IO ()
 runOne connection migrations migration =

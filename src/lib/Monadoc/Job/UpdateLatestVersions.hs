@@ -35,10 +35,10 @@ run context revisionsVar preferredVersionsVar = do
                 & fmap snd
     newLatestVersions
         & Map.toList
-        & traverse_ (\ (p, (v1, r1)) -> case Map.lookup p oldLatestVersions of
+        & mapM_ (\ (p, (v1, r1)) -> case Map.lookup p oldLatestVersions of
             Just (v0, r0) | v0 == v1 && r0 == r1 -> pure ()
             _ -> Context.withConnection context $ \ connection ->
                 LatestVersion.upsert connection $ LatestVersion.new p v1 r1)
     Set.difference (Map.keysSet oldLatestVersions) (Map.keysSet newLatestVersions)
-        & traverse_ (\ p -> Context.withConnection context $ \ connection ->
+        & mapM_ (\ p -> Context.withConnection context $ \ connection ->
             LatestVersion.deleteByPackage connection p)

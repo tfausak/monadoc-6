@@ -19,7 +19,7 @@ run context preferredVersionsVar = do
     newPreferredVersions
         & Map.toList
         & fmap (uncurry PreferredVersions.new)
-        & traverse_ (\ pv -> case Map.lookup (PreferredVersions.packageName pv) oldPreferredVersions of
+        & mapM_ (\ pv -> case Map.lookup (PreferredVersions.packageName pv) oldPreferredVersions of
             Just v | v == PreferredVersions.versionRange pv -> pure ()
             _ -> Context.withConnection context $ \ connection ->
                 PreferredVersions.upsert connection pv)
