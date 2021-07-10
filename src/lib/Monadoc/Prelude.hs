@@ -26,7 +26,6 @@ module Monadoc.Prelude (
     Data.List.NonEmpty.NonEmpty,
     Data.Map.Map,
     Data.Proxy.Proxy(Proxy),
-    Data.Ratio.Ratio,
     Data.Set.Set,
     Data.Text.Text,
     Prelude.Bool(False, True),
@@ -174,7 +173,6 @@ import qualified Data.Functor
 import qualified Data.List.NonEmpty
 import qualified Data.Map
 import qualified Data.Proxy
-import qualified Data.Ratio
 import qualified Data.Set
 import qualified Data.Text
 import qualified Data.Traversable
