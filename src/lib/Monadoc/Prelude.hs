@@ -29,7 +29,6 @@ module Monadoc.Prelude (
     Data.Ratio.Ratio,
     Data.Set.Set,
     Data.Text.Text,
-    Data.Void.Void,
     Prelude.Bool(False, True),
     Prelude.Char,
     Prelude.Double,
@@ -179,6 +178,5 @@ import qualified Data.Ratio
 import qualified Data.Set
 import qualified Data.Text
 import qualified Data.Traversable
-import qualified Data.Void
 import qualified Prelude
 import qualified Witch

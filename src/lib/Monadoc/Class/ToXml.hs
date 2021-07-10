@@ -112,7 +112,7 @@ instance ToXml id => ToXml (Haddock.TableCell id) where
         , Xml.node "rowspan" [] [toXml $ Haddock.tableCellRowspan x]
         ]
 
-instance ToXml Void where
+instance ToXml Void.Void where
     toXml = Void.absurd
 
 instance ToXml Xml.Node where

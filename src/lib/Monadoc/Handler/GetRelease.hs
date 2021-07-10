@@ -4,40 +4,40 @@ module Monadoc.Handler.GetRelease where
 
 import Monadoc.Prelude
 
+import qualified Data.List as List
+import qualified Data.Maybe as Maybe
+import qualified Data.Ord as Ord
+import qualified Data.Void as Void
+import qualified Documentation.Haddock.Parser as Haddock
+import qualified Documentation.Haddock.Types as Haddock
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.Found as Found
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
+import qualified Monadoc.Model.Component as Component
+import qualified Monadoc.Model.Distribution as Distribution
+import qualified Monadoc.Model.File as File
+import qualified Monadoc.Model.LatestVersion as LatestVersion
 import qualified Monadoc.Model.Package as Package
+import qualified Monadoc.Model.PreferredVersions as PreferredVersions
+import qualified Monadoc.Model.SourceRepository as SourceRepository
 import qualified Monadoc.Model.User as User
 import qualified Monadoc.Type.Breadcrumb as Breadcrumb
+import qualified Monadoc.Type.ComponentId as ComponentId
+import qualified Monadoc.Type.ComponentName as ComponentName
+import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
 import qualified Monadoc.Type.Meta as Meta
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Release as Release
+import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
-import qualified Monadoc.Utility.Xml as Xml
-
-import qualified Data.List as List
-import qualified Data.Maybe as Maybe
-import qualified Data.Ord as Ord
-import qualified Documentation.Haddock.Parser as Haddock
-import qualified Documentation.Haddock.Types as Haddock
-import qualified Monadoc.Model.Component as Component
-import qualified Monadoc.Model.Distribution as Distribution
-import qualified Monadoc.Model.File as File
-import qualified Monadoc.Model.LatestVersion as LatestVersion
-import qualified Monadoc.Model.PreferredVersions as PreferredVersions
-import qualified Monadoc.Model.SourceRepository as SourceRepository
-import qualified Monadoc.Type.ComponentId as ComponentId
-import qualified Monadoc.Type.ComponentName as ComponentName
-import qualified Monadoc.Type.ComponentTag as ComponentTag
-import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
+import qualified Monadoc.Utility.Xml as Xml
 
 handler
     :: PackageName.PackageName
@@ -194,7 +194,7 @@ componentRoute package component =
         componentId = ComponentId.ComponentId tag $ componentName package component
     in Route.Component name release componentId
 
-parsedDescription :: Package.Package -> Haddock.DocH Void String
+parsedDescription :: Package.Package -> Haddock.DocH Void.Void String
 parsedDescription = Haddock.toRegular
     . Haddock._doc
     . Haddock.parseParas Nothing
