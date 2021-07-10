@@ -24,14 +24,13 @@ handler packageName context _ = do
     maybePreferredVersions <- Context.withConnection context $ \ connection ->
         PreferredVersions.selectByPackageName connection packageName
     let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions
-    package <- packages
-        & fmap Model.value
-        & Foldable.maximumOn (\ x ->
+    package <- maybe (Exception.throwM NotFound.new) pure
+        . Foldable.maximumOn (\ x ->
             ( VersionRange.contains (Package.version x) versionRange
             , Package.version x
             , Package.revision x
             ))
-        & maybe (Exception.throwM NotFound.new) pure
+        $ fmap Model.value packages
     let
         config = Context.config context
         baseUrl = Config.baseUrl config

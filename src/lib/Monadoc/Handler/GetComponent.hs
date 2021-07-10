@@ -85,9 +85,8 @@ handler packageName release componentId context request = do
             _ -> Exception.throwM NotFound.new
 
     let componentName = Maybe.fromMaybe (into @ComponentName.ComponentName packageName) maybeComponentName
-    component <- components
-        & List.find ((== componentName) . Component.name . Model.value)
-        & maybe (Exception.throwM NotFound.new) pure
+    component <- maybe (Exception.throwM NotFound.new) pure
+        $ List.find ((== componentName) . Component.name . Model.value) components
     dependencies <- Context.withConnection context $ \ connection ->
         Dependency.selectByComponent connection $ Model.key component
 

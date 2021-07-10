@@ -115,7 +115,6 @@ module Monadoc.Prelude (
     Witch.via,
 
     -- * Operators
-    (Data.Function.&),
     (Prelude.-),
     (Prelude..),
     (Prelude.*),
@@ -138,6 +137,5 @@ module Monadoc.Prelude (
     (Prelude.$),
 ) where
 
-import qualified Data.Function
 import qualified Prelude
 import qualified Witch

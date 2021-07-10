@@ -65,9 +65,8 @@ handler packageName release context request = do
     packages <- Context.withConnection context $ \ connection ->
         Package.selectByName connection packageName
     let
-        sortedPackages = packages
-            & fmap Model.value
-            & List.sortOn (\ x -> Ord.Down (Package.version x, Package.revision x))
+        sortedPackages = List.sortOn (\ x -> Ord.Down (Package.version x, Package.revision x))
+            $ fmap Model.value packages
     maybePreferredVersions <- Context.withConnection context $ \ connection ->
         PreferredVersions.selectByPackageName connection packageName
     let versionRange = maybe VersionRange.any (PreferredVersions.versionRange . Model.value) maybePreferredVersions

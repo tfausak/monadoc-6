@@ -77,12 +77,11 @@ run context hackageIndex = do
     revisionsVar <- Stm.newTVarIO Map.empty
     preferredVersionsVar <- Stm.newTVarIO Map.empty
     hashes <- Context.withConnection context Package.selectHashes
-    hackageIndex
-        & HackageIndex.contents
-        & into @LazyByteString.ByteString
-        & Tar.read
-        & Tar.foldEntries ((:) . Right) [] (pure . Left)
-        & mapM_ (processTarItem context revisionsVar preferredVersionsVar hashes)
+    mapM_ (processTarItem context revisionsVar preferredVersionsVar hashes)
+        . Tar.foldEntries ((:) . Right) [] (pure . Left)
+        . Tar.read
+        . into @LazyByteString.ByteString
+        $ HackageIndex.contents hackageIndex
     UpdatePreferredVersions.run context preferredVersionsVar
     UpdateLatestVersions.run context revisionsVar preferredVersionsVar
 
@@ -183,14 +182,12 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
             <> into @String hash
         pd <- either Exception.throwM pure $ parsePackageDescription contents
         let
-            otherPackageName = pd
-                & Cabal.package
-                & Cabal.pkgName
-                & into @PackageName.PackageName
-            otherVersion = pd
-                & Cabal.package
-                & Cabal.pkgVersion
-                & into @Version.Version
+            otherPackageName = into @PackageName.PackageName
+                . Cabal.pkgName
+                $ Cabal.package pd
+            otherVersion = into @Version.Version
+                . Cabal.pkgVersion
+                $ Cabal.package pd
         Monad.when (otherPackageName /= packageName)
             . Exception.throwM
             $ Mismatch.new packageName otherPackageName
@@ -237,56 +234,52 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
             Blob.upsert connection $ Blob.fromByteString contents
             Package.insertOrUpdate connection package
         syncSourceRepositories context key $ Cabal.sourceRepos pd
-        pd
-            & Cabal.pkgComponents
-            & mapM_ (\ component -> do
-                let
-                    tag = case component of
-                        Cabal.CLib _ -> ComponentTag.Library
-                        Cabal.CFLib _ -> ComponentTag.ForeignLibrary
-                        Cabal.CExe _ -> ComponentTag.Executable
-                        Cabal.CTest _ -> ComponentTag.TestSuite
-                        Cabal.CBench _ -> ComponentTag.Benchmark
-                    name = maybe (into @ComponentName.ComponentName packageName) (into @ComponentName.ComponentName)
-                        . Cabal.componentNameString
-                        $ Cabal.componentName component
-                maybeComponent <- Context.withConnection context $ \ connection ->
-                    Component.select connection key tag name
-                componentKey <- case maybeComponent of
-                    Just model -> pure $ Model.key model
-                    Nothing -> Context.withConnection context $ \ connection ->
-                        Component.insert connection Component.Component
-                            { Component.name = name
-                            , Component.package = key
-                            , Component.tag = tag
-                            }
-                syncModules context componentKey component
-                syncDependencies context componentKey component)
+        mapM_ (\ component -> do
+            let
+                tag = case component of
+                    Cabal.CLib _ -> ComponentTag.Library
+                    Cabal.CFLib _ -> ComponentTag.ForeignLibrary
+                    Cabal.CExe _ -> ComponentTag.Executable
+                    Cabal.CTest _ -> ComponentTag.TestSuite
+                    Cabal.CBench _ -> ComponentTag.Benchmark
+                name = maybe (into @ComponentName.ComponentName packageName) (into @ComponentName.ComponentName)
+                    . Cabal.componentNameString
+                    $ Cabal.componentName component
+            maybeComponent <- Context.withConnection context $ \ connection ->
+                Component.select connection key tag name
+            componentKey <- case maybeComponent of
+                Just model -> pure $ Model.key model
+                Nothing -> Context.withConnection context $ \ connection ->
+                    Component.insert connection Component.Component
+                        { Component.name = name
+                        , Component.package = key
+                        , Component.tag = tag
+                        }
+            syncModules context componentKey component
+            syncDependencies context componentKey component)
+            $ Cabal.pkgComponents pd
 
 syncModules :: Context.Context -> Component.Key -> Cabal.Component -> IO ()
 syncModules context componentKey component = case component of
     Cabal.CLib library -> Context.withConnection context $ \ connection -> do
         oldModules <- Module.selectByComponent connection componentKey
         let
-            newModuleNames = library
-                & Cabal.exposedModules
-                & fmap (into @ModuleName.ModuleName)
-                & Set.fromList
-            oldModuleNames = oldModules
-                & fmap (Module.name . Model.value)
-                & Set.fromList
+            newModuleNames = Set.fromList
+                . fmap (into @ModuleName.ModuleName)
+                $ Cabal.exposedModules library
+            oldModuleNames = Set.fromList
+                $ fmap (Module.name . Model.value) oldModules
             shouldDelete x = Set.notMember (Module.name $ Model.value x) newModuleNames
             shouldUpsert x = Set.notMember x oldModuleNames
-        oldModules
-            & filter shouldDelete
-            & mapM_ (Module.delete connection . Model.key)
-        newModuleNames
-            & Set.filter shouldUpsert
-            & mapM_ (\ moduleName -> Module.upsert connection Module.Module
+
+        mapM_ (Module.delete connection . Model.key)
+            $ filter shouldDelete oldModules
+        mapM_ (\ moduleName -> Module.upsert connection Module.Module
                 { Module.component = componentKey
                 , Module.name = moduleName
                 , Module.file = Nothing
                 })
+            $ Set.filter shouldUpsert newModuleNames
     _ -> pure ()
 
 syncDependencies :: Context.Context -> Component.Key -> Cabal.Component -> IO ()

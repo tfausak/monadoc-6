@@ -16,10 +16,10 @@ run
 run context preferredVersionsVar = do
     oldPreferredVersions <- Context.withConnection context PreferredVersions.selectAll
     newPreferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
-    newPreferredVersions
-        & Map.toList
-        & fmap (uncurry PreferredVersions.new)
-        & mapM_ (\ pv -> case Map.lookup (PreferredVersions.packageName pv) oldPreferredVersions of
+    mapM_
+        (\ pv -> case Map.lookup (PreferredVersions.packageName pv) oldPreferredVersions of
             Just v | v == PreferredVersions.versionRange pv -> pure ()
             _ -> Context.withConnection context $ \ connection ->
                 PreferredVersions.upsert connection pv)
+        . fmap (uncurry PreferredVersions.new)
+        $ Map.toList newPreferredVersions

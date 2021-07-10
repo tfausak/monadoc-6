@@ -18,9 +18,9 @@ run context = do
     request <- Client.parseUrlThrow $ Config.hackageUrl (Context.config context) <> "/01-index.tar.gz"
     response <- Client.performRequest (Context.manager context) request
     let
-        contents = Client.responseBody response
-            & Gzip.decompress
-            & into @ByteString.ByteString
+        contents = into @ByteString.ByteString
+            . Gzip.decompress
+            $ Client.responseBody response
         size = ByteString.length contents
         hackageIndex = HackageIndex.HackageIndex { HackageIndex.contents = contents, HackageIndex.size = size }
     Log.info $ "[worker] got initial hackage index (" <> show size <> ")"

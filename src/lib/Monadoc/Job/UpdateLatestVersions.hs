@@ -24,21 +24,21 @@ run context revisionsVar preferredVersionsVar = do
     preferredVersions <- Stm.atomically $ Stm.readTVar preferredVersionsVar
     let
         newLatestVersions =
-            revisions
-                & Map.mapMaybe Revision.decrement
-                & Map.toList
-                & fmap (\ ((p, v), r) ->
-                    let c = Map.findWithDefault VersionRange.any p preferredVersions
-                    in (p, [(VersionRange.contains v c, (v, r))]))
-                & Map.fromListWith (<>)
-                & Map.mapMaybe Foldable.maximum
-                & fmap snd
-    newLatestVersions
-        & Map.toList
-        & mapM_ (\ (p, (v1, r1)) -> case Map.lookup p oldLatestVersions of
+            fmap snd
+            . Map.mapMaybe Foldable.maximum
+            . Map.fromListWith (<>)
+            . fmap (\ ((p, v), r) ->
+                let c = Map.findWithDefault VersionRange.any p preferredVersions
+                in (p, [(VersionRange.contains v c, (v, r))]))
+            . Map.toList
+            $ Map.mapMaybe Revision.decrement revisions
+    mapM_
+        (\ (p, (v1, r1)) -> case Map.lookup p oldLatestVersions of
             Just (v0, r0) | v0 == v1 && r0 == r1 -> pure ()
             _ -> Context.withConnection context $ \ connection ->
                 LatestVersion.upsert connection $ LatestVersion.new p v1 r1)
-    Set.difference (Map.keysSet oldLatestVersions) (Map.keysSet newLatestVersions)
-        & mapM_ (\ p -> Context.withConnection context $ \ connection ->
+        $ Map.toList newLatestVersions
+    mapM_
+        (\ p -> Context.withConnection context $ \ connection ->
             LatestVersion.deleteByPackage connection p)
+        $ Set.difference (Map.keysSet oldLatestVersions) (Map.keysSet newLatestVersions)

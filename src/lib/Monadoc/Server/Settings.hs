@@ -23,13 +23,13 @@ import qualified Paths_monadoc as This
 import qualified Text.Printf as Printf
 
 fromConfig :: Config.Config -> Warp.Settings
-fromConfig config = Warp.defaultSettings
-    & Warp.setBeforeMainLoop (beforeMainLoop config)
-    & Warp.setHost (Config.host config)
-    & Warp.setOnException onException
-    & Warp.setOnExceptionResponse onExceptionResponse
-    & Warp.setPort (into @Warp.Port $ Config.port config)
-    & Warp.setServerName serverName
+fromConfig config =
+    Warp.setBeforeMainLoop (beforeMainLoop config)
+    . Warp.setHost (Config.host config)
+    . Warp.setOnException onException
+    . Warp.setOnExceptionResponse onExceptionResponse
+    . Warp.setPort (into @Warp.Port $ Config.port config)
+    $ Warp.setServerName serverName Warp.defaultSettings
 
 beforeMainLoop :: Config.Config -> IO ()
 beforeMainLoop config = Log.info $ "[server] listening on port " <> show (Config.port config)

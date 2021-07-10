@@ -32,14 +32,13 @@ run context distribution = do
         Nothing -> Exception.throwM $ MissingBlob.new hash
         Just blob -> pure blob
     pathVar <- Stm.newEmptyTMVarIO
-    blob
-        & Model.value
-        & Blob.contents
-        & into @LazyByteString.ByteString
-        & Gzip.decompress
-        & Tar.read
-        & Tar.foldEntries ((:) . Right) [] (pure . Left)
-        & mapM_ (unpackDistributionItem context (Model.key distribution) pathVar)
+    mapM_ (unpackDistributionItem context (Model.key distribution) pathVar)
+        . Tar.foldEntries ((:) . Right) [] (pure . Left)
+        . Tar.read
+        . Gzip.decompress
+        . into @LazyByteString.ByteString
+        . Blob.contents
+        $ Model.value blob
     now <- Time.getCurrentTime
     Context.withConnection context $ \ connection ->
         Distribution.updateUnpackedAt connection (Model.key distribution) (Just now)
