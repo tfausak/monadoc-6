@@ -6,7 +6,7 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
 import qualified Data.Ord as Ord
 
-groupBy :: (Ord k, Foldable t) => (v -> k) -> t v -> Map k (NonEmpty v)
+groupBy :: (Ord k, Foldable t) => (v -> k) -> t v -> Map k (NonEmpty.NonEmpty v)
 groupBy f = foldr
     (\ v -> Map.alter
         (Just . maybe (NonEmpty.singleton v) (NonEmpty.cons v))

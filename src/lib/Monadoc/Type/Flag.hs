@@ -4,6 +4,7 @@ module Monadoc.Type.Flag where
 
 import Monadoc.Prelude
 
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Monadoc.Exception.OptionError as OptionError
 import qualified Monadoc.Type.Warning as Warning
 import qualified System.Console.GetOpt as Console
@@ -28,7 +29,7 @@ fromArguments arguments = do
             Console.getOpt' Console.Permute options arguments
         warnings = fmap Warning.UnexpectedArgument unexpectedArguments
             <> fmap Warning.UnrecognizedOption unrecognizedOptions
-    case tryInto @(NonEmpty String) errorMessages of
+    case tryInto @(NonEmpty.NonEmpty String) errorMessages of
         Right xs -> throwM $ OptionError.new xs
         Left _ -> pure (warnings, flags)
 
