@@ -6,6 +6,7 @@ module Monadoc.Type.ComponentName where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad as Monad
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.UnqualComponentName as Cabal
@@ -25,7 +26,7 @@ instance From ComponentName Cabal.UnqualComponentName
 -- <https://github.com/haskell/cabal/issues/7441>.
 instance TryFrom String ComponentName where
     tryFrom = maybeTryFrom $ \ string -> do
-        guard . not $ null string
+        Monad.guard . not $ null string
         pure . from @Cabal.UnqualComponentName $ Cabal.mkUnqualComponentName string
 
 instance From ComponentName String where

@@ -2,6 +2,7 @@ module Monadoc.Model.HackageIndex where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
 import qualified Data.Maybe as Maybe
@@ -47,7 +48,7 @@ select connection = fmap Maybe.listToMaybe
 insert :: Sql.Connection -> HackageIndex -> IO ()
 insert connection hackageIndex = do
     rows <- Sql.query_ connection "select count(*) from hackageIndex"
-    when (rows /= [[0 :: Int]]) $ Exception.throwM DuplicateHackageIndex.new
+    Monad.when (rows /= [[0 :: Int]]) $ Exception.throwM DuplicateHackageIndex.new
     Sql.execute
         connection
         "insert into hackageIndex (contents, size) values (?, ?)"

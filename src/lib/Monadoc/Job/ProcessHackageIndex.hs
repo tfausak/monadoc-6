@@ -7,6 +7,7 @@ import Monadoc.Prelude
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Archive.Tar.Entry as Tar
 import qualified Control.Concurrent.STM as Stm
+import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LazyByteString
@@ -108,7 +109,7 @@ processTarEntry
     -> Tar.Entry
     -> IO ()
 processTarEntry context revisionsVar preferredVersionsVar hashes entry = do
-    unless (isValidTarEntry entry) . Exception.throwM $ UnexpectedTarEntry.new entry
+    Monad.unless (isValidTarEntry entry) . Exception.throwM $ UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
         Tar.NormalFile x _ -> pure $ into @ByteString x
         _ -> Exception.throwM $ UnexpectedTarEntry.new entry
@@ -132,7 +133,7 @@ processPreferredVersions preferredVersionsVar rawPackageName contents = do
         else case Cabal.simpleParsecBS contents of
             Nothing -> Exception.throwM $ TryFromException @_ @Cabal.PackageVersionConstraint contents Nothing
             Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
-                when (otherPackageName /= into @Cabal.PackageName packageName)
+                Monad.when (otherPackageName /= into @Cabal.PackageName packageName)
                     . Exception.throwM
                     . Mismatch.new packageName
                     $ into @PackageName.PackageName otherPackageName
@@ -152,7 +153,7 @@ processPackageDescription
     -> ByteString
     -> IO ()
 processPackageDescription context revisionsVar hashes entry rawPackageName rawVersion otherRawPackageName contents = do
-    when (otherRawPackageName /= rawPackageName)
+    Monad.when (otherRawPackageName /= rawPackageName)
         . Exception.throwM
         $ Mismatch.new rawPackageName otherRawPackageName
     packageName <- either Exception.throwM pure $ tryInto @PackageName.PackageName rawPackageName
@@ -168,7 +169,7 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
     -- TODO: Is it possible to delay processing package descriptions until
     -- after distributions have been fetched? That way they only need to be
     -- walked over once.
-    when (maybeHash /= Just hash) $ do
+    Monad.when (maybeHash /= Just hash) $ do
         Log.info
             $ "[worker] "
             <> into @String packageName
@@ -188,10 +189,10 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                 & Cabal.package
                 & Cabal.pkgVersion
                 & into @Version.Version
-        when (otherPackageName /= packageName)
+        Monad.when (otherPackageName /= packageName)
             . Exception.throwM
             $ Mismatch.new packageName otherPackageName
-        when (otherVersion /= version)
+        Monad.when (otherVersion /= version)
             . Exception.throwM
             $ Mismatch.new version otherVersion
         hackageUser <- do

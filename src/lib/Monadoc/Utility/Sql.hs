@@ -4,6 +4,7 @@ module Monadoc.Utility.Sql where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Control.Retry as Retry
 import qualified Data.Proxy as Proxy
@@ -37,7 +38,7 @@ execute
     -> String
     -> i
     -> IO ()
-execute connection sql = void . query @_ @[Sql.SQLData] connection sql
+execute connection sql = Monad.void . query @_ @[Sql.SQLData] connection sql
 
 execute_ :: Sql.Connection -> String -> IO ()
 execute_ connection sql = execute connection sql ()
@@ -56,7 +57,7 @@ query connection sql input = do
         [const . Exception.Handler $ pure . (== Sql.ErrorBusy) . Sql.sqlError]
         $ \ retryStatus -> do
             let number = Retry.rsIterNumber retryStatus
-            when (number > 0) . Log.info $ Printf.printf "[sql/%04x] [retry/%d] %s"
+            Monad.when (number > 0) . Log.info $ Printf.printf "[sql/%04x] [retry/%d] %s"
                 (into @Word.Word16 requestId)
                 number
                 (show retryStatus)

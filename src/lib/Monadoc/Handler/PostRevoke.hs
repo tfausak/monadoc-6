@@ -4,6 +4,7 @@ module Monadoc.Handler.PostRevoke where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Monadoc.Exception.Forbidden as Forbidden
 import qualified Monadoc.Exception.Found as Found
@@ -37,7 +38,7 @@ handler context request = do
     session <- case maybeSession of
         Nothing -> Exception.throwM NotFound.new
         Just session -> pure session
-    when (Session.userGithubId (Model.value session) /= User.githubId (Model.value user)) $ Exception.throwM Forbidden.new
+    Monad.when (Session.userGithubId (Model.value session) /= User.githubId (Model.value user)) $ Exception.throwM Forbidden.new
     Context.withConnection context $ \ connection ->
         Session.delete connection $ Model.key session
     let

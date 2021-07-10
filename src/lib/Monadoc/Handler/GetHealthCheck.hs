@@ -4,6 +4,7 @@ module Monadoc.Handler.GetHealthCheck where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad as Monad
 import qualified Monadoc.Server.Response as Response
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Handler as Handler
@@ -14,5 +15,5 @@ handler :: Handler.Handler
 handler context _ = do
     rows <- Context.withConnection context $ \ connection ->
         Sql.query_ connection "select 1"
-    guard $ rows == [Sql.Only @Int 1]
+    Monad.guard $ rows == [Sql.Only @Int 1]
     pure $ Response.status Http.ok200 []

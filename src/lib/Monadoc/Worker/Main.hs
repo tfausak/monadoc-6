@@ -21,6 +21,6 @@ run context = do
         ProcessHackageIndex.run context hackageIndex
         FetchDistributions.run context
         UnpackDistributions.run context
-        when False $ ProcessDistributions.run context -- TODO
+        Monad.when False $ ProcessDistributions.run context -- TODO
         Log.info "[worker] finished loop"
         Concurrent.threadDelay 60000000

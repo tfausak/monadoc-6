@@ -7,6 +7,7 @@ import Monadoc.Prelude
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent.STM as Stm
+import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Maybe as Maybe
@@ -82,7 +83,7 @@ unpackDistributionItem context distribution pathVar item = case item of
         Tar.OtherEntryType 'L' contents _ -> do
             path <- either Exception.throwM pure $ tryInto @String contents
             succeeded <- Stm.atomically $ Stm.tryPutTMVar pathVar path
-            unless succeeded . Exception.throwM $ UnexpectedTarEntry.new entry
+            Monad.unless succeeded . Exception.throwM $ UnexpectedTarEntry.new entry
         Tar.NormalFile contents _ -> do
             maybePath <- Stm.atomically $ Stm.tryTakeTMVar pathVar
             let

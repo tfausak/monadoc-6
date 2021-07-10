@@ -4,6 +4,7 @@ module Monadoc.Handler.GetComponent where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.CaseInsensitive as CI
 import qualified Data.List as List
@@ -55,7 +56,7 @@ handler packageName release componentId context request = do
     revision <- maybe (Exception.throwM NotFound.new) pure $ Release.revision release
 
     -- Redirect foo:lib:foo to foo:lib.
-    when (isLibrary && namesMatch) . Exception.throwM . Found.new $ baseUrl <> Route.toString
+    Monad.when (isLibrary && namesMatch) . Exception.throwM . Found.new $ baseUrl <> Route.toString
         (Route.Component packageName release $ ComponentId.ComponentId componentTag Nothing)
 
     maybeUser <- Common.getUser context request
@@ -69,7 +70,7 @@ handler packageName release componentId context request = do
         Nothing -> Exception.throwM NotFound.new
         Just components -> pure components
 
-    when (not isLibrary && Maybe.isNothing maybeComponentName)
+    Monad.when (not isLibrary && Maybe.isNothing maybeComponentName)
         $ case NonEmpty.toList components of
             -- Redirect foo:exe to foo:exe:bar when there is only one
             -- executable. Same for all component types except library.

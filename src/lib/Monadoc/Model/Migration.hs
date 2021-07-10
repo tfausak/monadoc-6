@@ -4,6 +4,7 @@ module Monadoc.Model.Migration where
 
 import Monadoc.Prelude
 
+import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Fixed as Fixed
 import qualified Data.Int as Int
@@ -95,7 +96,7 @@ runOne connection migrations migration =
             let
                 actual = sql $ Model.value model
                 expected = sql migration
-            when (actual /= expected) . Exception.throwM $ Mismatch.new expected actual
+            Monad.when (actual /= expected) . Exception.throwM $ Mismatch.new expected actual
         Nothing -> Sql.withTransaction connection $ do
             Sql.execute_ connection . into @String $ sql migration
             now <- Time.getCurrentTime

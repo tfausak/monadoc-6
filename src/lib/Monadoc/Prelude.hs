@@ -41,10 +41,6 @@ module Monadoc.Prelude (
     Witch.TryFromException(..),
 
     -- * Functions
-    Control.Monad.guard,
-    Control.Monad.unless,
-    Control.Monad.void,
-    Control.Monad.when,
     Data.Foldable.foldl',
     Data.Foldable.foldr',
     Data.Foldable.for_,
@@ -154,7 +150,6 @@ module Monadoc.Prelude (
 
 import Monadoc.Prelude.Orphanage ()
 
-import qualified Control.Monad
 import qualified Data.ByteString
 import qualified Data.Foldable
 import qualified Data.Function
