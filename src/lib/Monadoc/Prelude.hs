@@ -40,7 +40,6 @@ module Monadoc.Prelude (
     Data.Foldable.foldl',
     Data.Foldable.foldr',
     Data.Foldable.sequenceA_,
-    Data.Traversable.for,
     Prelude.abs,
     Prelude.all,
     Prelude.any,
@@ -148,6 +147,5 @@ import Monadoc.Prelude.Orphanage ()
 import qualified Data.Foldable
 import qualified Data.Function
 import qualified Data.Text
-import qualified Data.Traversable
 import qualified Prelude
 import qualified Witch
