@@ -38,7 +38,6 @@ module Monadoc.Prelude (
     Data.Word.Word32,
     Data.Word.Word64,
     Data.Word.Word8,
-    Monadoc.Prelude.Extra.LazyByteString,
     Numeric.Natural.Natural,
     Prelude.Bool(False, True),
     Prelude.Char,

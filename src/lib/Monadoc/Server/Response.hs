@@ -5,6 +5,7 @@ module Monadoc.Server.Response where
 import Monadoc.Prelude
 
 import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Network.HTTP.Types as Http
@@ -15,12 +16,12 @@ byteString :: Http.Status -> Http.ResponseHeaders -> ByteString -> Wai.Response
 byteString s h b = Wai.responseLBS
     s
     ((Http.hContentLength, into @ByteString . show $ ByteString.length b) : h)
-    (into @LazyByteString b)
+    (into @LazyByteString.ByteString b)
 
 file :: Http.Status -> Http.ResponseHeaders -> FilePath -> IO Wai.Response
 file s h = fmap (byteString s h) . ByteString.readFile
 
-lazyByteString :: Http.Status -> Http.ResponseHeaders -> LazyByteString -> Wai.Response
+lazyByteString :: Http.Status -> Http.ResponseHeaders -> LazyByteString.ByteString -> Wai.Response
 lazyByteString s h = byteString s h . into @ByteString
 
 status :: Http.Status -> Http.ResponseHeaders -> Wai.Response

@@ -7,6 +7,7 @@ import Monadoc.Prelude
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent.STM as Stm
+import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
 import qualified Monadoc.Exception.MissingBlob as MissingBlob
@@ -31,7 +32,7 @@ run context distribution = do
     blob
         & Model.value
         & Blob.contents
-        & into @LazyByteString
+        & into @LazyByteString.ByteString
         & Gzip.decompress
         & Tar.read
         & Tar.foldEntries ((:) . Right) [] (pure . Left)

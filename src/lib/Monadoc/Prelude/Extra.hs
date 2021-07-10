@@ -1,9 +1,6 @@
 module Monadoc.Prelude.Extra where
 
-import qualified Data.ByteString.Lazy
 import qualified Prelude
-
-type LazyByteString = Data.ByteString.Lazy.ByteString
 
 always :: a -> b -> a
 always = Prelude.const

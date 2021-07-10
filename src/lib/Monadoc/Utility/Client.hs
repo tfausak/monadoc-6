@@ -4,6 +4,7 @@ module Monadoc.Utility.Client where
 
 import Monadoc.Prelude
 
+import qualified Data.ByteString.Lazy as LazyByteString
 import qualified GHC.Clock as Clock
 import qualified Monadoc.Server.Settings as Settings
 import qualified Monadoc.Type.RequestId as RequestId
@@ -13,7 +14,7 @@ import qualified Network.HTTP.Types as Http
 import qualified Network.URI as Uri
 import qualified Text.Printf as Printf
 
-performRequest :: Client.Manager -> Client.Request -> IO (Client.Response LazyByteString)
+performRequest :: Client.Manager -> Client.Request -> IO (Client.Response LazyByteString.ByteString)
 performRequest manager request = do
     let
         oldHeaders = Client.requestHeaders request

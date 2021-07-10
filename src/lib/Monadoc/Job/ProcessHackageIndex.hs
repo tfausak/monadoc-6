@@ -8,6 +8,7 @@ import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Archive.Tar.Entry as Tar
 import qualified Control.Concurrent.STM as Stm
 import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Fixed as Fixed
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
@@ -73,7 +74,7 @@ run context hackageIndex = do
     hashes <- Context.withConnection context Package.selectHashes
     hackageIndex
         & HackageIndex.contents
-        & into @LazyByteString
+        & into @LazyByteString.ByteString
         & Tar.read
         & Tar.foldEntries ((:) . Right) [] (pure . Left)
         & traverse_ (processTarItem context revisionsVar preferredVersionsVar hashes)
