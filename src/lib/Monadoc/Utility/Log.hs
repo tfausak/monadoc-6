@@ -23,7 +23,7 @@ withLock :: IO a -> IO a
 withLock = bracket
     (Stm.atomically $ Stm.takeTMVar lock)
     (Stm.atomically . Stm.putTMVar lock)
-    . always
+    . const
 
 lock :: Stm.TMVar ()
 lock = Unsafe.unsafePerformIO $ Stm.newTMVarIO ()

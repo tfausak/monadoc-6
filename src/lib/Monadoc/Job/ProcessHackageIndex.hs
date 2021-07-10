@@ -368,7 +368,7 @@ toPackageDescription =
             { Cabal.benchmarksRequested = True
             , Cabal.testsRequested = True
             }
-        satisfiable = always True :: Cabal.Dependency -> Bool
+        satisfiable = const True :: Cabal.Dependency -> Bool
         platform = Cabal.Platform Cabal.X86_64 Cabal.Linux
         compiler = Cabal.unknownCompilerInfo
             (Cabal.CompilerId Cabal.GHC (Cabal.mkVersion [9, 0, 1]))

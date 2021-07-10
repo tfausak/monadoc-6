@@ -36,10 +36,10 @@ run context hashes (package, version) =
             response <- catch
                 (Retry.recovering
                     Retry.retryPolicyDefault
-                    [always . Exception.Handler $ \ httpException -> pure $ case httpException of
+                    [const . Exception.Handler $ \ httpException -> pure $ case httpException of
                         Client.HttpExceptionRequest _ Client.ResponseTimeout -> True
                         _ -> False]
-                    . always $ Client.performRequest (Context.manager context) request)
+                    . const $ Client.performRequest (Context.manager context) request)
                 (\ httpException -> case httpException of
                     Client.HttpExceptionRequest _ (Client.StatusCodeException response _) ->
                         case Http.statusCode $ Client.responseStatus response of

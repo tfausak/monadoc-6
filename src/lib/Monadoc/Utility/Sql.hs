@@ -52,7 +52,7 @@ query connection sql input = do
     before <- Clock.getMonotonicTime
     result <- Retry.recovering
         Retry.retryPolicyDefault
-        [always . Exception.Handler $ pure . (== Sql.ErrorBusy) . Sql.sqlError]
+        [const . Exception.Handler $ pure . (== Sql.ErrorBusy) . Sql.sqlError]
         $ \ retryStatus -> do
             let number = Retry.rsIterNumber retryStatus
             when (number > 0) . Log.info $ Printf.printf "[sql/%04x] [retry/%d] %s"

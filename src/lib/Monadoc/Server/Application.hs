@@ -61,7 +61,7 @@ getHandler request = do
         _ -> Nothing
 
 getMethod :: Wai.Request -> Maybe Http.StdMethod
-getMethod = either (always Nothing) Just . Http.parseMethod . Wai.requestMethod
+getMethod = either (const Nothing) Just . Http.parseMethod . Wai.requestMethod
 
 getRoute :: Wai.Request -> Maybe Route.Route
 getRoute request =
