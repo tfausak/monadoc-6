@@ -2,6 +2,9 @@ packages: .
 
 allow-newer:
     , aeson:time
+    , Cabal:bytestring
+    , Cabal:time
+    , Cabal:Win32
     , cryptohash-md5:bytestring
     , cryptohash-sha1:bytestring
     , directory:time
@@ -11,15 +14,6 @@ allow-newer:
     , unix:time
     , uuid:time
     , witch:time
-
-    -- https://github.com/haskell/cabal/pull/7051
-    , Cabal:bytestring
-
-    -- https://github.com/haskell/cabal/pull/7157
-    , Cabal:time
-
-    -- https://github.com/haskell/cabal/pull/7342
-    , Cabal:Win32
 
 -- https://github.com/bos/blaze-textual/pull/14
 source-repository-package
