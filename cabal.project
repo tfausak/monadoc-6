@@ -5,6 +5,7 @@ allow-newer:
     , cryptohash-md5:bytestring
     , cryptohash-sha1:bytestring
     , directory:time
+    , haddock-library:bytestring
     , tar:time
     , time-compat:time
     , unix:time
@@ -36,13 +37,6 @@ source-repository-package
 source-repository-package
     location: https://github.com/swamp-agr/cryptohash-sha1
     tag: 76eb372b3c593ade7d30541bc8d0cf8716474e55
-    type: git
-
--- https://github.com/haskell/haddock/pull/1378
-source-repository-package
-    location: https://github.com/haskell/haddock
-    subdir: haddock-library
-    tag: 6cff0555f13e72bbf53e68e215e3aa7aa97cd866
     type: git
 
 -- https://github.com/jacobstanley/unix-compat/pull/47
