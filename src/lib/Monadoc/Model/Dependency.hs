@@ -4,6 +4,7 @@ module Monadoc.Model.Dependency where
 
 import Monadoc.Prelude
 
+import qualified Data.Int as Int
 import qualified Distribution.Compat.NonEmptySet as NonEmptySet
 import qualified Distribution.Types.Dependency as Cabal
 import qualified Distribution.Types.LibraryName as Cabal
@@ -99,7 +100,7 @@ insert connection dependency = do
     Sql.execute connection
         "insert into dependency (component, packageName, libraryName, versionRange) \
         \values (?, ?, ?, ?)" dependency
-    fmap (from @Int64) $ Sql.lastInsertRowId connection
+    fmap (from @Int.Int64) $ Sql.lastInsertRowId connection
 
 fromDependency :: Component.Key -> Cabal.Dependency -> [Dependency]
 fromDependency componentKey dependency =

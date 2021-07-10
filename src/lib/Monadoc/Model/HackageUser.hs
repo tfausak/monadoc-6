@@ -4,6 +4,7 @@ module Monadoc.Model.HackageUser where
 
 import Monadoc.Prelude
 
+import qualified Data.Int as Int
 import qualified Data.Maybe as Maybe
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.Migration as Migration
@@ -59,4 +60,4 @@ insert connection hackageUser = do
         connection
         "insert into hackageUser (id, name) values (?, ?)"
         hackageUser
-    fmap (from @Int64) $ Sql.lastInsertRowId connection
+    fmap (from @Int.Int64) $ Sql.lastInsertRowId connection

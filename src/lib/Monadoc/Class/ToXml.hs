@@ -5,6 +5,7 @@ module Monadoc.Class.ToXml where
 
 import Monadoc.Prelude
 
+import qualified Data.Int as Int
 import qualified Data.Time as Time
 import qualified Data.Void as Void
 import qualified Documentation.Haddock.Types as Haddock
@@ -35,7 +36,7 @@ instance ToXml Time.UTCTime where
 instance ToXml Bool where
     toXml p = toXml $ if p then "true" else ""
 
-instance ToXml Int64 where
+instance ToXml Int.Int64 where
     toXml = toXml . show
 
 instance (ToXml mod, ToXml id) => ToXml (Haddock.DocH mod id) where

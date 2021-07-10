@@ -4,6 +4,7 @@ module Monadoc.Model.SourceRepository where
 
 import Monadoc.Prelude
 
+import qualified Data.Int as Int
 import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Monadoc.Model.Migration as Migration
@@ -84,7 +85,7 @@ insert connection sourceRepository = do
         \(branch, kind, location, module, package, subdir, tag, type) values \
         \(?, ?, ?, ?, ?, ?, ?, ?)"
         sourceRepository
-    fmap (from @Int64) $ Sql.lastInsertRowId connection
+    fmap (from @Int.Int64) $ Sql.lastInsertRowId connection
 
 delete :: Sql.Connection -> Key -> IO ()
 delete connection key = Sql.execute

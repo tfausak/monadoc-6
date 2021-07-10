@@ -23,10 +23,6 @@ module Monadoc.Prelude (
     -- * Data types
     Control.Monad.Catch.SomeException(SomeException),
     Data.ByteString.ByteString,
-    Data.Int.Int16,
-    Data.Int.Int32,
-    Data.Int.Int64,
-    Data.Int.Int8,
     Data.List.NonEmpty.NonEmpty,
     Data.Map.Map,
     Data.Proxy.Proxy(Proxy),
@@ -180,7 +176,6 @@ import qualified Data.ByteString
 import qualified Data.Foldable
 import qualified Data.Function
 import qualified Data.Functor
-import qualified Data.Int
 import qualified Data.List.NonEmpty
 import qualified Data.Map
 import qualified Data.Proxy

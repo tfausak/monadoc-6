@@ -5,6 +5,7 @@ module Monadoc.Model.Migration where
 import Monadoc.Prelude
 
 import qualified Data.Fixed as Fixed
+import qualified Data.Int as Int
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
@@ -78,7 +79,7 @@ insert connection migration = do
         connection
         "insert into migration (migratedAt, sql, time) values (?, ?, ?)"
         migration
-    fmap (from @Int64) $ Sql.lastInsertRowId connection
+    fmap (from @Int.Int64) $ Sql.lastInsertRowId connection
 
 runAll :: Sql.Connection -> [Migration] -> IO ()
 runAll connection toRun = do
