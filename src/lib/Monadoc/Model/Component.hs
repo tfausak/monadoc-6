@@ -14,6 +14,7 @@ import qualified Monadoc.Type.ComponentName as ComponentName
 import qualified Monadoc.Type.ComponentTag as ComponentTag
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
+import qualified Witch
 
 type Model = Model.Model Component
 
@@ -75,4 +76,4 @@ insert connection component = do
         connection
         "insert into component (name, package, tag) values (?, ?, ?)"
         component
-    fmap (from @Int.Int64) $ Sql.lastInsertRowId connection
+    fmap (Witch.from @Int.Int64) $ Sql.lastInsertRowId connection

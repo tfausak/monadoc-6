@@ -13,6 +13,7 @@ import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.RepositoryKind as RepositoryKind
 import qualified Monadoc.Type.RepositoryType as RepositoryType
+import qualified Witch
 
 type Model = Model.Model SourceRepository
 
@@ -85,7 +86,7 @@ insert connection sourceRepository = do
         \(branch, kind, location, module, package, subdir, tag, type) values \
         \(?, ?, ?, ?, ?, ?, ?, ?)"
         sourceRepository
-    fmap (from @Int.Int64) $ Sql.lastInsertRowId connection
+    fmap (Witch.from @Int.Int64) $ Sql.lastInsertRowId connection
 
 delete :: Sql.Connection -> Key -> IO ()
 delete connection key = Sql.execute
@@ -104,11 +105,11 @@ selectByPackage connection p = Sql.query
 fromSourceRepo :: Package.Key -> Cabal.SourceRepo -> SourceRepository
 fromSourceRepo p sourceRepo = SourceRepository
     { branch = Cabal.repoBranch sourceRepo
-    , kind = into @RepositoryKind.RepositoryKind $ Cabal.repoKind sourceRepo
+    , kind = Witch.into @RepositoryKind.RepositoryKind $ Cabal.repoKind sourceRepo
     , location = Cabal.repoLocation sourceRepo
     , module_ = Cabal.repoModule sourceRepo
     , package = p
     , subdir = Cabal.repoSubdir sourceRepo
     , tag = Cabal.repoTag sourceRepo
-    , type_ = fmap (into @RepositoryType.RepositoryType) $ Cabal.repoType sourceRepo
+    , type_ = fmap (Witch.into @RepositoryType.RepositoryType) $ Cabal.repoType sourceRepo
     }

@@ -20,6 +20,7 @@ import qualified Monadoc.Type.Release as Release
 import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Types.Header as Http
 import qualified System.FilePath as FilePath
+import qualified Witch
 
 handler
     :: PackageName.PackageName
@@ -49,8 +50,8 @@ handler packageName release path context _ = do
             _ -> "application/octet-stream"
     pure
         . Response.byteString Http.ok200
-            [ (Http.hContentDisposition, into @ByteString.ByteString $ "filename=" <> path)
-            , (Http.hContentType, into @ByteString.ByteString contentType)
+            [ (Http.hContentDisposition, Witch.into @ByteString.ByteString $ "filename=" <> path)
+            , (Http.hContentType, Witch.into @ByteString.ByteString contentType)
             ]
         . Blob.contents
         $ Model.value blob

@@ -12,6 +12,7 @@ import qualified Monadoc.Type.HackageId as HackageId
 import qualified Monadoc.Type.HackageName as HackageName
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
+import qualified Witch
 
 type Model = Model.Model HackageUser
 
@@ -60,4 +61,4 @@ insert connection hackageUser = do
         connection
         "insert into hackageUser (id, name) values (?, ?)"
         hackageUser
-    fmap (from @Int.Int64) $ Sql.lastInsertRowId connection
+    fmap (Witch.from @Int.Int64) $ Sql.lastInsertRowId connection

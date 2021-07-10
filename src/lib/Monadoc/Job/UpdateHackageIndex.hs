@@ -16,6 +16,7 @@ import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Vendor.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified Text.Read as Read
+import qualified Witch
 
 run :: Context.Context -> Model.Model HackageIndex.HackageIndex -> IO HackageIndex.HackageIndex
 run context model = do
@@ -29,7 +30,7 @@ run context model = do
     let
         maybeNewSize = do
             x <- lookup Http.hContentLength $ Client.responseHeaders headResponse
-            y <- Either.toMaybe $ tryInto @String x
+            y <- Either.toMaybe $ Witch.tryInto @String x
             Read.readMaybe @Int y
     case maybeNewSize of
         Nothing -> Exception.throwM $ BadHackageIndexSize.new oldSize maybeNewSize
@@ -43,14 +44,14 @@ run context model = do
                     delta = newSize - oldSize
                     start = oldSize - HackageIndex.offset
                     end = newSize - 1
-                    range = into @ByteString.ByteString $ "bytes=" <> show start <> "-" <> show end
+                    range = Witch.into @ByteString.ByteString $ "bytes=" <> show start <> "-" <> show end
                 Log.info $ "[worker] getting new hackage index (" <> show delta <> ")"
                 rangeResponse <- Client.performRequest (Context.manager context)
                     request { Client.requestHeaders = (Http.hRange, range) : Client.requestHeaders request }
                 Log.info "[worker] got new hackage index"
                 let
                     before = ByteString.take start $ HackageIndex.contents oldHackageIndex
-                    after = into @ByteString.ByteString $ Client.responseBody rangeResponse
+                    after = Witch.into @ByteString.ByteString $ Client.responseBody rangeResponse
                     contents = before <> after
                     newHackageIndex = HackageIndex.fromByteString contents
                     key = Model.key model

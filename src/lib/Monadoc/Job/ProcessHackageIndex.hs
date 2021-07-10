@@ -70,6 +70,7 @@ import qualified Monadoc.Utility.Either as Either
 import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Log as Log
 import qualified System.FilePath as FilePath
+import qualified Witch
 
 run :: Context.Context -> HackageIndex.HackageIndex -> IO ()
 run context hackageIndex = do
@@ -80,7 +81,7 @@ run context hackageIndex = do
     mapM_ (processTarItem context revisionsVar preferredVersionsVar hashes)
         . Tar.foldEntries ((:) . Right) [] (pure . Left)
         . Tar.read
-        . into @LazyByteString.ByteString
+        . Witch.into @LazyByteString.ByteString
         $ HackageIndex.contents hackageIndex
     UpdatePreferredVersions.run context preferredVersionsVar
     UpdateLatestVersions.run context revisionsVar preferredVersionsVar
@@ -112,7 +113,7 @@ processTarEntry
 processTarEntry context revisionsVar preferredVersionsVar hashes entry = do
     Monad.unless (isValidTarEntry entry) . Exception.throwM $ UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
-        Tar.NormalFile x _ -> pure $ into @ByteString.ByteString x
+        Tar.NormalFile x _ -> pure $ Witch.into @ByteString.ByteString x
         _ -> Exception.throwM $ UnexpectedTarEntry.new entry
     case getTarEntryPath entry of
         ([rawPackageName, "preferred-versions"], "") ->
@@ -128,17 +129,17 @@ processPreferredVersions
     -> ByteString.ByteString
     -> IO ()
 processPreferredVersions preferredVersionsVar rawPackageName contents = do
-    packageName <- either Exception.throwM pure $ tryInto @PackageName.PackageName rawPackageName
+    packageName <- either Exception.throwM pure $ Witch.tryInto @PackageName.PackageName rawPackageName
     versionRange <- if ByteString.null contents
         then pure VersionRange.any
         else case Cabal.simpleParsecBS contents of
-            Nothing -> Exception.throwM $ TryFromException @_ @Cabal.PackageVersionConstraint contents Nothing
+            Nothing -> Exception.throwM $ Witch.TryFromException @_ @Cabal.PackageVersionConstraint contents Nothing
             Just (Cabal.PackageVersionConstraint otherPackageName versionRange) -> do
-                Monad.when (otherPackageName /= into @Cabal.PackageName packageName)
+                Monad.when (otherPackageName /= Witch.into @Cabal.PackageName packageName)
                     . Exception.throwM
                     . Mismatch.new packageName
-                    $ into @PackageName.PackageName otherPackageName
-                pure $ into @VersionRange.VersionRange versionRange
+                    $ Witch.into @PackageName.PackageName otherPackageName
+                pure $ Witch.into @VersionRange.VersionRange versionRange
     Stm.atomically
         . Stm.modifyTVar preferredVersionsVar
         $ Map.insert packageName versionRange
@@ -157,8 +158,8 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
     Monad.when (otherRawPackageName /= rawPackageName)
         . Exception.throwM
         $ Mismatch.new rawPackageName otherRawPackageName
-    packageName <- either Exception.throwM pure $ tryInto @PackageName.PackageName rawPackageName
-    version <- either Exception.throwM pure $ tryInto @Version.Version rawVersion
+    packageName <- either Exception.throwM pure $ Witch.tryInto @PackageName.PackageName rawPackageName
+    version <- either Exception.throwM pure $ Witch.tryInto @Version.Version rawVersion
     revision <- Stm.atomically . Stm.stateTVar revisionsVar $ \ revisions ->
         let
             key = (packageName, version)
@@ -173,19 +174,19 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
     Monad.when (maybeHash /= Just hash) $ do
         Log.info
             $ "[worker] "
-            <> into @String packageName
+            <> Witch.into @String packageName
             <> " "
-            <> into @String version
+            <> Witch.into @String version
             <> " "
-            <> show (into @Word revision)
+            <> show (Witch.into @Word revision)
             <> " "
-            <> into @String hash
+            <> Witch.into @String hash
         pd <- either Exception.throwM pure $ parsePackageDescription contents
         let
-            otherPackageName = into @PackageName.PackageName
+            otherPackageName = Witch.into @PackageName.PackageName
                 . Cabal.pkgName
                 $ Cabal.package pd
-            otherVersion = into @Version.Version
+            otherVersion = Witch.into @Version.Version
                 . Cabal.pkgVersion
                 $ Cabal.package pd
         Monad.when (otherPackageName /= packageName)
@@ -197,8 +198,8 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
         hackageUser <- do
             let
                 ownership = Tar.entryOwnership entry
-                name = into @HackageName.HackageName $ Tar.ownerName ownership
-                hi = into @HackageId.HackageId $ Tar.ownerId ownership
+                name = Witch.into @HackageName.HackageName $ Tar.ownerName ownership
+                hi = Witch.into @HackageId.HackageId $ Tar.ownerId ownership
                 value = HackageUser.HackageUser { HackageUser.id_ = hi, HackageUser.name = name }
             maybeModel <- Context.withConnection context $ \ connection ->
                 HackageUser.selectByName connection name
@@ -210,22 +211,22 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                     pure Model.Model { Model.key = key, Model.value = value }
         let
             package = Package.Package
-                { Package.author = into @Text.Text . Cabal.fromShortText $ Cabal.author pd
-                , Package.bugReports = into @Text.Text . Cabal.fromShortText $ Cabal.bugReports pd
-                , Package.buildType = into @BuildType.BuildType $ Cabal.buildType pd
-                , Package.cabalVersion = into @CabalVersion.CabalVersion $ Cabal.specVersion pd
-                , Package.category = into @Text.Text . Cabal.fromShortText $ Cabal.category pd
-                , Package.copyright = into @Text.Text . Cabal.fromShortText $ Cabal.copyright pd
-                , Package.description = into @Text.Text . Cabal.fromShortText $ Cabal.description pd
+                { Package.author = Witch.into @Text.Text . Cabal.fromShortText $ Cabal.author pd
+                , Package.bugReports = Witch.into @Text.Text . Cabal.fromShortText $ Cabal.bugReports pd
+                , Package.buildType = Witch.into @BuildType.BuildType $ Cabal.buildType pd
+                , Package.cabalVersion = Witch.into @CabalVersion.CabalVersion $ Cabal.specVersion pd
+                , Package.category = Witch.into @Text.Text . Cabal.fromShortText $ Cabal.category pd
+                , Package.copyright = Witch.into @Text.Text . Cabal.fromShortText $ Cabal.copyright pd
+                , Package.description = Witch.into @Text.Text . Cabal.fromShortText $ Cabal.description pd
                 , Package.hash = hash
-                , Package.homepage = into @Text.Text . Cabal.fromShortText $ Cabal.homepage pd
-                , Package.license = into @License.License $ Cabal.license pd
-                , Package.maintainer = into @Text.Text . Cabal.fromShortText $ Cabal.maintainer pd
+                , Package.homepage = Witch.into @Text.Text . Cabal.fromShortText $ Cabal.homepage pd
+                , Package.license = Witch.into @License.License $ Cabal.license pd
+                , Package.maintainer = Witch.into @Text.Text . Cabal.fromShortText $ Cabal.maintainer pd
                 , Package.name = packageName
-                , Package.pkgUrl = into @Text.Text . Cabal.fromShortText $ Cabal.pkgUrl pd
+                , Package.pkgUrl = Witch.into @Text.Text . Cabal.fromShortText $ Cabal.pkgUrl pd
                 , Package.revision = revision
-                , Package.stability = into @Text.Text . Cabal.fromShortText $ Cabal.stability pd
-                , Package.synopsis = into @Text.Text . Cabal.fromShortText $ Cabal.synopsis pd
+                , Package.stability = Witch.into @Text.Text . Cabal.fromShortText $ Cabal.stability pd
+                , Package.synopsis = Witch.into @Text.Text . Cabal.fromShortText $ Cabal.synopsis pd
                 , Package.uploadedAt = epochTimeToUtcTime $ Tar.entryTime entry
                 , Package.uploadedBy = Model.key hackageUser
                 , Package.version = version
@@ -242,7 +243,7 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                     Cabal.CExe _ -> ComponentTag.Executable
                     Cabal.CTest _ -> ComponentTag.TestSuite
                     Cabal.CBench _ -> ComponentTag.Benchmark
-                name = maybe (into @ComponentName.ComponentName packageName) (into @ComponentName.ComponentName)
+                name = maybe (Witch.into @ComponentName.ComponentName packageName) (Witch.into @ComponentName.ComponentName)
                     . Cabal.componentNameString
                     $ Cabal.componentName component
             maybeComponent <- Context.withConnection context $ \ connection ->
@@ -265,7 +266,7 @@ syncModules context componentKey component = case component of
         oldModules <- Module.selectByComponent connection componentKey
         let
             newModuleNames = Set.fromList
-                . fmap (into @ModuleName.ModuleName)
+                . fmap (Witch.into @ModuleName.ModuleName)
                 $ Cabal.exposedModules library
             oldModuleNames = Set.fromList
                 $ fmap (Module.name . Model.value) oldModules
@@ -318,11 +319,11 @@ syncSourceRepositories context packageKey sourceRepos = Context.withConnection c
     mapM_ (SourceRepository.insert connection) toInsert
 
 epochTimeToUtcTime :: Tar.EpochTime -> Time.UTCTime
-epochTimeToUtcTime = into @Time.UTCTime
-    . into @Time.POSIXTime
-    . into @Fixed.Pico
+epochTimeToUtcTime = Witch.into @Time.UTCTime
+    . Witch.into @Time.POSIXTime
+    . Witch.into @Fixed.Pico
     . (* 1000000000000)
-    . into @Integer
+    . Witch.into @Integer
 
 isValidTarEntry :: Tar.Entry -> Bool
 isValidTarEntry entry = Tar.entryPermissions entry == 420
@@ -338,18 +339,18 @@ getTarEntryPath entry =
 parsePackageDescription
     :: ByteString.ByteString
     -> Either
-        (TryFromException ByteString.ByteString Cabal.PackageDescription)
+        (Witch.TryFromException ByteString.ByteString Cabal.PackageDescription)
         Cabal.PackageDescription
-parsePackageDescription = maybeTryFrom $ \ bs -> do
+parsePackageDescription = Witch.maybeTryFrom $ \ bs -> do
     gpd <- Either.toMaybe $ parseGenericPackageDescription bs
     Either.toMaybe $ toPackageDescription gpd
 
 parseGenericPackageDescription
     :: ByteString.ByteString
     -> Either
-        (TryFromException ByteString.ByteString Cabal.GenericPackageDescription)
+        (Witch.TryFromException ByteString.ByteString Cabal.GenericPackageDescription)
         Cabal.GenericPackageDescription
-parseGenericPackageDescription = maybeTryFrom Cabal.parseGenericPackageDescriptionMaybe
+parseGenericPackageDescription = Witch.maybeTryFrom Cabal.parseGenericPackageDescriptionMaybe
 
 -- | Although the generic package description type does have a package
 -- description in it, that nested PD isn't actually usable. This function is
@@ -357,7 +358,7 @@ parseGenericPackageDescription = maybeTryFrom Cabal.parseGenericPackageDescripti
 toPackageDescription
     :: Cabal.GenericPackageDescription
     -> Either
-        (TryFromException Cabal.GenericPackageDescription Cabal.PackageDescription)
+        (Witch.TryFromException Cabal.GenericPackageDescription Cabal.PackageDescription)
         Cabal.PackageDescription
 toPackageDescription =
     let
@@ -379,4 +380,4 @@ toPackageDescription =
             platform
             compiler
             constraints
-    in maybeTryFrom $ fmap fst . Either.toMaybe . finalize
+    in Witch.maybeTryFrom $ fmap fst . Either.toMaybe . finalize

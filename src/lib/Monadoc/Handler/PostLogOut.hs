@@ -20,6 +20,7 @@ import qualified Monadoc.Type.Route as Route
 import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Types.Header as Http
 import qualified Web.Cookie as Cookie
+import qualified Witch
 
 handler :: Handler.Handler
 handler context request = do
@@ -32,18 +33,18 @@ handler context request = do
     let
         config = Context.config context
         baseUrl = Config.baseUrl config
-        location = into @ByteString.ByteString $ baseUrl <> Route.toString Route.Index
+        location = Witch.into @ByteString.ByteString $ baseUrl <> Route.toString Route.Index
         epoch = Time.UTCTime (Time.fromGregorian 1970 1 1) 0
         cookie = Cookie.defaultSetCookie
             { Cookie.setCookieExpires = Just epoch
             , Cookie.setCookieHttpOnly = True
-            , Cookie.setCookieName = into @ByteString.ByteString "guid"
-            , Cookie.setCookiePath = Just . into @ByteString.ByteString $ Route.toString Route.Index
+            , Cookie.setCookieName = Witch.into @ByteString.ByteString "guid"
+            , Cookie.setCookiePath = Just . Witch.into @ByteString.ByteString $ Route.toString Route.Index
             , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
             , Cookie.setCookieSecure = Config.isSecure config
-            , Cookie.setCookieValue = into @ByteString.ByteString ""
+            , Cookie.setCookieValue = Witch.into @ByteString.ByteString ""
             }
     pure $ Response.status Http.found302
         [ (Http.hLocation, location)
-        , (Http.hSetCookie, into @ByteString.ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
+        , (Http.hSetCookie, Witch.into @ByteString.ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
         ]

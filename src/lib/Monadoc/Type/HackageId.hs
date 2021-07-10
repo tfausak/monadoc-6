@@ -6,17 +6,18 @@ module Monadoc.Type.HackageId where
 import Monadoc.Prelude
 
 import qualified Monadoc.Vendor.Sql as Sql
+import qualified Witch
 
 newtype HackageId
     = HackageId Int
     deriving (Eq, Show)
 
-instance From Int HackageId
+instance Witch.From Int HackageId
 
-instance From HackageId Int
+instance Witch.From HackageId Int
 
 instance Sql.FromField HackageId where
-    fromField = fmap (from @Int) . Sql.fromField
+    fromField = fmap (Witch.from @Int) . Sql.fromField
 
 instance Sql.ToField HackageId where
-    toField = Sql.toField . into @Int
+    toField = Sql.toField . Witch.into @Int

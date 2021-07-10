@@ -8,14 +8,15 @@ import Monadoc.Prelude
 
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Text.Read as Read
+import qualified Witch
 
 newtype Port
     = Port Warp.Port
     deriving (Eq, Show)
 
-instance From Warp.Port Port
+instance Witch.From Warp.Port Port
 
-instance From Port Warp.Port
+instance Witch.From Port Warp.Port
 
-instance TryFrom String Port where
-    tryFrom = maybeTryFrom $ fmap (from @Warp.Port) . Read.readMaybe
+instance Witch.TryFrom String Port where
+    tryFrom = Witch.maybeTryFrom $ fmap (Witch.from @Warp.Port) . Read.readMaybe

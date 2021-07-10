@@ -2,12 +2,11 @@
 
 module Monadoc.Type.ConfigSpec where
 
-import Monadoc.Prelude
-
 import qualified Data.String as String
 import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Warning as Warning
 import qualified Test.Hspec as Hspec
+import qualified Witch
 
 spec :: Hspec.Spec
 spec = do
@@ -43,7 +42,7 @@ spec = do
             Config.fromArguments ["--host"] `Hspec.shouldBe` Nothing
 
         Hspec.it "sets the port option" $ do
-            fmap (Config.port . snd) (Config.fromArguments ["--port=0"]) `Hspec.shouldBe` Just (from @Int 0)
+            fmap (Config.port . snd) (Config.fromArguments ["--port=0"]) `Hspec.shouldBe` Just (Witch.from @Int 0)
 
         Hspec.it "rejects an invalid port" $ do
             Config.fromArguments ["--port=x"] `Hspec.shouldBe` Nothing

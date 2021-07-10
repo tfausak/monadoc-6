@@ -15,8 +15,6 @@ module Monadoc.Prelude (
     Prelude.RealFrac,
     Prelude.Semigroup,
     Prelude.Show,
-    Witch.From,
-    Witch.TryFrom,
 
     -- * Data types
     Prelude.Bool(False, True),
@@ -33,7 +31,6 @@ module Monadoc.Prelude (
     Prelude.Rational,
     Prelude.String,
     Prelude.Word,
-    Witch.TryFromException(..),
 
     -- * Functions
     Prelude.abs,
@@ -102,17 +99,6 @@ module Monadoc.Prelude (
     Prelude.userError,
     Prelude.zip,
     Prelude.zipWith,
-    Witch.as,
-    Witch.eitherTryFrom,
-    Witch.from,
-    Witch.into,
-    Witch.maybeTryFrom,
-    Witch.over,
-    Witch.tryFrom,
-    Witch.tryInto,
-    Witch.unsafeFrom,
-    Witch.unsafeInto,
-    Witch.via,
 
     -- * Operators
     (Prelude.-),
@@ -138,4 +124,3 @@ module Monadoc.Prelude (
 ) where
 
 import qualified Prelude
-import qualified Witch

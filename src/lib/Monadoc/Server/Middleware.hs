@@ -16,6 +16,7 @@ import qualified Monadoc.Utility.Log as Log
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Text.Printf as Printf
+import qualified Witch
 
 -- If the middleware is defined as @middleware = a . b@, then @a@ will be
 -- "outside" and @b@ will be "inside". In other words @a@ will get the request
@@ -34,11 +35,11 @@ logRequests f request respond = do
     before <- Clock.getMonotonicTime
     f request $ \ response -> do
         after <- Clock.getMonotonicTime
-        method <- either Exception.throwM pure . tryInto @Text.Text $ Wai.requestMethod request
-        path <- either Exception.throwM pure . tryInto @Text.Text $ Wai.rawPathInfo request
-        query <- either Exception.throwM pure . tryInto @Text.Text $ Wai.rawQueryString request
+        method <- either Exception.throwM pure . Witch.tryInto @Text.Text $ Wai.requestMethod request
+        path <- either Exception.throwM pure . Witch.tryInto @Text.Text $ Wai.rawPathInfo request
+        query <- either Exception.throwM pure . Witch.tryInto @Text.Text $ Wai.rawQueryString request
         Log.info $ Printf.printf "[server/%04x] %s %s%s %d %.3f"
-            (maybe 0 (into @Word.Word16) $ RequestId.get request)
+            (maybe 0 (Witch.into @Word.Word16) $ RequestId.get request)
             method
             path
             query
@@ -50,7 +51,7 @@ addSecurityHeaders :: Wai.Middleware
 addSecurityHeaders =
     let
         (=:) :: String -> String -> Http.Header
-        k =: v = (CI.mk $ into @ByteString.ByteString k, into @ByteString.ByteString v)
+        k =: v = (CI.mk $ Witch.into @ByteString.ByteString k, Witch.into @ByteString.ByteString v)
     in Wai.modifyResponse . Wai.mapResponseHeaders $ \ headers ->
         "Content-Security-Policy" =: "default-src 'self'"
         : "Referrer-Policy" =: "same-origin"

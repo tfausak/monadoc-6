@@ -17,6 +17,7 @@ import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Types as Http
 import qualified Network.URI as Uri
 import qualified Text.Printf as Printf
+import qualified Witch
 
 performRequest :: Client.Manager -> Client.Request -> IO (Client.Response LazyByteString.ByteString)
 performRequest manager request = do
@@ -27,9 +28,9 @@ performRequest manager request = do
     before <- Clock.getMonotonicTime
     response <- Client.httpLbs request { Client.requestHeaders = newHeaders } manager
     after <- Clock.getMonotonicTime
-    method <- either Exception.throwM pure . tryInto @Text.Text $ Client.method request
+    method <- either Exception.throwM pure . Witch.tryInto @Text.Text $ Client.method request
     Log.info $ Printf.printf "[client/%04x] %s %s %d %.3f"
-        (into @Word.Word16 requestId)
+        (Witch.into @Word.Word16 requestId)
         method
         (Uri.uriToString id (Client.getUri request) "")
         (Http.statusCode $ Client.responseStatus response)

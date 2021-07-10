@@ -5,16 +5,17 @@ import Monadoc.Prelude
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Proxy as Proxy
 import qualified Distribution.Parsec as Cabal
+import qualified Witch
 
 parsecTryFrom
-    :: (Cabal.Parsec a, From a b)
+    :: (Cabal.Parsec a, Witch.From a b)
     => Proxy.Proxy a
     -> String
-    -> Either (TryFromException String b) b
+    -> Either (Witch.TryFromException String b) b
 parsecTryFrom proxy string = case Cabal.eitherParsec string of
     Left message -> Left
-        . TryFromException string
+        . Witch.TryFromException string
         . Just
         . Exception.toException
         $ userError message
-    Right x -> Right . from $ Proxy.asProxyTypeOf x proxy
+    Right x -> Right . Witch.from $ Proxy.asProxyTypeOf x proxy

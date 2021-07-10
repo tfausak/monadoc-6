@@ -22,6 +22,7 @@ import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.Route as Route
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
+import qualified Witch
 
 handler :: Handler.Handler
 handler context request = do
@@ -30,11 +31,11 @@ handler context request = do
         Nothing -> Exception.throwM Forbidden.new
         Just user -> pure user
     body <- Wai.lazyRequestBody request
-    let query = Http.parseQueryText $ into @ByteString.ByteString body
-    rawGuid <- case lookup (into @Text.Text "guid") query of
+    let query = Http.parseQueryText $ Witch.into @ByteString.ByteString body
+    rawGuid <- case lookup (Witch.into @Text.Text "guid") query of
         Just (Just rawGuid) -> pure rawGuid
         _ -> Exception.throwM NotFound.new
-    guid <- either Exception.throwM pure $ tryInto @Guid.Guid rawGuid
+    guid <- either Exception.throwM pure $ Witch.tryInto @Guid.Guid rawGuid
     maybeSession <- Context.withConnection context $ \ connection ->
         Session.selectByGuid connection guid
     session <- case maybeSession of

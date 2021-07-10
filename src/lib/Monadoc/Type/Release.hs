@@ -10,27 +10,28 @@ import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.Revision as Revision
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Either as Either
+import qualified Witch
 
 data Release = Release
     { version :: Version.Version
     , revision :: Maybe Revision.Revision
     } deriving (Eq, Show)
 
-instance TryFrom String Release where
-    tryFrom = maybeTryFrom $ \ string -> do
+instance Witch.TryFrom String Release where
+    tryFrom = Witch.maybeTryFrom $ \ string -> do
         let (before, after) = break (== '-') string
-        v <- Either.toMaybe $ tryFrom @String before
+        v <- Either.toMaybe $ Witch.tryFrom @String before
         case after of
             "" -> pure Release { version = v, revision = Nothing }
             '-' : rest -> do
-                r <- Either.toMaybe $ tryFrom @String rest
+                r <- Either.toMaybe $ Witch.tryFrom @String rest
                 pure Release { version = v, revision = Just r }
             _ -> Nothing
 
-instance From Release String where
-    from x = into @String (version x) <> case revision x of
+instance Witch.From Release String where
+    from x = Witch.into @String (version x) <> case revision x of
         Nothing -> ""
-        Just r -> "-" <> into @String r
+        Just r -> "-" <> Witch.into @String r
 
 instance ToXml.ToXml Release where
-    toXml = ToXml.toXml . into @String
+    toXml = ToXml.toXml . Witch.into @String

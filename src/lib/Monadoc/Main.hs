@@ -25,6 +25,7 @@ import qualified Paths_monadoc as This
 import qualified System.Console.GetOpt as Console
 import qualified System.Environment as Environment
 import qualified System.Exit as Exit
+import qualified Witch
 
 defaultMain :: IO ()
 defaultMain = do
@@ -65,7 +66,7 @@ getContext name arguments = do
             Warning.UnrecognizedOption option ->
                 "unrecognized option " <> show option
 
-    let version = into @String $ into @Version.Version This.version
+    let version = Witch.into @String $ Witch.into @Version.Version This.version
     Monad.when (Config.help config) $ do
         putStr $ Console.usageInfo (unwords [name, "version", version]) Flag.options
         Exit.exitSuccess

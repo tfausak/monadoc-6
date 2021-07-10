@@ -13,6 +13,7 @@ import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Utility.Either as Either
 import qualified Network.HTTP.Types as Http
+import qualified Witch
 
 data Route
     = Account
@@ -62,40 +63,40 @@ parse path query = case path of
     ["static", "monadoc.xsl"] -> Just Template
     ["robots.txt"] -> Just Robots
     ["package", p] -> Package
-        <$> Either.toMaybe (tryInto @PackageName.PackageName p)
+        <$> Either.toMaybe (Witch.tryInto @PackageName.PackageName p)
     ["search"] -> Search <$> getQuery query
     ["account"] -> Just Account
     ["account", "log-out"] -> Just LogOut
     ["account", "revoke"] -> Just Revoke
     ["package", p, "version", r, "component", c] -> Component
-        <$> Either.toMaybe (tryInto @PackageName.PackageName p)
-        <*> Either.toMaybe (tryInto @Release.Release r)
-        <*> Either.toMaybe (tryInto @ComponentId.ComponentId c)
+        <$> Either.toMaybe (Witch.tryInto @PackageName.PackageName p)
+        <*> Either.toMaybe (Witch.tryInto @Release.Release r)
+        <*> Either.toMaybe (Witch.tryInto @ComponentId.ComponentId c)
     ["health-check"] -> Just HealthCheck
     ["apple-touch-icon.png"] -> Just AppleTouchIcon
     ["package", p, "version", r, "file"] -> File
-        <$> Either.toMaybe (tryInto @PackageName.PackageName p)
-        <*> Either.toMaybe (tryInto @Release.Release r)
+        <$> Either.toMaybe (Witch.tryInto @PackageName.PackageName p)
+        <*> Either.toMaybe (Witch.tryInto @Release.Release r)
         <*> getPath query
     ["package", p, "version", r, "component", c, "module", m] -> Module
-        <$> Either.toMaybe (tryInto @PackageName.PackageName p)
-        <*> Either.toMaybe (tryInto @Release.Release r)
-        <*> Either.toMaybe (tryInto @ComponentId.ComponentId c)
-        <*> Either.toMaybe (tryInto @ModuleName.ModuleName m)
+        <$> Either.toMaybe (Witch.tryInto @PackageName.PackageName p)
+        <*> Either.toMaybe (Witch.tryInto @Release.Release r)
+        <*> Either.toMaybe (Witch.tryInto @ComponentId.ComponentId c)
+        <*> Either.toMaybe (Witch.tryInto @ModuleName.ModuleName m)
     ["package", p, "version", r] -> Release
-        <$> Either.toMaybe (tryInto @PackageName.PackageName p)
-        <*> Either.toMaybe (tryInto @Release.Release r)
+        <$> Either.toMaybe (Witch.tryInto @PackageName.PackageName p)
+        <*> Either.toMaybe (Witch.tryInto @Release.Release r)
     _ -> Nothing
 
 getPath :: Http.Query -> Maybe FilePath
 getPath query = do
-    maybeByteString <- lookup (into @ByteString.ByteString "path") query
+    maybeByteString <- lookup (Witch.into @ByteString.ByteString "path") query
     byteString <- maybeByteString
-    Either.toMaybe $ tryInto @String byteString
+    Either.toMaybe $ Witch.tryInto @String byteString
 
 getQuery :: Http.Query -> Maybe (Maybe String)
-getQuery query = case lookup (into @ByteString.ByteString "query") query of
-    Just (Just x) -> case tryInto @String x of
+getQuery query = case lookup (Witch.into @ByteString.ByteString "query") query of
+    Just (Just x) -> case Witch.tryInto @String x of
         Left _ -> Nothing
         Right y -> Just $ Just y
     _ -> Just Nothing
@@ -103,7 +104,7 @@ getQuery query = case lookup (into @ByteString.ByteString "query") query of
 toString :: Route -> String
 toString route =
     let (path, query) = render route
-    in '/' : (List.intercalate "/" path) <> unsafeInto @String (Http.renderQuery True query)
+    in '/' : (List.intercalate "/" path) <> Witch.unsafeInto @String (Http.renderQuery True query)
 
 render :: Route -> ([String], Http.Query)
 render route = case route of
@@ -111,17 +112,17 @@ render route = case route of
     AppleTouchIcon -> (["apple-touch-icon.png"], [])
     Bootstrap -> (["static", "bootstrap.css"], [])
     Callback -> (["account", "callback"], [])
-    Component p r c -> (["package", into @String p, "version", into @String r, "component", into @String c], [])
+    Component p r c -> (["package", Witch.into @String p, "version", Witch.into @String r, "component", Witch.into @String c], [])
     Favicon -> (["favicon.ico"], [])
-    File p r path -> (["package", into @String p, "version", into @String r, "file"], [(into @ByteString.ByteString "path", Just $ into @ByteString.ByteString path)])
+    File p r path -> (["package", Witch.into @String p, "version", Witch.into @String r, "file"], [(Witch.into @ByteString.ByteString "path", Just $ Witch.into @ByteString.ByteString path)])
     HealthCheck -> (["health-check"], [])
     Index -> ([], [])
     LogOut -> (["account", "log-out"], [])
     Logo -> (["static", "monadoc.svg"], [])
-    Module p r c m -> (["package", into @String p, "version", into @String r, "component", into @String c, "module", into @String m], [])
-    Package p -> (["package", into @String p], [])
-    Release p r -> (["package", into @String p, "version", into @String r], [])
+    Module p r c m -> (["package", Witch.into @String p, "version", Witch.into @String r, "component", Witch.into @String c, "module", Witch.into @String m], [])
+    Package p -> (["package", Witch.into @String p], [])
+    Release p r -> (["package", Witch.into @String p, "version", Witch.into @String r], [])
     Revoke -> (["account", "revoke"], [])
     Robots -> (["robots.txt"], [])
-    Search maybeQuery -> (["search"], maybe [] (\ query -> [(into @ByteString.ByteString "query", Just $ into @ByteString.ByteString query)]) maybeQuery)
+    Search maybeQuery -> (["search"], maybe [] (\ query -> [(Witch.into @ByteString.ByteString "query", Just $ Witch.into @ByteString.ByteString query)]) maybeQuery)
     Template -> (["static", "monadoc.xsl"], [])

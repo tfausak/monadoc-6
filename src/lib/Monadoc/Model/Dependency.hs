@@ -16,6 +16,7 @@ import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.VersionRange as VersionRange
+import qualified Witch
 
 type Model = Model.Model Dependency
 
@@ -100,7 +101,7 @@ insert connection dependency = do
     Sql.execute connection
         "insert into dependency (component, packageName, libraryName, versionRange) \
         \values (?, ?, ?, ?)" dependency
-    fmap (from @Int.Int64) $ Sql.lastInsertRowId connection
+    fmap (Witch.from @Int.Int64) $ Sql.lastInsertRowId connection
 
 fromDependency :: Component.Key -> Cabal.Dependency -> [Dependency]
 fromDependency componentKey dependency =
@@ -111,9 +112,9 @@ fromDependency componentKey dependency =
 fromLibraryName :: Component.Key -> Cabal.Dependency -> Cabal.LibraryName -> Dependency
 fromLibraryName componentKey dependency l = Dependency
     { component = componentKey
-    , packageName = into @PackageName.PackageName $ Cabal.depPkgName dependency
+    , packageName = Witch.into @PackageName.PackageName $ Cabal.depPkgName dependency
     , libraryName = case l of
-        Cabal.LMainLibName -> via @PackageName.PackageName $ Cabal.depPkgName dependency
-        Cabal.LSubLibName n -> into @ComponentName.ComponentName n
-    , versionRange = into @VersionRange.VersionRange $ Cabal.depVerRange dependency
+        Cabal.LMainLibName -> Witch.via @PackageName.PackageName $ Cabal.depPkgName dependency
+        Cabal.LSubLibName n -> Witch.into @ComponentName.ComponentName n
+    , versionRange = Witch.into @VersionRange.VersionRange $ Cabal.depVerRange dependency
     }

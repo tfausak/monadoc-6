@@ -28,10 +28,11 @@ import qualified Network.HTTP.Types as Http
 import qualified Network.HTTP.Types.Header as Http
 import qualified Network.Wai as Wai
 import qualified Web.Cookie as Cookie
+import qualified Witch
 
 handler :: Handler.Handler
 handler context request = do
-    code <- case lookup (into @ByteString.ByteString "code") $ Wai.queryString request of
+    code <- case lookup (Witch.into @ByteString.ByteString "code") $ Wai.queryString request of
         Just (Just code) -> pure code
         _ -> Exception.throwM $ MissingCode.new request
     let
@@ -43,7 +44,7 @@ handler context request = do
     guid <- Guid.random
     userAgent <- case Wai.requestHeaderUserAgent request of
         Nothing -> pure ""
-        Just rawUserAgent -> either Exception.throwM pure $ tryInto @String rawUserAgent
+        Just rawUserAgent -> either Exception.throwM pure $ Witch.tryInto @String rawUserAgent
     let
         user = User.User
             { User.createdAt = now
@@ -67,18 +68,18 @@ handler context request = do
     let
         cookie = Cookie.defaultSetCookie
             { Cookie.setCookieHttpOnly = True
-            , Cookie.setCookieName = into @ByteString.ByteString "guid"
-            , Cookie.setCookiePath = Just . into @ByteString.ByteString $ Route.toString Route.Index
+            , Cookie.setCookieName = Witch.into @ByteString.ByteString "guid"
+            , Cookie.setCookiePath = Just . Witch.into @ByteString.ByteString $ Route.toString Route.Index
             , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
             , Cookie.setCookieSecure = Config.isSecure config
-            , Cookie.setCookieValue = Uuid.toASCIIBytes $ into @Uuid.UUID guid
+            , Cookie.setCookieValue = Uuid.toASCIIBytes $ Witch.into @Uuid.UUID guid
             }
-        location = case lookup (into @ByteString.ByteString "state") $ Wai.queryString request of
-            Just (Just x) -> into @ByteString.ByteString baseUrl <> x
-            _ -> into @ByteString.ByteString $ baseUrl <> Route.toString Route.Index
+        location = case lookup (Witch.into @ByteString.ByteString "state") $ Wai.queryString request of
+            Just (Just x) -> Witch.into @ByteString.ByteString baseUrl <> x
+            _ -> Witch.into @ByteString.ByteString $ baseUrl <> Route.toString Route.Index
     pure $ Response.status Http.found302
         [ (Http.hLocation, location)
-        , (Http.hSetCookie, into @ByteString.ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
+        , (Http.hSetCookie, Witch.into @ByteString.ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
         ]
 
 getAccessToken :: Context.Context -> ByteString.ByteString -> IO GithubToken.GithubToken
@@ -91,11 +92,11 @@ getAccessToken context code = do
     initial <- Client.parseUrlThrow "https://github.com/login/oauth/access_token"
     let
         body =
-            [ (into @ByteString.ByteString "client_id", into @ByteString.ByteString clientId)
-            , (into @ByteString.ByteString "client_secret", into @ByteString.ByteString clientSecret)
-            , (into @ByteString.ByteString "code", code)
+            [ (Witch.into @ByteString.ByteString "client_id", Witch.into @ByteString.ByteString clientId)
+            , (Witch.into @ByteString.ByteString "client_secret", Witch.into @ByteString.ByteString clientSecret)
+            , (Witch.into @ByteString.ByteString "code", code)
             ]
-        headers = (Http.hAccept, into @ByteString.ByteString "application/json") : Client.requestHeaders initial
+        headers = (Http.hAccept, Witch.into @ByteString.ByteString "application/json") : Client.requestHeaders initial
         req = Client.urlEncodedBody body initial { Client.requestHeaders = headers }
     res <- Client.performRequest manager req
     let responseBody = Client.responseBody res
@@ -109,7 +110,7 @@ getGithubUser context accessToken = do
     initial <- Client.parseUrlThrow "https://api.github.com/user"
     let
         headers
-            = (Http.hAuthorization, into @ByteString.ByteString $ "Bearer " <> into @String accessToken)
+            = (Http.hAuthorization, Witch.into @ByteString.ByteString $ "Bearer " <> Witch.into @String accessToken)
             : Client.requestHeaders initial
         req = initial { Client.requestHeaders = headers }
     res <- Client.performRequest manager req

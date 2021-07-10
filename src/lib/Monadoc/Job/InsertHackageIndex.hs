@@ -11,6 +11,7 @@ import qualified Monadoc.Type.Config as Config
 import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Vendor.Client as Client
+import qualified Witch
 
 run :: Context.Context -> IO HackageIndex.HackageIndex
 run context = do
@@ -18,7 +19,7 @@ run context = do
     request <- Client.parseUrlThrow $ Config.hackageUrl (Context.config context) <> "/01-index.tar.gz"
     response <- Client.performRequest (Context.manager context) request
     let
-        contents = into @ByteString.ByteString
+        contents = Witch.into @ByteString.ByteString
             . Gzip.decompress
             $ Client.responseBody response
         size = ByteString.length contents

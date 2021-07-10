@@ -39,6 +39,7 @@ import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Type.VersionRange as VersionRange
 import qualified Monadoc.Utility.Xml as Xml
+import qualified Witch
 
 handler
     :: PackageName.PackageName
@@ -89,18 +90,18 @@ handler packageName release context request = do
                 , Breadcrumb.route = Just Route.Index
                 }
             , Breadcrumb.Breadcrumb
-                { Breadcrumb.name = into @String packageName
+                { Breadcrumb.name = Witch.into @String packageName
                 , Breadcrumb.route = Just $ Route.Package packageName
                 }
             , Breadcrumb.Breadcrumb
-                { Breadcrumb.name = into @String release
+                { Breadcrumb.name = Witch.into @String release
                 , Breadcrumb.route = Nothing
                 }
             ]
         prefix = mconcat
-            [ into @String packageName
+            [ Witch.into @String packageName
             , "-"
-            , into @String version
+            , Witch.into @String version
             , "/"
             ]
         page = Xml.node "release" []
@@ -171,7 +172,7 @@ handler packageName release context request = do
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
             { Meta.breadcrumbs = breadcrumbs
-            , Meta.title = List.intercalate " - " ["Monadoc", into @String packageName, into @String release]
+            , Meta.title = List.intercalate " - " ["Monadoc", Witch.into @String packageName, Witch.into @String release]
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Root.page = page
@@ -182,7 +183,7 @@ componentName package component =
     let
         name = Component.name component
         isLibrary = Component.tag component == ComponentTag.Library
-        namesMatch = into @PackageName.PackageName name == Package.name package
+        namesMatch = Witch.into @PackageName.PackageName name == Package.name package
     in if isLibrary && namesMatch then Nothing else Just name
 
 componentRoute :: Package.Package -> Component.Component -> Route.Route
@@ -198,7 +199,7 @@ parsedDescription :: Package.Package -> Haddock.DocH Void.Void String
 parsedDescription = Haddock.toRegular
     . Haddock._doc
     . Haddock.parseParas Nothing
-    . into @String
+    . Witch.into @String
     . Package.description
 
 isLatest :: Maybe LatestVersion.Model -> Version.Version -> Revision.Revision -> Bool

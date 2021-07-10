@@ -31,11 +31,12 @@ import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Log as Log
 import qualified System.FilePath as FilePath
 import qualified System.FilePath.Posix as FilePath.Posix
+import qualified Witch
 
 run :: Context.Context -> IO ()
 run context = Context.withConnection context $ \ connection -> Sqlite.fold
     connection
-    (Sqlite.Query $ into @Text.Text
+    (Sqlite.Query $ Witch.into @Text.Text
         "select key, author, bugReports, buildType, cabalVersion, category, \
         \copyright, description, hash, homepage, license, maintainer, name, \
         \pkgUrl, revision, stability, synopsis, uploadedAt, uploadedBy, \
@@ -86,34 +87,34 @@ run context = Context.withConnection context $ \ connection -> Sqlite.fold
                             -- directories are ordered after all.
                             [] -> Log.warn -- TODO
                                 $ "[worker] no files "
-                                <> (into @String . Package.name $ Model.value package)
+                                <> (Witch.into @String . Package.name $ Model.value package)
                                 <> " "
-                                <> (into @String . Package.version $ Model.value package)
+                                <> (Witch.into @String . Package.version $ Model.value package)
                                 <> " "
-                                <> (into @String . Package.revision $ Model.value package)
+                                <> (Witch.into @String . Package.revision $ Model.value package)
                                 <> " "
-                                <> (into @String . Component.tag $ Model.value component)
+                                <> (Witch.into @String . Component.tag $ Model.value component)
                                 <> " "
-                                <> (into @String . Component.name $ Model.value component)
+                                <> (Witch.into @String . Component.name $ Model.value component)
                                 <> " "
-                                <> (into @String . Module.name $ Model.value module_)
+                                <> (Witch.into @String . Module.name $ Model.value module_)
 
 componentIdToComponentName
     :: PackageName.PackageName
     -> ComponentId.ComponentId
     -> Either
-        (TryFromException ComponentId.ComponentId Cabal.ComponentName)
+        (Witch.TryFromException ComponentId.ComponentId Cabal.ComponentName)
         Cabal.ComponentName
-componentIdToComponentName package = maybeTryFrom $ \ ci ->
+componentIdToComponentName package = Witch.maybeTryFrom $ \ ci ->
     case (ComponentId.tag ci, ComponentId.name ci) of
         (ComponentTag.Library, Nothing) -> Just $ Cabal.CLibName Cabal.LMainLibName
         (ComponentTag.Library, Just name)
-            | name == from package -> Just $ Cabal.CLibName Cabal.LMainLibName
-            | otherwise -> Just . Cabal.CLibName . Cabal.LSubLibName $ from name
-        (ComponentTag.ForeignLibrary, Just name) -> Just $ Cabal.CFLibName $ from name
-        (ComponentTag.Executable, Just name) -> Just $ Cabal.CExeName $ from name
-        (ComponentTag.TestSuite, Just name) -> Just $ Cabal.CTestName $ from name
-        (ComponentTag.Benchmark, Just name) -> Just $ Cabal.CBenchName $ from name
+            | name == Witch.from package -> Just $ Cabal.CLibName Cabal.LMainLibName
+            | otherwise -> Just . Cabal.CLibName . Cabal.LSubLibName $ Witch.from name
+        (ComponentTag.ForeignLibrary, Just name) -> Just $ Cabal.CFLibName $ Witch.from name
+        (ComponentTag.Executable, Just name) -> Just $ Cabal.CExeName $ Witch.from name
+        (ComponentTag.TestSuite, Just name) -> Just $ Cabal.CTestName $ Witch.from name
+        (ComponentTag.Benchmark, Just name) -> Just $ Cabal.CBenchName $ Witch.from name
         (_, Nothing) -> Nothing
 
 componentToBuildInfo :: Cabal.Component -> Cabal.BuildInfo
@@ -156,8 +157,8 @@ toPath
 toPath p v d m x =
     FilePath.normalise $ FilePath.addExtension
         (FilePath.Posix.joinPath
-            [ into @String p <> "-" <> into @String v
+            [ Witch.into @String p <> "-" <> Witch.into @String v
             , UnpackDistribution.normalizeFilePath d
-            , FilePath.Posix.joinPath . Cabal.components $ into @Cabal.ModuleName m
+            , FilePath.Posix.joinPath . Cabal.components $ Witch.into @Cabal.ModuleName m
             ])
         x

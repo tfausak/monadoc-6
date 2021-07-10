@@ -22,6 +22,7 @@ import qualified Monadoc.Type.Context as Context
 import qualified Monadoc.Type.Model as Model
 import qualified System.FilePath as FilePath
 import qualified System.FilePath.Posix as FilePath.Posix
+import qualified Witch
 
 run :: Context.Context -> Distribution.Model -> IO ()
 run context distribution = do
@@ -36,7 +37,7 @@ run context distribution = do
         . Tar.foldEntries ((:) . Right) [] (pure . Left)
         . Tar.read
         . Gzip.decompress
-        . into @LazyByteString.ByteString
+        . Witch.into @LazyByteString.ByteString
         . Blob.contents
         $ Model.value blob
     now <- Time.getCurrentTime
@@ -81,14 +82,14 @@ unpackDistributionItem context distribution pathVar item = case item of
             -- <https://github.com/haskell/hackage-server/issues/858>.
             pure ()
         Tar.OtherEntryType 'L' contents _ -> do
-            path <- either Exception.throwM pure $ tryInto @String contents
+            path <- either Exception.throwM pure $ Witch.tryInto @String contents
             succeeded <- Stm.atomically $ Stm.tryPutTMVar pathVar path
             Monad.unless succeeded . Exception.throwM $ UnexpectedTarEntry.new entry
         Tar.NormalFile contents _ -> do
             maybePath <- Stm.atomically $ Stm.tryTakeTMVar pathVar
             let
                 path = normalizeFilePath $ Maybe.fromMaybe (Tar.entryPath entry) maybePath
-                blob = Blob.fromByteString $ into @ByteString.ByteString contents
+                blob = Blob.fromByteString $ Witch.into @ByteString.ByteString contents
                 file = File.File { File.distribution = distribution, File.hash = Blob.hash blob, File.path = path }
             Context.withConnection context $ \ connection -> do
                 Blob.upsert connection blob

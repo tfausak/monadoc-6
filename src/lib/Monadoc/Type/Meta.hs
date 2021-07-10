@@ -14,6 +14,7 @@ import qualified Monadoc.Type.Routes as Routes
 import qualified Monadoc.Type.Version as Version
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Paths_monadoc as This
+import qualified Witch
 
 data Meta = Meta
     { baseUrl :: String
@@ -53,5 +54,5 @@ fromContext context self = Meta
         }
     , title = "Monadoc"
     , user = Nothing
-    , version = into @Version.Version This.version
+    , version = Witch.into @Version.Version This.version
     }

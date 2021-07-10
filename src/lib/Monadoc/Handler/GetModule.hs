@@ -29,6 +29,7 @@ import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Either as Either
 import qualified Monadoc.Utility.Xml as Xml
+import qualified Witch
 
 handler
     :: PackageName.PackageName
@@ -51,7 +52,7 @@ handler packageName release componentId moduleName context request = do
             Component.select connection
                 (Model.key package)
                 (ComponentId.tag componentId)
-                (maybe (from packageName) id $ ComponentId.name componentId)
+                (maybe (Witch.from packageName) id $ ComponentId.name componentId)
         maybe (Exception.throwM NotFound.new) pure maybeComponent
     module_ <- do
         maybeModule <- Context.withConnection context $ \ connection ->
@@ -65,7 +66,7 @@ handler packageName release componentId moduleName context request = do
         Nothing -> pure Nothing
         Just file -> Context.withConnection context $ \ connection ->
             Blob.selectByHash connection . File.hash $ Model.value file
-    -- TODO: Parse module! And then move this into a worker job.
+    -- TODO: Parse module! And then move this Witch.into a worker job.
 
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
@@ -75,34 +76,34 @@ handler packageName release componentId moduleName context request = do
                     , Breadcrumb.route = Just Route.Index
                     }
                 , Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = into @String packageName
+                    { Breadcrumb.name = Witch.into @String packageName
                     , Breadcrumb.route = Just $ Route.Package packageName
                     }
                 , Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = into @String release
+                    { Breadcrumb.name = Witch.into @String release
                     , Breadcrumb.route = Just $ Route.Release packageName release
                     }
                 , Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = into @String componentId
+                    { Breadcrumb.name = Witch.into @String componentId
                     , Breadcrumb.route = Just $ Route.Component packageName release componentId
                     }
                 , Breadcrumb.Breadcrumb
-                    { Breadcrumb.name = into @String moduleName
+                    { Breadcrumb.name = Witch.into @String moduleName
                     , Breadcrumb.route = Nothing
                     }
                 ]
-            , Meta.title = List.intercalate " - " ["Monadoc", into @String packageName, into @String release, into @String componentId, into @String moduleName]
+            , Meta.title = List.intercalate " - " ["Monadoc", Witch.into @String packageName, Witch.into @String release, Witch.into @String componentId, Witch.into @String moduleName]
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Root.page = Xml.node "module" []
             [ Xml.node "package" [] [ToXml.toXml packageName]
             , Xml.node "release" [] [ToXml.toXml release]
-            , Xml.node "component" [] [ToXml.toXml $ into @String componentId]
+            , Xml.node "component" [] [ToXml.toXml $ Witch.into @String componentId]
             , Xml.node "module" [] [ToXml.toXml moduleName]
             , Xml.node "file" []
                 [ Xml.node "contents" [] [ToXml.toXml $ case maybeBlob of
                     Nothing -> Nothing
-                    Just blob -> Either.toMaybe . tryInto @Text.Text . Blob.contents $ Model.value blob]
+                    Just blob -> Either.toMaybe . Witch.tryInto @Text.Text . Blob.contents $ Model.value blob]
                 , Xml.node "path" [] [ToXml.toXml $ fmap (File.path . Model.value) maybeFile]
                 , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName release . File.path . Model.value) maybeFile]
                 ]

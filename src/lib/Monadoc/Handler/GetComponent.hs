@@ -36,6 +36,7 @@ import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Foldable as Foldable
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Monadoc.Vendor.Sql as Sql
+import qualified Witch
 
 handler
     :: PackageName.PackageName
@@ -49,7 +50,7 @@ handler packageName release componentId context request = do
         componentTag = ComponentId.tag componentId
         isLibrary = componentTag == ComponentTag.Library
         maybeComponentName = ComponentId.name componentId
-        namesMatch = maybeComponentName == Just (into @ComponentName.ComponentName packageName)
+        namesMatch = maybeComponentName == Just (Witch.into @ComponentName.ComponentName packageName)
         version = Release.version release
 
     -- TODO: Redirect to the latest release?
@@ -84,7 +85,7 @@ handler packageName release componentId context request = do
             -- Otherwise this route is ambiguous.
             _ -> Exception.throwM NotFound.new
 
-    let componentName = Maybe.fromMaybe (into @ComponentName.ComponentName packageName) maybeComponentName
+    let componentName = Maybe.fromMaybe (Witch.into @ComponentName.ComponentName packageName) maybeComponentName
     component <- maybe (Exception.throwM NotFound.new) pure
         $ List.find ((== componentName) . Component.name . Model.value) components
     dependencies <- Context.withConnection context $ \ connection ->
@@ -125,15 +126,15 @@ handler packageName release componentId context request = do
                 , Breadcrumb.route = Just Route.Index
                 }
             , Breadcrumb.Breadcrumb
-                { Breadcrumb.name = into @String packageName
+                { Breadcrumb.name = Witch.into @String packageName
                 , Breadcrumb.route = Just $ Route.Package packageName
                 }
             , Breadcrumb.Breadcrumb
-                { Breadcrumb.name = into @String release
+                { Breadcrumb.name = Witch.into @String release
                 , Breadcrumb.route = Just $ Route.Release packageName release
                 }
             , Breadcrumb.Breadcrumb
-                { Breadcrumb.name = into @String componentId
+                { Breadcrumb.name = Witch.into @String componentId
                 , Breadcrumb.route = Nothing
                 }
             ]
@@ -149,27 +150,27 @@ handler packageName release componentId context request = do
                 , Xml.node "route" [] [ToXml.toXml . Route.Package $ Dependency.packageName x]
                 , Xml.node "versionRange" [] [ToXml.toXml $ Dependency.versionRange x]
                 ])
-            . List.sortOn (CI.mk . into @String . Dependency.packageName)
+            . List.sortOn (CI.mk . Witch.into @String . Dependency.packageName)
             $ fmap Model.value dependencies
             , Xml.node "reverseDependencies" []
             . fmap (\ x -> Xml.node "reverseDependency" []
                 [ Xml.node "packageName" [] [ToXml.toXml x]
                 , Xml.node "route" [] [ToXml.toXml $ Route.Package x]
                 ])
-            . List.sortOn (CI.mk . into @String)
+            . List.sortOn (CI.mk . Witch.into @String)
             $ fmap Sql.fromOnly reverseDependencies
             , Xml.node "modules" []
             . fmap (\ x -> Xml.node "module" []
                 [ Xml.node "name" [] [ToXml.toXml $ Module.name x]
                 , Xml.node "route" [] [ToXml.toXml $ Route.Module packageName release componentId (Module.name x)]
                 ])
-            . List.sortOn (CI.mk . into @String . Module.name)
+            . List.sortOn (CI.mk . Witch.into @String . Module.name)
             $ fmap Model.value modules
             ]
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
             { Meta.breadcrumbs = breadcrumbs
-            , Meta.title = List.intercalate " - " ["Monadoc", into @String packageName, into @String release, into @String componentId]
+            , Meta.title = List.intercalate " - " ["Monadoc", Witch.into @String packageName, Witch.into @String release, Witch.into @String componentId]
             , Meta.user = fmap (User.githubLogin . Model.value) maybeUser
             }
         , Root.page = page

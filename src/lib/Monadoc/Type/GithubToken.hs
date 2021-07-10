@@ -8,20 +8,21 @@ import Monadoc.Prelude
 
 import qualified Data.Aeson as Aeson
 import qualified Monadoc.Vendor.Sql as Sql
+import qualified Witch
 
 newtype GithubToken
     = GithubToken String
     deriving (Eq, Show)
 
-instance From String GithubToken
+instance Witch.From String GithubToken
 
-instance From GithubToken String
+instance Witch.From GithubToken String
 
 instance Sql.FromField GithubToken where
-    fromField = fmap (from @String) . Sql.fromField
+    fromField = fmap (Witch.from @String) . Sql.fromField
 
 instance Sql.ToField GithubToken where
-    toField = Sql.toField . into @String
+    toField = Sql.toField . Witch.into @String
 
 instance Aeson.FromJSON GithubToken where
-    parseJSON = fmap (from @String) . Aeson.parseJSON
+    parseJSON = fmap (Witch.from @String) . Aeson.parseJSON

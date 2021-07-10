@@ -7,6 +7,7 @@ import Monadoc.Prelude
 import qualified Data.Aeson as Aeson
 import qualified Data.Text as Text
 import qualified Monadoc.Type.GithubToken as GithubToken
+import qualified Witch
 
 data OAuthResponse = OAuthResponse
     { accessToken :: GithubToken.GithubToken
@@ -15,6 +16,6 @@ data OAuthResponse = OAuthResponse
 
 instance Aeson.FromJSON OAuthResponse where
     parseJSON = Aeson.withObject "OAuthResponse" $ \ object -> do
-        at <- object Aeson..: into @Text.Text "access_token"
-        tt <- object Aeson..: into @Text.Text "token_type"
+        at <- object Aeson..: Witch.into @Text.Text "access_token"
+        tt <- object Aeson..: Witch.into @Text.Text "token_type"
         pure OAuthResponse { accessToken = at, tokenType = tt }

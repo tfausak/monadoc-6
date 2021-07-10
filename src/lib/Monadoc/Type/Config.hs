@@ -12,6 +12,7 @@ import qualified Monadoc.Type.Port as Port
 import qualified Monadoc.Type.Warning as Warning
 import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.Wai.Handler.Warp as Warp
+import qualified Witch
 
 data Config = Config
     { baseUrl :: String
@@ -36,7 +37,7 @@ initial = Config
     , hackageUrl = "https://hackage.haskell.org"
     , help = False
     , host = Convert.stringToHost "127.0.0.1"
-    , port = from @Int 3000
+    , port = Witch.from @Int 3000
     , version = False
     }
 
@@ -68,6 +69,6 @@ applyFlag flag config = case flag of
     Flag.Help -> pure config { help = True }
     Flag.Host h -> pure config { host = Convert.stringToHost h }
     Flag.Port string -> do
-        p <- either Exception.throwM pure $ tryFrom string
+        p <- either Exception.throwM pure $ Witch.tryFrom string
         pure config { port = p }
     Flag.Version -> pure config { version = True }

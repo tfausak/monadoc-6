@@ -17,11 +17,12 @@ import qualified GHC.Clock as Clock
 import qualified Monadoc.Type.RequestId as RequestId
 import qualified Monadoc.Utility.Log as Log
 import qualified Text.Printf as Printf
+import qualified Witch
 
 defaultFromField
     :: ( Sql.FromField s
         , Show s
-        , TryFrom s t
+        , Witch.TryFrom s t
         , Typeable.Typeable s
         , Typeable.Typeable t
         )
@@ -29,7 +30,7 @@ defaultFromField
     -> Sql.FieldParser t
 defaultFromField p f = do
     s <- Sql.fromField f
-    case tryFrom $ Proxy.asProxyTypeOf s p of
+    case Witch.tryFrom $ Proxy.asProxyTypeOf s p of
         Left e -> Sql.returnError Sql.ConversionFailed f $ show e
         Right t -> pure t
 
@@ -59,13 +60,13 @@ query connection sql input = do
         $ \ retryStatus -> do
             let number = Retry.rsIterNumber retryStatus
             Monad.when (number > 0) . Log.info $ Printf.printf "[sql/%04x] [retry/%d] %s"
-                (into @Word.Word16 requestId)
+                (Witch.into @Word.Word16 requestId)
                 number
                 (show retryStatus)
-            Sql.query connection (Sql.Query $ into @Text.Text sql) input
+            Sql.query connection (Sql.Query $ Witch.into @Text.Text sql) input
     after <- Clock.getMonotonicTime
     Log.info $ Printf.printf "[sql/%04x] %s -- %.3f"
-        (into @Word.Word16 requestId)
+        (Witch.into @Word.Word16 requestId)
         sql
         (after - before)
     pure result

@@ -21,6 +21,7 @@ import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Paths_monadoc as This
 import qualified Text.Printf as Printf
+import qualified Witch
 
 fromConfig :: Config.Config -> Warp.Settings
 fromConfig config =
@@ -28,7 +29,7 @@ fromConfig config =
     . Warp.setHost (Config.host config)
     . Warp.setOnException onException
     . Warp.setOnExceptionResponse onExceptionResponse
-    . Warp.setPort (into @Warp.Port $ Config.port config)
+    . Warp.setPort (Witch.into @Warp.Port $ Config.port config)
     $ Warp.setServerName serverName Warp.defaultSettings
 
 beforeMainLoop :: Config.Config -> IO ()
@@ -38,13 +39,13 @@ onException :: Maybe Wai.Request -> Exception.SomeException -> IO ()
 onException maybeRequest (Exception.SomeException e) = Log.warn $ Printf.printf
     "[exception/%s] [%04x] %s"
     (show $ Typeable.typeOf e)
-    (maybe 0 (maybe 0 (into @Word.Word16) . RequestId.get) maybeRequest)
+    (maybe 0 (maybe 0 (Witch.into @Word.Word16) . RequestId.get) maybeRequest)
     (Exception.displayException e)
 
 onExceptionResponse :: Exception.SomeException -> Wai.Response
 onExceptionResponse e
     | Just (Found.Found location) <- Exception.fromException e =
-        Response.status Http.found302 [(Http.hLocation, into @ByteString.ByteString location)]
+        Response.status Http.found302 [(Http.hLocation, Witch.into @ByteString.ByteString location)]
     | Just Forbidden.Forbidden <- Exception.fromException e =
         Response.status Http.forbidden403 []
     | Just NotFound.NotFound <- Exception.fromException e =
@@ -53,5 +54,5 @@ onExceptionResponse e
         Response.status Http.internalServerError500 []
 
 serverName :: ByteString.ByteString
-serverName = into @ByteString.ByteString
-    $ "monadoc/" <> into @String (into @Version.Version This.version)
+serverName = Witch.into @ByteString.ByteString
+    $ "monadoc/" <> Witch.into @String (Witch.into @Version.Version This.version)

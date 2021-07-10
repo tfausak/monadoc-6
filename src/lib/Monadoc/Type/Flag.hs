@@ -9,6 +9,7 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Monadoc.Exception.OptionError as OptionError
 import qualified Monadoc.Type.Warning as Warning
 import qualified System.Console.GetOpt as Console
+import qualified Witch
 
 data Flag
     = BaseUrl String
@@ -30,7 +31,7 @@ fromArguments arguments = do
             Console.getOpt' Console.Permute options arguments
         warnings = fmap Warning.UnexpectedArgument unexpectedArguments
             <> fmap Warning.UnrecognizedOption unrecognizedOptions
-    case tryInto @(NonEmpty.NonEmpty String) errorMessages of
+    case Witch.tryInto @(NonEmpty.NonEmpty String) errorMessages of
         Right xs -> Exception.throwM $ OptionError.new xs
         Left _ -> pure (warnings, flags)
 

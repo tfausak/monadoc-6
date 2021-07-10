@@ -9,23 +9,24 @@ import Monadoc.Prelude
 import qualified Data.Aeson as Aeson
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Vendor.Sql as Sql
+import qualified Witch
 
 newtype GithubLogin
     = GithubLogin String
     deriving (Eq, Show)
 
-instance From String GithubLogin
+instance Witch.From String GithubLogin
 
-instance From GithubLogin String
+instance Witch.From GithubLogin String
 
 instance Sql.FromField GithubLogin where
-    fromField = fmap (from @String) . Sql.fromField
+    fromField = fmap (Witch.from @String) . Sql.fromField
 
 instance Sql.ToField GithubLogin where
-    toField = Sql.toField . into @String
+    toField = Sql.toField . Witch.into @String
 
 instance Aeson.FromJSON GithubLogin where
-    parseJSON = fmap (from @String) . Aeson.parseJSON
+    parseJSON = fmap (Witch.from @String) . Aeson.parseJSON
 
 instance ToXml.ToXml GithubLogin where
-    toXml = ToXml.toXml . into @String
+    toXml = ToXml.toXml . Witch.into @String

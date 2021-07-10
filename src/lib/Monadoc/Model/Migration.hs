@@ -17,6 +17,7 @@ import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Type.Key as Key
 import qualified Monadoc.Type.Model as Model
 import qualified Monadoc.Utility.Foldable as Foldable
+import qualified Witch
 
 type Model = Model.Model Migration
 
@@ -60,7 +61,7 @@ new
     -> Migration
 new year month day hour minute sec q = Migration
     { migratedAt = Nothing
-    , sql = into @Text.Text q
+    , sql = Witch.into @Text.Text q
     , time = Time.UTCTime (Time.fromGregorian year month day)
         . Time.timeOfDayToTime
         $ Time.TimeOfDay hour minute sec
@@ -82,7 +83,7 @@ insert connection migration = do
         connection
         "insert into migration (migratedAt, sql, time) values (?, ?, ?)"
         migration
-    fmap (from @Int.Int64) $ Sql.lastInsertRowId connection
+    fmap (Witch.from @Int.Int64) $ Sql.lastInsertRowId connection
 
 runAll :: Sql.Connection -> [Migration] -> IO ()
 runAll connection toRun = do
@@ -99,7 +100,7 @@ runOne connection migrations migration =
                 expected = sql migration
             Monad.when (actual /= expected) . Exception.throwM $ Mismatch.new expected actual
         Nothing -> Sql.withTransaction connection $ do
-            Sql.execute_ connection . into @String $ sql migration
+            Sql.execute_ connection . Witch.into @String $ sql migration
             now <- Time.getCurrentTime
             let newMigration = migration { migratedAt = Just now }
             Sql.execute

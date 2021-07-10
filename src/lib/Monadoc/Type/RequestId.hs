@@ -10,17 +10,18 @@ import qualified Data.Word as Word
 import qualified Network.Wai as Wai
 import qualified System.IO.Unsafe as Unsafe
 import qualified System.Random as Random
+import qualified Witch
 
 newtype RequestId
     = RequestId Word.Word16
     deriving (Eq, Show)
 
-instance From Word.Word16 RequestId
+instance Witch.From Word.Word16 RequestId
 
-instance From RequestId Word.Word16
+instance Witch.From RequestId Word.Word16
 
 random :: IO RequestId
-random = from @Word.Word16 <$> Random.randomIO
+random = Witch.from @Word.Word16 <$> Random.randomIO
 
 key :: Vault.Key RequestId
 key = Unsafe.unsafePerformIO Vault.newKey

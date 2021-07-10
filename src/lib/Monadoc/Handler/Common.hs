@@ -20,6 +20,7 @@ import qualified Monadoc.Type.Route as Route
 import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Web.Cookie as Cookie
+import qualified Witch
 
 getUser :: Context.Context -> Wai.Request -> IO (Maybe (Model.Model User.User))
 getUser context request = do
@@ -42,8 +43,8 @@ getSession context request =
 getSessionGuid :: Wai.Request -> Maybe Guid.Guid
 getSessionGuid request = do
     cookies <- lookup Http.hCookie $ Wai.requestHeaders request
-    byteString <- lookup (into @ByteString.ByteString "guid") $ Cookie.parseCookies cookies
-    fmap (into @Guid.Guid) $ Uuid.fromASCIIBytes byteString
+    byteString <- lookup (Witch.into @ByteString.ByteString "guid") $ Cookie.parseCookies cookies
+    fmap (Witch.into @Guid.Guid) $ Uuid.fromASCIIBytes byteString
 
 getSessionWith :: Context.Context -> Guid.Guid -> IO (Maybe (Model.Model Session.Session))
 getSessionWith context guid =
@@ -55,7 +56,7 @@ makeResponse monadoc =
     let
         baseUrl = Meta.baseUrl $ Root.meta monadoc
         status = Http.ok200
-        hLink = CI.mk $ into @ByteString.ByteString "Link"
-        link = into @ByteString.ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style"
+        hLink = CI.mk $ Witch.into @ByteString.ByteString "Link"
+        link = Witch.into @ByteString.ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style"
         headers = [(hLink, link)]
     in Response.xml status headers $ Root.toDocument monadoc

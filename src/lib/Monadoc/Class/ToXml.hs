@@ -12,15 +12,16 @@ import qualified Data.Void as Void
 import qualified Documentation.Haddock.Types as Haddock
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Text.XML as Xml
+import qualified Witch
 
 class ToXml a where
     toXml :: a -> Xml.Node
 
 instance ToXml String where
-    toXml = toXml . into @Text.Text
+    toXml = toXml . Witch.into @Text.Text
 
 instance ToXml a => ToXml (Maybe a) where
-    toXml = maybe (toXml $ into @Text.Text "") toXml
+    toXml = maybe (toXml $ Witch.into @Text.Text "") toXml
 
 instance ToXml Int where
     toXml = toXml . show

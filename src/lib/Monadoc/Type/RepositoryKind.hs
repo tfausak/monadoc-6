@@ -12,26 +12,27 @@ import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Utility.Cabal as Cabal
 import qualified Monadoc.Vendor.Sql as Sql
+import qualified Witch
 
 newtype RepositoryKind
     = RepositoryKind Cabal.RepoKind
     deriving (Eq, Ord, Show)
 
-instance From Cabal.RepoKind RepositoryKind
+instance Witch.From Cabal.RepoKind RepositoryKind
 
-instance From RepositoryKind Cabal.RepoKind
+instance Witch.From RepositoryKind Cabal.RepoKind
 
-instance TryFrom String RepositoryKind where
+instance Witch.TryFrom String RepositoryKind where
     tryFrom = Cabal.parsecTryFrom @Cabal.RepoKind Proxy.Proxy
 
-instance From RepositoryKind String where
-    from = Cabal.prettyShow . into @Cabal.RepoKind
+instance Witch.From RepositoryKind String where
+    from = Cabal.prettyShow . Witch.into @Cabal.RepoKind
 
 instance Sql.FromField RepositoryKind where
     fromField = Sql.defaultFromField @String Proxy.Proxy
 
 instance Sql.ToField RepositoryKind where
-    toField = Sql.toField . into @String
+    toField = Sql.toField . Witch.into @String
 
 instance ToXml.ToXml RepositoryKind where
-    toXml = ToXml.toXml . into @String
+    toXml = ToXml.toXml . Witch.into @String
