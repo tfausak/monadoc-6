@@ -27,18 +27,6 @@ source-repository-package
     tag: c93b53a4aaad5a6ee2ddf90010957981d75d3579
     type: git
 
--- https://github.com/haskell-hvr/cryptohash-md5/pull/6
-source-repository-package
-    location: https://github.com/swamp-agr/cryptohash-md5
-    tag: fc934ba2cd9c67ec95c8e2215d00afbd131a059b
-    type: git
-
--- https://github.com/haskell-hvr/cryptohash-sha1/pull/11
-source-repository-package
-    location: https://github.com/swamp-agr/cryptohash-sha1
-    tag: 76eb372b3c593ade7d30541bc8d0cf8716474e55
-    type: git
-
 -- https://github.com/jacobstanley/unix-compat/pull/47
 source-repository-package
     location: https://github.com/tfausak/unix-compat
