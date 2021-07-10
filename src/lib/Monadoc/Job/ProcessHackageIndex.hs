@@ -111,7 +111,7 @@ processTarEntry
 processTarEntry context revisionsVar preferredVersionsVar hashes entry = do
     Monad.unless (isValidTarEntry entry) . Exception.throwM $ UnexpectedTarEntry.new entry
     contents <- case Tar.entryContent entry of
-        Tar.NormalFile x _ -> pure $ into @ByteString x
+        Tar.NormalFile x _ -> pure $ into @ByteString.ByteString x
         _ -> Exception.throwM $ UnexpectedTarEntry.new entry
     case getTarEntryPath entry of
         ([rawPackageName, "preferred-versions"], "") ->
@@ -124,7 +124,7 @@ processTarEntry context revisionsVar preferredVersionsVar hashes entry = do
 processPreferredVersions
     :: Stm.TVar (Map PackageName.PackageName VersionRange.VersionRange)
     -> String
-    -> ByteString
+    -> ByteString.ByteString
     -> IO ()
 processPreferredVersions preferredVersionsVar rawPackageName contents = do
     packageName <- either Exception.throwM pure $ tryInto @PackageName.PackageName rawPackageName
@@ -150,7 +150,7 @@ processPackageDescription
     -> String
     -> String
     -> String
-    -> ByteString
+    -> ByteString.ByteString
     -> IO ()
 processPackageDescription context revisionsVar hashes entry rawPackageName rawVersion otherRawPackageName contents = do
     Monad.when (otherRawPackageName /= rawPackageName)
@@ -341,18 +341,18 @@ getTarEntryPath entry =
     in (FilePath.splitDirectories prefix, suffix)
 
 parsePackageDescription
-    :: ByteString
+    :: ByteString.ByteString
     -> Either
-        (TryFromException ByteString Cabal.PackageDescription)
+        (TryFromException ByteString.ByteString Cabal.PackageDescription)
         Cabal.PackageDescription
 parsePackageDescription = maybeTryFrom $ \ bs -> do
     gpd <- Either.toMaybe $ parseGenericPackageDescription bs
     Either.toMaybe $ toPackageDescription gpd
 
 parseGenericPackageDescription
-    :: ByteString
+    :: ByteString.ByteString
     -> Either
-        (TryFromException ByteString Cabal.GenericPackageDescription)
+        (TryFromException ByteString.ByteString Cabal.GenericPackageDescription)
         Cabal.GenericPackageDescription
 parseGenericPackageDescription = maybeTryFrom Cabal.parseGenericPackageDescriptionMaybe
 

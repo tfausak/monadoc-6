@@ -6,6 +6,7 @@ import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
 import qualified Data.Aeson as Aeson
+import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.Time as Time
 import qualified Data.UUID as Uuid
@@ -30,7 +31,7 @@ import qualified Web.Cookie as Cookie
 
 handler :: Handler.Handler
 handler context request = do
-    code <- case lookup (into @ByteString "code") $ Wai.queryString request of
+    code <- case lookup (into @ByteString.ByteString "code") $ Wai.queryString request of
         Just (Just code) -> pure code
         _ -> Exception.throwM $ MissingCode.new request
     let
@@ -66,21 +67,21 @@ handler context request = do
     let
         cookie = Cookie.defaultSetCookie
             { Cookie.setCookieHttpOnly = True
-            , Cookie.setCookieName = into @ByteString "guid"
-            , Cookie.setCookiePath = Just . into @ByteString $ Route.toString Route.Index
+            , Cookie.setCookieName = into @ByteString.ByteString "guid"
+            , Cookie.setCookiePath = Just . into @ByteString.ByteString $ Route.toString Route.Index
             , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
             , Cookie.setCookieSecure = Config.isSecure config
             , Cookie.setCookieValue = Uuid.toASCIIBytes $ into @Uuid.UUID guid
             }
-        location = case lookup (into @ByteString "state") $ Wai.queryString request of
-            Just (Just x) -> into @ByteString baseUrl <> x
-            _ -> into @ByteString $ baseUrl <> Route.toString Route.Index
+        location = case lookup (into @ByteString.ByteString "state") $ Wai.queryString request of
+            Just (Just x) -> into @ByteString.ByteString baseUrl <> x
+            _ -> into @ByteString.ByteString $ baseUrl <> Route.toString Route.Index
     pure $ Response.status Http.found302
         [ (Http.hLocation, location)
-        , (Http.hSetCookie, into @ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
+        , (Http.hSetCookie, into @ByteString.ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
         ]
 
-getAccessToken :: Context.Context -> ByteString -> IO GithubToken.GithubToken
+getAccessToken :: Context.Context -> ByteString.ByteString -> IO GithubToken.GithubToken
 getAccessToken context code = do
     let
         config = Context.config context
@@ -90,11 +91,11 @@ getAccessToken context code = do
     initial <- Client.parseUrlThrow "https://github.com/login/oauth/access_token"
     let
         body =
-            [ (into @ByteString "client_id", into @ByteString clientId)
-            , (into @ByteString "client_secret", into @ByteString clientSecret)
-            , (into @ByteString "code", code)
+            [ (into @ByteString.ByteString "client_id", into @ByteString.ByteString clientId)
+            , (into @ByteString.ByteString "client_secret", into @ByteString.ByteString clientSecret)
+            , (into @ByteString.ByteString "code", code)
             ]
-        headers = (Http.hAccept, into @ByteString "application/json") : Client.requestHeaders initial
+        headers = (Http.hAccept, into @ByteString.ByteString "application/json") : Client.requestHeaders initial
         req = Client.urlEncodedBody body initial { Client.requestHeaders = headers }
     res <- Client.performRequest manager req
     let responseBody = Client.responseBody res
@@ -108,7 +109,7 @@ getGithubUser context accessToken = do
     initial <- Client.parseUrlThrow "https://api.github.com/user"
     let
         headers
-            = (Http.hAuthorization, into @ByteString $ "Bearer " <> into @String accessToken)
+            = (Http.hAuthorization, into @ByteString.ByteString $ "Bearer " <> into @String accessToken)
             : Client.requestHeaders initial
         req = initial { Client.requestHeaders = headers }
     res <- Client.performRequest manager req

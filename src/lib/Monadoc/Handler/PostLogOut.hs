@@ -5,6 +5,7 @@ module Monadoc.Handler.PostLogOut where
 import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
+import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.Time as Time
 import qualified Monadoc.Exception.Forbidden as Forbidden
@@ -31,18 +32,18 @@ handler context request = do
     let
         config = Context.config context
         baseUrl = Config.baseUrl config
-        location = into @ByteString $ baseUrl <> Route.toString Route.Index
+        location = into @ByteString.ByteString $ baseUrl <> Route.toString Route.Index
         epoch = Time.UTCTime (Time.fromGregorian 1970 1 1) 0
         cookie = Cookie.defaultSetCookie
             { Cookie.setCookieExpires = Just epoch
             , Cookie.setCookieHttpOnly = True
-            , Cookie.setCookieName = into @ByteString "guid"
-            , Cookie.setCookiePath = Just . into @ByteString $ Route.toString Route.Index
+            , Cookie.setCookieName = into @ByteString.ByteString "guid"
+            , Cookie.setCookiePath = Just . into @ByteString.ByteString $ Route.toString Route.Index
             , Cookie.setCookieSameSite = Just Cookie.sameSiteLax
             , Cookie.setCookieSecure = Config.isSecure config
-            , Cookie.setCookieValue = into @ByteString ""
+            , Cookie.setCookieValue = into @ByteString.ByteString ""
             }
     pure $ Response.status Http.found302
         [ (Http.hLocation, location)
-        , (Http.hSetCookie, into @ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
+        , (Http.hSetCookie, into @ByteString.ByteString . Builder.toLazyByteString $ Cookie.renderSetCookie cookie)
         ]

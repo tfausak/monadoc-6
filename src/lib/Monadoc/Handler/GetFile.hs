@@ -5,6 +5,7 @@ module Monadoc.Handler.GetFile where
 import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
+import qualified Data.ByteString as ByteString
 import qualified Monadoc.Exception.MissingBlob as MissingBlob
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Model.Blob as Blob
@@ -48,8 +49,8 @@ handler packageName release path context _ = do
             _ -> "application/octet-stream"
     pure
         . Response.byteString Http.ok200
-            [ (Http.hContentDisposition, into @ByteString $ "filename=" <> path)
-            , (Http.hContentType, into @ByteString contentType)
+            [ (Http.hContentDisposition, into @ByteString.ByteString $ "filename=" <> path)
+            , (Http.hContentType, into @ByteString.ByteString contentType)
             ]
         . Blob.contents
         $ Model.value blob

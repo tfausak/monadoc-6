@@ -20,7 +20,7 @@ run context = do
     let
         contents = Client.responseBody response
             & Gzip.decompress
-            & into @ByteString
+            & into @ByteString.ByteString
         size = ByteString.length contents
         hackageIndex = HackageIndex.HackageIndex { HackageIndex.contents = contents, HackageIndex.size = size }
     Log.info $ "[worker] got initial hackage index (" <> show size <> ")"

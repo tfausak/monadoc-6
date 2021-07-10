@@ -5,6 +5,7 @@ module Monadoc.Utility.Client where
 import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
+import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Word as Word
 import qualified GHC.Clock as Clock
@@ -34,5 +35,5 @@ performRequest manager request = do
         (after - before)
     pure response
 
-userAgent :: ByteString
+userAgent :: ByteString.ByteString
 userAgent = Settings.serverName

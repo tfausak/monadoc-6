@@ -17,7 +17,7 @@ type Model = Model.Model HackageIndex
 type Key = Key.Key HackageIndex
 
 data HackageIndex = HackageIndex
-    { contents :: ByteString
+    { contents :: ByteString.ByteString
     , size :: Int
     } deriving (Eq, Show)
 
@@ -63,5 +63,5 @@ update connection key hackageIndex = Sql.execute connection
 offset :: Int
 offset = 1024
 
-fromByteString :: ByteString -> HackageIndex
+fromByteString :: ByteString.ByteString -> HackageIndex
 fromByteString c = HackageIndex { contents = c, size = ByteString.length c }

@@ -5,6 +5,7 @@ module Monadoc.Server.Settings where
 import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
+import qualified Data.ByteString as ByteString
 import qualified Data.Typeable as Typeable
 import qualified Data.Word as Word
 import qualified Monadoc.Exception.Forbidden as Forbidden
@@ -43,7 +44,7 @@ onException maybeRequest (Exception.SomeException e) = Log.warn $ Printf.printf
 onExceptionResponse :: Exception.SomeException -> Wai.Response
 onExceptionResponse e
     | Just (Found.Found location) <- Exception.fromException e =
-        Response.status Http.found302 [(Http.hLocation, into @ByteString location)]
+        Response.status Http.found302 [(Http.hLocation, into @ByteString.ByteString location)]
     | Just Forbidden.Forbidden <- Exception.fromException e =
         Response.status Http.forbidden403 []
     | Just NotFound.NotFound <- Exception.fromException e =
@@ -51,6 +52,6 @@ onExceptionResponse e
     | otherwise =
         Response.status Http.internalServerError500 []
 
-serverName :: ByteString
-serverName = into @ByteString
+serverName :: ByteString.ByteString
+serverName = into @ByteString.ByteString
     $ "monadoc/" <> into @String (into @Version.Version This.version)

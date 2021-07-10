@@ -9,6 +9,7 @@ import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent as Concurrent
 import qualified Control.Monad.Catch as Exception
 import qualified Control.Retry as Retry
+import qualified Data.ByteString as ByteString
 import qualified Data.Map as Map
 import qualified Monadoc.Model.Blob as Blob
 import qualified Monadoc.Model.Distribution as Distribution
@@ -49,7 +50,7 @@ run context hashes (package, version) =
                     _ -> Exception.throwM httpException)
             Concurrent.threadDelay 1000000
             let
-                blob = Blob.fromByteString . into @ByteString $ Client.responseBody response
+                blob = Blob.fromByteString . into @ByteString.ByteString $ Client.responseBody response
                 distribution = Distribution.Distribution
                     { Distribution.hash = Blob.hash blob
                     , Distribution.package = package

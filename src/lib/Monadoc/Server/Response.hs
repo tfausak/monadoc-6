@@ -12,17 +12,17 @@ import qualified Network.HTTP.Types as Http
 import qualified Network.Wai as Wai
 import qualified Text.XML as Xml
 
-byteString :: Http.Status -> Http.ResponseHeaders -> ByteString -> Wai.Response
+byteString :: Http.Status -> Http.ResponseHeaders -> ByteString.ByteString -> Wai.Response
 byteString s h b = Wai.responseLBS
     s
-    ((Http.hContentLength, into @ByteString . show $ ByteString.length b) : h)
+    ((Http.hContentLength, into @ByteString.ByteString . show $ ByteString.length b) : h)
     (into @LazyByteString.ByteString b)
 
 file :: Http.Status -> Http.ResponseHeaders -> FilePath -> IO Wai.Response
 file s h = fmap (byteString s h) . ByteString.readFile
 
 lazyByteString :: Http.Status -> Http.ResponseHeaders -> LazyByteString.ByteString -> Wai.Response
-lazyByteString s h = byteString s h . into @ByteString
+lazyByteString s h = byteString s h . into @ByteString.ByteString
 
 status :: Http.Status -> Http.ResponseHeaders -> Wai.Response
 status s h = xml
@@ -40,11 +40,11 @@ status s h = xml
 
 string :: Http.Status -> Http.ResponseHeaders -> String -> Wai.Response
 string s h =
-    byteString s ((Http.hContentType, into @ByteString "text/plain; charset=UTF-8") : h)
-    . into @ByteString
+    byteString s ((Http.hContentType, into @ByteString.ByteString "text/plain; charset=UTF-8") : h)
+    . into @ByteString.ByteString
 
 xml :: Http.Status -> Http.ResponseHeaders -> Xml.Document -> Wai.Response
 xml s h d = lazyByteString
     s
-    ((Http.hContentType, into @ByteString "text/xml; charset=UTF-8") : h)
+    ((Http.hContentType, into @ByteString.ByteString "text/xml; charset=UTF-8") : h)
     $ Xml.renderLBS Xml.def d

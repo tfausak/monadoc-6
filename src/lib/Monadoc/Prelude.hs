@@ -19,7 +19,6 @@ module Monadoc.Prelude (
     Witch.TryFrom,
 
     -- * Data types
-    Data.ByteString.ByteString,
     Data.Map.Map,
     Data.Proxy.Proxy(Proxy),
     Data.Set.Set,
@@ -150,7 +149,6 @@ module Monadoc.Prelude (
 
 import Monadoc.Prelude.Orphanage ()
 
-import qualified Data.ByteString
 import qualified Data.Foldable
 import qualified Data.Function
 import qualified Data.Map

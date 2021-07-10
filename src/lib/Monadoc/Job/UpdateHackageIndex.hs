@@ -43,14 +43,14 @@ run context model = do
                     delta = newSize - oldSize
                     start = oldSize - HackageIndex.offset
                     end = newSize - 1
-                    range = into @ByteString $ "bytes=" <> show start <> "-" <> show end
+                    range = into @ByteString.ByteString $ "bytes=" <> show start <> "-" <> show end
                 Log.info $ "[worker] getting new hackage index (" <> show delta <> ")"
                 rangeResponse <- Client.performRequest (Context.manager context)
                     request { Client.requestHeaders = (Http.hRange, range) : Client.requestHeaders request }
                 Log.info "[worker] got new hackage index"
                 let
                     before = ByteString.take start $ HackageIndex.contents oldHackageIndex
-                    after = into @ByteString $ Client.responseBody rangeResponse
+                    after = into @ByteString.ByteString $ Client.responseBody rangeResponse
                     contents = before <> after
                     newHackageIndex = HackageIndex.fromByteString contents
                     key = Model.key model

@@ -5,6 +5,7 @@ module Monadoc.Server.Application where
 import Monadoc.Prelude
 
 import qualified Control.Monad.Catch as Exception
+import qualified Data.ByteString as ByteString
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.GetAccount as GetAccount
 import qualified Monadoc.Handler.GetCallback as GetCallback
@@ -75,7 +76,7 @@ fileHandler :: FilePath -> String -> Handler.Handler
 fileHandler relative mime context _ = do
     let
         status = Http.ok200
-        headers = [(Http.hContentType, into @ByteString mime)]
+        headers = [(Http.hContentType, into @ByteString.ByteString mime)]
         config = Context.config context
         directory = Config.dataDirectory config
         absolute = FilePath.combine directory relative

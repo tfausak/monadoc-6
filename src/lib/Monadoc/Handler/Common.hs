@@ -4,6 +4,7 @@ module Monadoc.Handler.Common where
 
 import Monadoc.Prelude
 
+import qualified Data.ByteString as ByteString
 import qualified Data.CaseInsensitive as CI
 import qualified Data.UUID as Uuid
 import qualified Monadoc.Class.ToXml as ToXml
@@ -41,7 +42,7 @@ getSession context request =
 getSessionGuid :: Wai.Request -> Maybe Guid.Guid
 getSessionGuid request = do
     cookies <- lookup Http.hCookie $ Wai.requestHeaders request
-    byteString <- lookup (into @ByteString "guid") $ Cookie.parseCookies cookies
+    byteString <- lookup (into @ByteString.ByteString "guid") $ Cookie.parseCookies cookies
     fmap (into @Guid.Guid) $ Uuid.fromASCIIBytes byteString
 
 getSessionWith :: Context.Context -> Guid.Guid -> IO (Maybe (Model.Model Session.Session))
@@ -54,7 +55,7 @@ makeResponse monadoc =
     let
         baseUrl = Meta.baseUrl $ Root.meta monadoc
         status = Http.ok200
-        hLink = CI.mk $ into @ByteString "Link"
-        link = into @ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style"
+        hLink = CI.mk $ into @ByteString.ByteString "Link"
+        link = into @ByteString.ByteString $ "<" <> baseUrl <> Route.toString Route.Bootstrap <> ">; rel=preload; as=style"
         headers = [(hLink, link)]
     in Response.xml status headers $ Root.toDocument monadoc

@@ -7,6 +7,7 @@ module Monadoc.Type.Sha256 where
 import Monadoc.Prelude
 
 import qualified Crypto.Hash as Crypto
+import qualified Data.ByteString as ByteString
 import qualified Monadoc.Vendor.Sql as Sql
 import qualified Text.Read as Read
 
@@ -30,5 +31,5 @@ instance Sql.FromField Sha256 where
 instance Sql.ToField Sha256 where
     toField = Sql.toField . into @String
 
-hash :: ByteString -> Sha256
+hash :: ByteString.ByteString -> Sha256
 hash = into @Sha256 . Crypto.hashWith Crypto.SHA256

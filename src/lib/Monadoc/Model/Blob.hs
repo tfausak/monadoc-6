@@ -15,7 +15,7 @@ type Model = Model.Model Blob
 type Key = Key.Key Blob
 
 data Blob = Blob
-    { contents :: ByteString
+    { contents :: ByteString.ByteString
     , hash :: Sha256.Sha256
     , size :: Int
     } deriving (Eq, Show)
@@ -43,7 +43,7 @@ migrations =
         \size integer not null)"
     ]
 
-fromByteString :: ByteString -> Blob
+fromByteString :: ByteString.ByteString -> Blob
 fromByteString c = Blob
     { contents = c
     , hash = Sha256.hash c

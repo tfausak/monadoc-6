@@ -9,6 +9,7 @@ import qualified Codec.Compression.GZip as Gzip
 import qualified Control.Concurrent.STM as Stm
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
+import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Maybe as Maybe
 import qualified Data.Time as Time
@@ -88,7 +89,7 @@ unpackDistributionItem context distribution pathVar item = case item of
             maybePath <- Stm.atomically $ Stm.tryTakeTMVar pathVar
             let
                 path = normalizeFilePath $ Maybe.fromMaybe (Tar.entryPath entry) maybePath
-                blob = Blob.fromByteString $ into @ByteString contents
+                blob = Blob.fromByteString $ into @ByteString.ByteString contents
                 file = File.File { File.distribution = distribution, File.hash = Blob.hash blob, File.path = path }
             Context.withConnection context $ \ connection -> do
                 Blob.upsert connection blob

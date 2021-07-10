@@ -4,6 +4,7 @@ module Monadoc.Type.Route where
 
 import Monadoc.Prelude
 
+import qualified Data.ByteString as ByteString
 import qualified Data.List as List
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Type.ComponentId as ComponentId
@@ -88,12 +89,12 @@ parse path query = case path of
 
 getPath :: Http.Query -> Maybe FilePath
 getPath query = do
-    maybeByteString <- lookup (into @ByteString "path") query
+    maybeByteString <- lookup (into @ByteString.ByteString "path") query
     byteString <- maybeByteString
     Either.toMaybe $ tryInto @String byteString
 
 getQuery :: Http.Query -> Maybe (Maybe String)
-getQuery query = case lookup (into @ByteString "query") query of
+getQuery query = case lookup (into @ByteString.ByteString "query") query of
     Just (Just x) -> case tryInto @String x of
         Left _ -> Nothing
         Right y -> Just $ Just y
@@ -112,7 +113,7 @@ render route = case route of
     Callback -> (["account", "callback"], [])
     Component p r c -> (["package", into @String p, "version", into @String r, "component", into @String c], [])
     Favicon -> (["favicon.ico"], [])
-    File p r path -> (["package", into @String p, "version", into @String r, "file"], [(into @ByteString "path", Just $ into @ByteString path)])
+    File p r path -> (["package", into @String p, "version", into @String r, "file"], [(into @ByteString.ByteString "path", Just $ into @ByteString.ByteString path)])
     HealthCheck -> (["health-check"], [])
     Index -> ([], [])
     LogOut -> (["account", "log-out"], [])
@@ -122,5 +123,5 @@ render route = case route of
     Release p r -> (["package", into @String p, "version", into @String r], [])
     Revoke -> (["account", "revoke"], [])
     Robots -> (["robots.txt"], [])
-    Search maybeQuery -> (["search"], maybe [] (\ query -> [(into @ByteString "query", Just $ into @ByteString query)]) maybeQuery)
+    Search maybeQuery -> (["search"], maybe [] (\ query -> [(into @ByteString.ByteString "query", Just $ into @ByteString.ByteString query)]) maybeQuery)
     Template -> (["static", "monadoc.xsl"], [])
