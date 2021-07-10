@@ -38,6 +38,7 @@ import qualified Distribution.Types.PackageName as Cabal
 import qualified Distribution.Types.PackageVersionConstraint as Cabal
 import qualified Distribution.Types.SourceRepo as Cabal
 import qualified Distribution.Types.Version as Cabal
+import qualified Distribution.Utils.ShortText as Cabal
 import qualified Monadoc.Exception.Mismatch as Mismatch
 import qualified Monadoc.Exception.UnexpectedTarEntry as UnexpectedTarEntry
 import qualified Monadoc.Job.UpdateLatestVersions as UpdateLatestVersions
@@ -212,22 +213,22 @@ processPackageDescription context revisionsVar hashes entry rawPackageName rawVe
                     pure Model.Model { Model.key = key, Model.value = value }
         let
             package = Package.Package
-                { Package.author = into @Text.Text $ Cabal.author pd
-                , Package.bugReports = into @Text.Text $ Cabal.bugReports pd
+                { Package.author = into @Text.Text . Cabal.fromShortText $ Cabal.author pd
+                , Package.bugReports = into @Text.Text . Cabal.fromShortText $ Cabal.bugReports pd
                 , Package.buildType = into @BuildType.BuildType $ Cabal.buildType pd
                 , Package.cabalVersion = into @CabalVersion.CabalVersion $ Cabal.specVersion pd
-                , Package.category = into @Text.Text $ Cabal.category pd
-                , Package.copyright = into @Text.Text $ Cabal.copyright pd
-                , Package.description = into @Text.Text $ Cabal.description pd
+                , Package.category = into @Text.Text . Cabal.fromShortText $ Cabal.category pd
+                , Package.copyright = into @Text.Text . Cabal.fromShortText $ Cabal.copyright pd
+                , Package.description = into @Text.Text . Cabal.fromShortText $ Cabal.description pd
                 , Package.hash = hash
-                , Package.homepage = into @Text.Text $ Cabal.homepage pd
+                , Package.homepage = into @Text.Text . Cabal.fromShortText $ Cabal.homepage pd
                 , Package.license = into @License.License $ Cabal.license pd
-                , Package.maintainer = into @Text.Text $ Cabal.maintainer pd
+                , Package.maintainer = into @Text.Text . Cabal.fromShortText $ Cabal.maintainer pd
                 , Package.name = packageName
-                , Package.pkgUrl = into @Text.Text $ Cabal.pkgUrl pd
+                , Package.pkgUrl = into @Text.Text . Cabal.fromShortText $ Cabal.pkgUrl pd
                 , Package.revision = revision
-                , Package.stability = into @Text.Text $ Cabal.stability pd
-                , Package.synopsis = into @Text.Text $ Cabal.synopsis pd
+                , Package.stability = into @Text.Text . Cabal.fromShortText $ Cabal.stability pd
+                , Package.synopsis = into @Text.Text . Cabal.fromShortText $ Cabal.synopsis pd
                 , Package.uploadedAt = epochTimeToUtcTime $ Tar.entryTime entry
                 , Package.uploadedBy = Model.key hackageUser
                 , Package.version = version

@@ -138,8 +138,6 @@ module Monadoc.Prelude (
     (Prelude.$),
 ) where
 
-import Monadoc.Prelude.Orphanage ()
-
 import qualified Data.Function
 import qualified Prelude
 import qualified Witch
