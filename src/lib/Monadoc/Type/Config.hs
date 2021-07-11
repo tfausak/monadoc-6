@@ -5,10 +5,10 @@ module Monadoc.Type.Config where
 import qualified Control.Monad as Monad
 import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
+import qualified Data.String as String
 import qualified Monadoc.Type.Flag as Flag
 import qualified Monadoc.Type.Port as Port
 import qualified Monadoc.Type.Warning as Warning
-import qualified Monadoc.Utility.Convert as Convert
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Witch
 
@@ -34,7 +34,7 @@ initial = Config
     , dataDirectory = "./data"
     , hackageUrl = "https://hackage.haskell.org"
     , help = False
-    , host = Convert.stringToHost "127.0.0.1"
+    , host = stringToHost "127.0.0.1"
     , port = Witch.from @Int 3000
     , version = False
     }
@@ -65,8 +65,11 @@ applyFlag flag config = case flag of
     Flag.DataDirectory dd -> pure config { dataDirectory = dd }
     Flag.HackageUrl hu -> pure config { hackageUrl = hu }
     Flag.Help -> pure config { help = True }
-    Flag.Host h -> pure config { host = Convert.stringToHost h }
+    Flag.Host h -> pure config { host = stringToHost h }
     Flag.Port string -> do
         p <- either Exception.throwM pure $ Witch.tryFrom string
         pure config { port = p }
     Flag.Version -> pure config { version = True }
+
+stringToHost :: String -> Warp.HostPreference
+stringToHost = String.fromString
