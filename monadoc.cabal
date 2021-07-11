@@ -189,7 +189,6 @@ library
         Monadoc.Utility.Aeson
         Monadoc.Utility.Cabal
         Monadoc.Utility.Client
-        Monadoc.Utility.Convert
         Monadoc.Utility.Either
         Monadoc.Utility.Foldable
         Monadoc.Utility.Log
