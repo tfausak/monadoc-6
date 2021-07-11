@@ -102,7 +102,7 @@ getQuery query = case lookup (Witch.into @ByteString.ByteString "query") query o
 toString :: Route -> String
 toString route =
     let (path, query) = render route
-    in '/' : (List.intercalate "/" path) <> Witch.unsafeInto @String (Http.renderQuery True query)
+    in '/' : List.intercalate "/" path <> Witch.unsafeInto @String (Http.renderQuery True query)
 
 render :: Route -> ([String], Http.Query)
 render route = case route of

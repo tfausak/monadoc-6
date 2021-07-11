@@ -57,13 +57,12 @@ migrations =
     ]
 
 insert :: Sql.Connection -> Session -> IO ()
-insert connection session = do
+insert connection =
     Sql.execute
         connection
             "insert into session \
             \(createdAt, deletedAt, guid, updatedAt, userAgent, userGithubId) \
             \values (?, ?, ?, ?, ?, ?)"
-        session
 
 selectByGuid :: Sql.Connection -> Guid.Guid -> IO (Maybe Model)
 selectByGuid c g = fmap Maybe.listToMaybe $ Sql.query c

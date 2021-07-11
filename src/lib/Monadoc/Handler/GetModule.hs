@@ -4,6 +4,7 @@ module Monadoc.Handler.GetModule where
 
 import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
+import qualified Data.Maybe as Maybe
 import qualified Data.Text as Text
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
@@ -50,7 +51,7 @@ handler packageName release componentId moduleName context request = do
             Component.select connection
                 (Model.key package)
                 (ComponentId.tag componentId)
-                (maybe (Witch.from packageName) id $ ComponentId.name componentId)
+                (Maybe.fromMaybe (Witch.from packageName) $ ComponentId.name componentId)
         maybe (Exception.throwM NotFound.new) pure maybeComponent
     module_ <- do
         maybeModule <- Context.withConnection context $ \ connection ->

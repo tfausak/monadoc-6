@@ -58,7 +58,7 @@ migrations =
     ]
 
 insertOrUpdate :: Sql.Connection -> User -> IO ()
-insertOrUpdate connection user = do
+insertOrUpdate connection =
     Sql.execute
         connection
             "insert into user \
@@ -69,7 +69,6 @@ insertOrUpdate connection user = do
             \githubLogin = excluded.githubLogin, \
             \githubToken = excluded.githubToken, \
             \updatedAt = excluded.updatedAt"
-        user
 
 selectByGithubId :: Sql.Connection -> GithubId.GithubId -> IO (Maybe Model)
 selectByGithubId c i = fmap Maybe.listToMaybe $ Sql.query c

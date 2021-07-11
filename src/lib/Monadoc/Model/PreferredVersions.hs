@@ -44,14 +44,13 @@ new :: PackageName.PackageName -> VersionRange.VersionRange -> PreferredVersions
 new = PreferredVersions
 
 upsert :: Sql.Connection -> PreferredVersions -> IO ()
-upsert connection preferredVersions = do
+upsert connection =
     Sql.execute
         connection
             "insert into preferredVersions (packageName, versionRange) \
             \values (?, ?) \
             \on conflict (packageName) \
             \do update set versionRange = excluded.versionRange"
-        preferredVersions
 
 selectByPackageName :: Sql.Connection -> PackageName.PackageName -> IO (Maybe Model)
 selectByPackageName c n = fmap Maybe.listToMaybe $ Sql.query c

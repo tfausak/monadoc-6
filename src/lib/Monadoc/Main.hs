@@ -57,7 +57,7 @@ getContext :: String -> [String] -> IO Context.Context
 getContext name arguments = do
     (warnings, config) <- Config.fromArguments arguments
 
-    Monad.forM_ warnings $ \ warning -> do
+    Monad.forM_ warnings $ \ warning ->
         Log.warn $ case warning of
             Warning.UnexpectedArgument argument ->
                 "unexpected argument " <> show argument
