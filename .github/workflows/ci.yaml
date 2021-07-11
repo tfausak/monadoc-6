@@ -35,5 +35,5 @@ jobs:
           restore-keys: |
             ${{ matrix.os }}-${{ matrix.ghc }}-${{ matrix.cabal }}-
             ${{ matrix.os }}-${{ matrix.ghc }}-
-      - run: cabal test --test-show-details direct
+      - run: cabal test --flags pedantic --test-show-details direct
       - run: cabal check

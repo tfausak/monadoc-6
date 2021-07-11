@@ -23,6 +23,10 @@ source-repository head
     location: https://github.com/tfausak/monadoc
     type: git
 
+flag pedantic
+    default: False
+    manual: True
+
 common basics
     build-depends:
         , base ^>= 4.15.0
@@ -39,6 +43,9 @@ common basics
         -Wno-prepositive-qualified-module
         -Wno-safe
         -Wno-unsafe
+
+    if flag(pedantic)
+        ghc-options: -Werror
 
 common executable
     import: basics
