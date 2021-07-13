@@ -49,9 +49,9 @@ createTable connection = Sql.execute_ connection
     \time text not null unique)"
 
 new
-    :: Time.Year
-    -> Time.MonthOfYear
-    -> Time.DayOfMonth
+    :: Integer
+    -> Int
+    -> Int
     -> Int
     -> Int
     -> Fixed.Pico

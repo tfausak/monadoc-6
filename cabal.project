@@ -1,28 +1,7 @@
 packages: .
 
-allow-newer:
-    , aeson:time
-    , Cabal:bytestring
-    , Cabal:time
-    , Cabal:Win32
-    , cryptohash-md5:bytestring
-    , cryptohash-sha1:bytestring
-    , directory:time
-    , haddock-library:bytestring
-    , tar:time
-    , time-compat:time
-    , unix:time
-    , uuid:time
-    , witch:time
-
 -- https://github.com/bos/blaze-textual/pull/14
 source-repository-package
     location: https://github.com/swamp-agr/blaze-textual
     tag: c93b53a4aaad5a6ee2ddf90010957981d75d3579
-    type: git
-
--- https://github.com/jacobstanley/unix-compat/pull/47
-source-repository-package
-    location: https://github.com/tfausak/unix-compat
-    tag: 154c3a63f154cb49c51d5f9d13488e8119631d8a
     type: git
