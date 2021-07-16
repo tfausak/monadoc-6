@@ -70,6 +70,7 @@ library
         , exceptions ^>= 0.10.4
         , filepath ^>= 1.4.2
         , ghc ^>= 9.0.1
+        , ghc-boot-th ^>= 9.0.1
         , haddock-library ^>= 1.10.0
         , http-client ^>= 0.7.8
         , http-client-tls ^>= 0.3.5
