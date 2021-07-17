@@ -5,7 +5,6 @@ module Monadoc.Handler.GetModule where
 import qualified Control.Monad.Catch as Exception
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
-import qualified Data.Text as Text
 import qualified Monadoc.Class.ToXml as ToXml
 import qualified Monadoc.Exception.NotFound as NotFound
 import qualified Monadoc.Handler.Common as Common
@@ -26,7 +25,7 @@ import qualified Monadoc.Type.PackageName as PackageName
 import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
-import qualified Monadoc.Utility.Either as Either
+import qualified Monadoc.Utility.Ghc as Ghc
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Witch
 
@@ -65,7 +64,17 @@ handler packageName release componentId moduleName context request = do
         Nothing -> pure Nothing
         Just file -> Context.withConnection context $ \ connection ->
             Blob.selectByHash connection . File.hash $ Model.value file
-    -- TODO: Parse module! And then move this Witch.into a worker job.
+    maybeHsModule <- case (maybeFile, maybeBlob) of
+        (Just file, Just blob) -> do
+            contents <- either Exception.throwM pure
+                . Witch.tryInto @String
+                . Blob.contents
+                $ Model.value blob
+            let filePath = File.path $ Model.value file
+            case Ghc.parseModule filePath contents of
+                Left errors -> Exception.throwM errors
+                Right hsModule -> pure $ Just hsModule
+        _ -> pure Nothing
 
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
@@ -100,9 +109,7 @@ handler packageName release componentId moduleName context request = do
             , Xml.node "component" [] [ToXml.toXml $ Witch.into @String componentId]
             , Xml.node "module" [] [ToXml.toXml moduleName]
             , Xml.node "file" []
-                [ Xml.node "contents" [] [ToXml.toXml $ case maybeBlob of
-                    Nothing -> Nothing
-                    Just blob -> Either.toMaybe . Witch.tryInto @Text.Text . Blob.contents $ Model.value blob]
+                [ Xml.node "contents" [] [ToXml.toXml $ fmap (Witch.into @String) maybeHsModule]
                 , Xml.node "path" [] [ToXml.toXml $ fmap (File.path . Model.value) maybeFile]
                 , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName release . File.path . Model.value) maybeFile]
                 ]
