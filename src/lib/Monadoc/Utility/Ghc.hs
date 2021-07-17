@@ -4,9 +4,9 @@
 
 module Monadoc.Utility.Ghc where
 
-import qualified Control.Exception
-import qualified Control.Monad.IO.Class
-import qualified Data.Set
+import qualified Control.Exception as Exception
+import qualified Control.Monad.IO.Class as IO
+import qualified Data.Set as Set
 import qualified GHC.ByteOrder
 import qualified GHC.Data.Bag
 import qualified GHC.Data.EnumSet
@@ -14,6 +14,7 @@ import qualified GHC.Data.FastString
 import qualified GHC.Data.StringBuffer
 import qualified GHC.Driver.Session
 import qualified GHC.Hs
+import qualified GHC.LanguageExtensions.Type
 import qualified GHC.Parser
 import qualified GHC.Parser.Header
 import qualified GHC.Parser.Lexer
@@ -29,6 +30,7 @@ import qualified GHC.Utils.Fingerprint
 import qualified GHC.Utils.Misc
 import qualified GHC.Utils.Outputable
 import qualified GHC.Utils.Ppr.Colour
+import qualified Language.Preprocessor.Cpphs as Cpphs
 import qualified Witch
 
 newtype HsErrors
@@ -41,7 +43,7 @@ instance Witch.From HsErrors GHC.Utils.Error.ErrorMessages
 instance Show HsErrors where
     show = show . GHC.Data.Bag.bagToList . Witch.into @GHC.Utils.Error.ErrorMessages
 
-instance Control.Exception.Exception HsErrors
+instance Exception.Exception HsErrors
 
 newtype HsModule
     = HsModule (GHC.Types.SrcLoc.Located GHC.Hs.HsModule)
@@ -59,20 +61,24 @@ instance Show HsModule where
     show = Witch.into @String
 
 parseModule
-    :: Control.Monad.IO.Class.MonadIO m
+    :: IO.MonadIO m
     => FilePath
     -> String
     -> m (Either HsErrors HsModule)
-parseModule filePath string = do
+parseModule filePath string1 = do
     let
         dynFlags1 = dynFlags
-        stringBuffer = GHC.Data.StringBuffer.stringToStringBuffer string
-        locatedStrings = GHC.Parser.Header.getOptions dynFlags1 stringBuffer filePath
+        stringBuffer1 = GHC.Data.StringBuffer.stringToStringBuffer string1
+        locatedStrings = GHC.Parser.Header.getOptions dynFlags1 stringBuffer1 filePath
     (dynFlags2, _, _) <- GHC.Driver.Session.parseDynamicFilePragma dynFlags1 locatedStrings
+    string2 <- if GHC.Driver.Session.xopt GHC.LanguageExtensions.Type.Cpp dynFlags2
+        then IO.liftIO $ Cpphs.runCpphs Cpphs.defaultCpphsOptions filePath string1
+        else pure string1
     let
+        stringBuffer2 = GHC.Data.StringBuffer.stringToStringBuffer string2
         fastString = GHC.Data.FastString.mkFastString filePath
         realSrcLoc = GHC.Types.SrcLoc.mkRealSrcLoc fastString 1 1
-        pState1 = GHC.Parser.Lexer.mkPState dynFlags2 stringBuffer realSrcLoc
+        pState1 = GHC.Parser.Lexer.mkPState dynFlags2 stringBuffer2 realSrcLoc
         parseResult = GHC.Parser.Lexer.unP GHC.Parser.parseModule pState1
     pure $ case parseResult of
         GHC.Parser.Lexer.PFailed pState2 -> Left . Witch.into @HsErrors
@@ -494,5 +500,5 @@ dynFlags = GHC.Driver.Session.DynFlags
     , GHC.Driver.Session.warningFlags = GHC.Data.EnumSet.fromList []
     , GHC.Driver.Session.warnSafeOnLoc = srcSpan
     , GHC.Driver.Session.warnUnsafeOnLoc = srcSpan
-    , GHC.Driver.Session.ways = Data.Set.empty
+    , GHC.Driver.Session.ways = Set.empty
     }

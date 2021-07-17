@@ -20,3 +20,11 @@ spec = do
         Hspec.it "respects language extension pragmas" $ do
             result <- Ghc.parseModule "M.hs" "{-# language MagicHash #-} module M where x# = 1"
             result `Hspec.shouldSatisfy` Either.isRight
+
+        Hspec.it "does not run CPP by default" $ do
+            result <- Ghc.parseModule "M.hs" "#define x x"
+            result `Hspec.shouldSatisfy` Either.isLeft
+
+        Hspec.it "runs CPP when requested" $ do
+            result <- Ghc.parseModule "M.hs" "{-# language CPP #-}\n#define x x"
+            result `Hspec.shouldSatisfy` Either.isRight
