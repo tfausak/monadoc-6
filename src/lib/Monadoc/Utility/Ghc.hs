@@ -79,19 +79,16 @@ parseModule explicitExtensions filePath string1 = do
             then Unlit.unlit filePath string1
             else string1
         allExtensions = concatMap
-            (\ (b, x) ->
-                let
-                    impliedExtensions = if b
-                        then Maybe.mapMaybe
-                            (\ (y, onOff, ext) -> if y == x
-                                then Just (onOff, ext)
-                                else Nothing)
-                            GHC.Driver.Session.impliedXFlags
-                        else []
-                in (b, x) : impliedExtensions)
+            (\ (b, x) -> (b, x) : if b
+                then Maybe.mapMaybe
+                    (\ (y, onOff, ext) -> if y == x
+                        then Just (onOff, ext)
+                        else Nothing)
+                    GHC.Driver.Session.impliedXFlags
+                else [])
             explicitExtensions
-        dynFlags1 = foldr
-            (\ (b, x) f -> if b
+        dynFlags1 = foldl
+            (\ f (b, x) -> if b
                 then GHC.Driver.Session.xopt_set f x
                 else GHC.Driver.Session.xopt_unset f x)
             (GHC.Driver.Session.gopt_set dynFlags GHC.Driver.Session.Opt_Haddock)

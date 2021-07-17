@@ -20,15 +20,23 @@ spec = do
             result `Hspec.shouldSatisfy` Either.isLeft
 
         Hspec.it "fails without language extension set" $ do
-            result <- Ghc.parseModule [] "M.hs" "module M where x# = 1"
+            result <- Ghc.parseModule [] "M.hs" "x# = 1"
             result `Hspec.shouldSatisfy` Either.isLeft
 
         Hspec.it "respects language extension pragmas" $ do
-            result <- Ghc.parseModule [] "M.hs" "{-# language MagicHash #-} module M where x# = 1"
+            result <- Ghc.parseModule [] "M.hs" "{-# language MagicHash #-} x# = 1"
             result `Hspec.shouldSatisfy` Either.isRight
 
         Hspec.it "accepts language extensions" $ do
-            result <- Ghc.parseModule [(True, X.MagicHash)] "M.hs" "module M where x# = 1"
+            result <- Ghc.parseModule [(True, X.MagicHash)] "M.hs" "x# = 1"
+            result `Hspec.shouldSatisfy` Either.isRight
+
+        Hspec.it "handles extensions being toggled" $ do
+            result <- Ghc.parseModule [(False, X.MagicHash), (True, X.MagicHash)] "M.hs" "x# = 1"
+            result `Hspec.shouldSatisfy` Either.isRight
+
+        Hspec.it "lets pragmas override extensions" $ do
+            result <- Ghc.parseModule [(False, X.MagicHash)] "M.hs" "{-# language MagicHash #-} x# = 1"
             result `Hspec.shouldSatisfy` Either.isRight
 
         Hspec.it "does not run CPP by default" $ do
