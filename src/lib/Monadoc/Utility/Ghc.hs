@@ -5,6 +5,8 @@
 module Monadoc.Utility.Ghc where
 
 import qualified Control.Exception
+import qualified Control.Monad.IO.Class
+import qualified Data.Set
 import qualified GHC.ByteOrder
 import qualified GHC.Data.Bag
 import qualified GHC.Data.EnumSet
@@ -13,10 +15,15 @@ import qualified GHC.Data.StringBuffer
 import qualified GHC.Driver.Session
 import qualified GHC.Hs
 import qualified GHC.Parser
+import qualified GHC.Parser.Header
 import qualified GHC.Parser.Lexer
 import qualified GHC.Platform
 import qualified GHC.Settings
+import qualified GHC.Types.Basic
 import qualified GHC.Types.SrcLoc
+import qualified GHC.Unit.Module.Name
+import qualified GHC.Unit.State
+import qualified GHC.Unit.Types
 import qualified GHC.Utils.Error
 import qualified GHC.Utils.Fingerprint
 import qualified GHC.Utils.Misc
@@ -52,19 +59,24 @@ instance Show HsModule where
     show = Witch.into @String
 
 parseModule
-    :: FilePath
+    :: Control.Monad.IO.Class.MonadIO m
+    => FilePath
     -> String
-    -> Either HsErrors HsModule
-parseModule filePath string =
+    -> m (Either HsErrors HsModule)
+parseModule filePath string = do
     let
+        dynFlags1 = dynFlags
         stringBuffer = GHC.Data.StringBuffer.stringToStringBuffer string
+        locatedStrings = GHC.Parser.Header.getOptions dynFlags1 stringBuffer filePath
+    (dynFlags2, _, _) <- GHC.Driver.Session.parseDynamicFilePragma dynFlags1 locatedStrings
+    let
         fastString = GHC.Data.FastString.mkFastString filePath
         realSrcLoc = GHC.Types.SrcLoc.mkRealSrcLoc fastString 1 1
-        pState1 = GHC.Parser.Lexer.mkPState dynFlags stringBuffer realSrcLoc
+        pState1 = GHC.Parser.Lexer.mkPState dynFlags2 stringBuffer realSrcLoc
         parseResult = GHC.Parser.Lexer.unP GHC.Parser.parseModule pState1
-    in case parseResult of
+    pure $ case parseResult of
         GHC.Parser.Lexer.PFailed pState2 -> Left . Witch.into @HsErrors
-            $ GHC.Parser.Lexer.getErrorMessages pState2 dynFlags
+            $ GHC.Parser.Lexer.getErrorMessages pState2 dynFlags2
         GHC.Parser.Lexer.POk _ m -> Right $ Witch.into @HsModule m
 
 ghcNameVersion :: GHC.Driver.Session.GhcNameVersion
@@ -292,6 +304,30 @@ platformConstants = GHC.Settings.PlatformConstants
     , GHC.Settings.pc_WORD_SIZE = 0
     }
 
+cfgWeightInfo :: GHC.Driver.Session.CfgWeights
+cfgWeightInfo = GHC.Driver.Session.CFGWeights
+    { GHC.Driver.Session.backEdgeBonus = 0
+    , GHC.Driver.Session.callWeight = 0
+    , GHC.Driver.Session.condBranchWeight = 0
+    , GHC.Driver.Session.infoTablePenalty = 0
+    , GHC.Driver.Session.likelyCondWeight = 0
+    , GHC.Driver.Session.switchWeight = 0
+    , GHC.Driver.Session.uncondWeight = 0
+    , GHC.Driver.Session.unlikelyCondWeight = 0
+    }
+
+includePaths :: GHC.Driver.Session.IncludeSpecs
+includePaths = GHC.Driver.Session.IncludeSpecs
+    { GHC.Driver.Session.includePathsGlobal = []
+    , GHC.Driver.Session.includePathsQuote = []
+    }
+
+llvmConfig :: GHC.Driver.Session.LlvmConfig
+llvmConfig = GHC.Driver.Session.LlvmConfig
+    { GHC.Driver.Session.llvmPasses = []
+    , GHC.Driver.Session.llvmTargets = []
+    }
+
 srcSpan :: GHC.Types.SrcLoc.SrcSpan
 srcSpan = GHC.Types.SrcLoc.UnhelpfulSpan GHC.Types.SrcLoc.UnhelpfulNoLocationInfo
 
@@ -308,7 +344,7 @@ dynFlags = GHC.Driver.Session.DynFlags
     , GHC.Driver.Session.cachedPlugins = []
     , GHC.Driver.Session.canGenerateDynamicToo = error "canGenerateDynamicToo"
     , GHC.Driver.Session.canUseColor = False
-    , GHC.Driver.Session.cfgWeightInfo = error "cfgWeightInfo"
+    , GHC.Driver.Session.cfgWeightInfo = cfgWeightInfo
     , GHC.Driver.Session.cmdlineFrameworks = []
     , GHC.Driver.Session.cmmProcAlignment = Nothing
     , GHC.Driver.Session.colScheme = GHC.Utils.Ppr.Colour.defaultScheme
@@ -319,14 +355,14 @@ dynFlags = GHC.Driver.Session.DynFlags
     , GHC.Driver.Session.depMakefile = ""
     , GHC.Driver.Session.depSuffixes = []
     , GHC.Driver.Session.dirsToClean = error "dirsToClean"
-    , GHC.Driver.Session.dump_action = error "dump_action"
+    , GHC.Driver.Session.dump_action = \ _ _ _ _ _ _ -> pure ()
     , GHC.Driver.Session.dumpDir = Nothing
     , GHC.Driver.Session.dumpFlags = GHC.Data.EnumSet.fromList []
     , GHC.Driver.Session.dumpPrefix = Nothing
     , GHC.Driver.Session.dumpPrefixForce = Nothing
     , GHC.Driver.Session.dylibInstallName = Nothing
     , GHC.Driver.Session.dynHiSuf = ""
-    , GHC.Driver.Session.dynLibLoader = error "dynLibLoader"
+    , GHC.Driver.Session.dynLibLoader = GHC.Driver.Session.Deployable
     , GHC.Driver.Session.dynObjectSuf = ""
     , GHC.Driver.Session.dynOutputFile = Nothing
     , GHC.Driver.Session.enableTimeStats = False
@@ -336,8 +372,8 @@ dynFlags = GHC.Driver.Session.DynFlags
     , GHC.Driver.Session.fileSettings = fileSettings
     , GHC.Driver.Session.filesToClean = error "filesToClean"
     , GHC.Driver.Session.floatLamArgs = Nothing
-    , GHC.Driver.Session.flushErr = error "flushErr"
-    , GHC.Driver.Session.flushOut = error "flushOut"
+    , GHC.Driver.Session.flushErr = GHC.Driver.Session.defaultFlushErr
+    , GHC.Driver.Session.flushOut = GHC.Driver.Session.defaultFlushOut
     , GHC.Driver.Session.frameworkPaths = []
     , GHC.Driver.Session.frontendPluginOpts = []
     , GHC.Driver.Session.generalFlags = GHC.Data.EnumSet.fromList []
@@ -345,8 +381,8 @@ dynFlags = GHC.Driver.Session.DynFlags
     , GHC.Driver.Session.ghcHeapSize = Nothing
     , GHC.Driver.Session.ghciHistSize = 0
     , GHC.Driver.Session.ghciScripts = []
-    , GHC.Driver.Session.ghcLink = error "ghcLink"
-    , GHC.Driver.Session.ghcMode = error "ghcMode"
+    , GHC.Driver.Session.ghcLink = GHC.Driver.Session.NoLink
+    , GHC.Driver.Session.ghcMode = GHC.Driver.Session.OneShot
     , GHC.Driver.Session.ghcNameVersion = ghcNameVersion
     , GHC.Driver.Session.ghcVersionFile = Nothing
     , GHC.Driver.Session.haddockOptions = Nothing
@@ -356,15 +392,15 @@ dynFlags = GHC.Driver.Session.DynFlags
     , GHC.Driver.Session.hieSuf = ""
     , GHC.Driver.Session.historySize = 0
     , GHC.Driver.Session.hiSuf = ""
-    , GHC.Driver.Session.homeUnitId = error "homeUnitId"
+    , GHC.Driver.Session.homeUnitId = GHC.Unit.Types.stringToUnitId ""
     , GHC.Driver.Session.homeUnitInstanceOfId = Nothing
     , GHC.Driver.Session.homeUnitInstantiations = []
     , GHC.Driver.Session.hooks = error "hooks"
     , GHC.Driver.Session.hpcDir = ""
-    , GHC.Driver.Session.hscTarget = error "hscTarget"
+    , GHC.Driver.Session.hscTarget = GHC.Driver.Session.HscNothing
     , GHC.Driver.Session.ignorePackageFlags = []
     , GHC.Driver.Session.importPaths = []
-    , GHC.Driver.Session.includePaths = error "includePaths"
+    , GHC.Driver.Session.includePaths = includePaths
     , GHC.Driver.Session.incoherentOnLoc = srcSpan
     , GHC.Driver.Session.initialUnique = 0
     , GHC.Driver.Session.inlineCheck = Nothing
@@ -376,10 +412,10 @@ dynFlags = GHC.Driver.Session.DynFlags
     , GHC.Driver.Session.liftLamsKnown = False
     , GHC.Driver.Session.liftLamsNonRecArgs = Nothing
     , GHC.Driver.Session.liftLamsRecArgs = Nothing
-    , GHC.Driver.Session.llvmConfig = error "llvmConfig"
-    , GHC.Driver.Session.log_action = error "log_action"
+    , GHC.Driver.Session.llvmConfig = llvmConfig
+    , GHC.Driver.Session.log_action = \ _ _ _ _ _ -> pure ()
     , GHC.Driver.Session.mainFunIs = Nothing
-    , GHC.Driver.Session.mainModIs = error "mainModIs"
+    , GHC.Driver.Session.mainModIs = GHC.Unit.Types.mkModule (GHC.Unit.Types.stringToUnit "") (GHC.Unit.Module.Name.mkModuleName "")
     , GHC.Driver.Session.maxErrors = Nothing
     , GHC.Driver.Session.maxInlineAllocSize = 0
     , GHC.Driver.Session.maxInlineMemcpyInsns = 0
@@ -410,17 +446,17 @@ dynFlags = GHC.Driver.Session.DynFlags
     , GHC.Driver.Session.pluginModNameOpts = []
     , GHC.Driver.Session.pluginModNames = []
     , GHC.Driver.Session.pluginPackageFlags = []
-    , GHC.Driver.Session.pprCols = 0
+    , GHC.Driver.Session.pprCols = 80
     , GHC.Driver.Session.pprUserLength = 0
-    , GHC.Driver.Session.profAuto = error "profAuto"
+    , GHC.Driver.Session.profAuto = GHC.Driver.Session.NoProfAuto
     , GHC.Driver.Session.rawSettings = []
-    , GHC.Driver.Session.reductionDepth = error "reductionDepth"
+    , GHC.Driver.Session.reductionDepth = GHC.Types.Basic.mkIntWithInf 0
     , GHC.Driver.Session.refLevelHoleFits = Nothing
     , GHC.Driver.Session.reverseErrors = False
     , GHC.Driver.Session.rtccInfo = error "rtccInfo"
     , GHC.Driver.Session.rtldInfo = error "rtldInfo"
     , GHC.Driver.Session.rtsOpts = Nothing
-    , GHC.Driver.Session.rtsOptsEnabled = error "rtsOptsEnabled"
+    , GHC.Driver.Session.rtsOptsEnabled = GHC.Driver.Session.RtsOptsNone
     , GHC.Driver.Session.rtsOptsSuggestions = False
     , GHC.Driver.Session.ruleCheck = Nothing
     , GHC.Driver.Session.safeHaskell = GHC.Driver.Session.Sf_Ignore
@@ -428,7 +464,7 @@ dynFlags = GHC.Driver.Session.DynFlags
     , GHC.Driver.Session.safeInferred = False
     , GHC.Driver.Session.simplPhases = 0
     , GHC.Driver.Session.simplTickFactor = 0
-    , GHC.Driver.Session.solverIterations = error "solverIterations"
+    , GHC.Driver.Session.solverIterations = GHC.Types.Basic.mkIntWithInf 0
     , GHC.Driver.Session.specConstrCount = Nothing
     , GHC.Driver.Session.specConstrRecursive = 0
     , GHC.Driver.Session.specConstrThreshold = Nothing
@@ -451,12 +487,12 @@ dynFlags = GHC.Driver.Session.DynFlags
     , GHC.Driver.Session.ufVeryAggressive = False
     , GHC.Driver.Session.uniqueIncrement = 0
     , GHC.Driver.Session.unitDatabases = Nothing
-    , GHC.Driver.Session.unitState = error "unitState"
+    , GHC.Driver.Session.unitState = GHC.Unit.State.emptyUnitState
     , GHC.Driver.Session.useColor = GHC.Utils.Misc.Never
     , GHC.Driver.Session.useUnicode = False
     , GHC.Driver.Session.verbosity = 0
     , GHC.Driver.Session.warningFlags = GHC.Data.EnumSet.fromList []
     , GHC.Driver.Session.warnSafeOnLoc = srcSpan
     , GHC.Driver.Session.warnUnsafeOnLoc = srcSpan
-    , GHC.Driver.Session.ways = error "ways"
+    , GHC.Driver.Session.ways = Data.Set.empty
     }

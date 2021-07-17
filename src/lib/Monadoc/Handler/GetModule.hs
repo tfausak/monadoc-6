@@ -71,7 +71,8 @@ handler packageName release componentId moduleName context request = do
                 . Blob.contents
                 $ Model.value blob
             let filePath = File.path $ Model.value file
-            case Ghc.parseModule filePath contents of
+            result <- Ghc.parseModule filePath contents
+            case result of
                 Left errors -> Exception.throwM errors
                 Right hsModule -> pure $ Just hsModule
         _ -> pure Nothing
