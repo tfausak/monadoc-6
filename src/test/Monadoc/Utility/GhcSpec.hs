@@ -28,7 +28,7 @@ spec = do
             result `Hspec.shouldSatisfy` Either.isRight
 
         Hspec.it "accepts language extensions" $ do
-            result <- Ghc.parseModule [X.MagicHash] "M.hs" "module M where x# = 1"
+            result <- Ghc.parseModule [(True, X.MagicHash)] "M.hs" "module M where x# = 1"
             result `Hspec.shouldSatisfy` Either.isRight
 
         Hspec.it "does not run CPP by default" $ do
