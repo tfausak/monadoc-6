@@ -67,7 +67,7 @@ parseModule
     -> m (Either HsErrors HsModule)
 parseModule filePath string1 = do
     let
-        dynFlags1 = dynFlags
+        dynFlags1 = GHC.Driver.Session.gopt_set dynFlags GHC.Driver.Session.Opt_Haddock
         stringBuffer1 = GHC.Data.StringBuffer.stringToStringBuffer string1
         locatedStrings = GHC.Parser.Header.getOptions dynFlags1 stringBuffer1 filePath
     (dynFlags2, _, _) <- GHC.Driver.Session.parseDynamicFilePragma dynFlags1 locatedStrings
