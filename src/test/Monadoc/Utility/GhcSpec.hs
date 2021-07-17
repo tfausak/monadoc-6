@@ -51,3 +51,11 @@ spec = do
         Hspec.it "handles literate Haskell" $ do
             result <- Ghc.parseModule [] "M.lhs" "> module M where"
             result `Hspec.shouldSatisfy` Either.isRight
+
+        Hspec.it "handles implied extensions" $ do
+            -- I haven't found an implied extension that causes parsing to
+            -- fail. For example the @TemplateHaskell@ extension implies the
+            -- @TemplateHaskellQuotes@ extension, but @x = '()@ successfully
+            -- parses with no extensions enabled even though it requires
+            -- @TemplateHaskellQuotes@.
+            Hspec.pending

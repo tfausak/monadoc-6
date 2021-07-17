@@ -6,6 +6,7 @@ module Monadoc.Utility.Ghc where
 
 import qualified Control.Exception as Exception
 import qualified Control.Monad.IO.Class as IO
+import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import qualified GHC.ByteOrder
 import qualified GHC.Data.Bag
@@ -72,17 +73,29 @@ parseModule
     -> FilePath
     -> String
     -> m (Either HsErrors HsModule)
-parseModule extensions filePath string1 = do
+parseModule explicitExtensions filePath string1 = do
     let
         string2 = if FilePath.isExtensionOf "lhs" filePath
             then Unlit.unlit filePath string1
             else string1
+        allExtensions = concatMap
+            (\ (b, x) ->
+                let
+                    impliedExtensions = if b
+                        then Maybe.mapMaybe
+                            (\ (y, onOff, ext) -> if y == x
+                                then Just (onOff, ext)
+                                else Nothing)
+                            GHC.Driver.Session.impliedXFlags
+                        else []
+                in (b, x) : impliedExtensions)
+            explicitExtensions
         dynFlags1 = foldr
             (\ (b, x) f -> if b
                 then GHC.Driver.Session.xopt_set f x
                 else GHC.Driver.Session.xopt_unset f x)
             (GHC.Driver.Session.gopt_set dynFlags GHC.Driver.Session.Opt_Haddock)
-            extensions
+            allExtensions
         stringBuffer1 = GHC.Data.StringBuffer.stringToStringBuffer string2
         locatedStrings = GHC.Parser.Header.getOptions dynFlags1 stringBuffer1 filePath
     (dynFlags2, _, _) <- GHC.Driver.Session.parseDynamicFilePragma dynFlags1 locatedStrings
