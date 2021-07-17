@@ -28,9 +28,7 @@ flag pedantic
     manual: True
 
 common basics
-    build-depends:
-        , base ^>= 4.15.0
-        , witch ^>= 0.3.3
+    build-depends: base ^>= 4.15.0
     default-language: Haskell2010
     ghc-options:
         -Weverything
@@ -90,6 +88,7 @@ library
         , vault ^>= 0.3.1
         , wai ^>= 3.2.3
         , warp ^>= 3.3.15
+        , witch ^>= 0.3.3
         , xml-conduit ^>= 1.9.1
         , zlib ^>= 0.6.2
     exposed-modules:
@@ -208,7 +207,6 @@ library
 executable monadoc
     import: executable
 
-    ghc-options: -Wno-unused-packages
     hs-source-dirs: src/exe
     main-is: Main.hs
 
@@ -216,7 +214,9 @@ test-suite test
     import: executable
 
     build-depends:
+        , ghc-boot-th
         , hspec ^>= 2.8.2
+        , witch
     build-tool-depends:
         , hspec-discover:hspec-discover ^>= 2.8.2
     hs-source-dirs: src/test

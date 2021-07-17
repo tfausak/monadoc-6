@@ -64,15 +64,16 @@ instance Show HsModule where
 
 parseModule
     :: IO.MonadIO m
-    => FilePath
+    => [GHC.LanguageExtensions.Type.Extension]
+    -> FilePath
     -> String
     -> m (Either HsErrors HsModule)
-parseModule filePath string1 = do
+parseModule extensions filePath string1 = do
     let
         string2 = if FilePath.isExtensionOf "lhs" filePath
             then Unlit.unlit filePath string1
             else string1
-        dynFlags1 = GHC.Driver.Session.gopt_set dynFlags GHC.Driver.Session.Opt_Haddock
+        dynFlags1 = GHC.Driver.Session.gopt_set dynFlags { GHC.Driver.Session.extensionFlags = GHC.Data.EnumSet.fromList extensions } GHC.Driver.Session.Opt_Haddock
         stringBuffer1 = GHC.Data.StringBuffer.stringToStringBuffer string2
         locatedStrings = GHC.Parser.Header.getOptions dynFlags1 stringBuffer1 filePath
     (dynFlags2, _, _) <- GHC.Driver.Session.parseDynamicFilePragma dynFlags1 locatedStrings
