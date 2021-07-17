@@ -63,17 +63,14 @@ instance Witch.From HsModule String where
 instance Show HsModule where
     show = Witch.into @String
 
--- | Note that this function could take an argument to determine if Haskell98
--- or Haskell2010 is wanted, but that doesn't appear to influence parsing. For
--- example empty data types are not valid Haskell98, but parsing @data T@ works
--- fine even with Haskell98 set.
 parseModule
     :: IO.MonadIO m
-    => [(Bool, GHC.LanguageExtensions.Type.Extension)]
+    => Maybe GHC.Driver.Session.Language
+    -> [(Bool, GHC.LanguageExtensions.Type.Extension)]
     -> FilePath
     -> String
     -> m (Either HsErrors HsModule)
-parseModule explicitExtensions filePath string1 = do
+parseModule maybeLanguage explicitExtensions filePath string1 = do
     let
         string2 = if FilePath.isExtensionOf "lhs" filePath
             then Unlit.unlit filePath string1
@@ -91,7 +88,9 @@ parseModule explicitExtensions filePath string1 = do
             (\ f (b, x) -> if b
                 then GHC.Driver.Session.xopt_set f x
                 else GHC.Driver.Session.xopt_unset f x)
-            (GHC.Driver.Session.gopt_set dynFlags GHC.Driver.Session.Opt_Haddock)
+            (GHC.Driver.Session.gopt_set
+                (GHC.Driver.Session.lang_set dynFlags maybeLanguage)
+                GHC.Driver.Session.Opt_Haddock)
             allExtensions
         stringBuffer1 = GHC.Data.StringBuffer.stringToStringBuffer string2
         locatedStrings = GHC.Parser.Header.getOptions dynFlags1 stringBuffer1 filePath
