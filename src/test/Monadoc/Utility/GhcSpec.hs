@@ -38,3 +38,11 @@ spec = do
             result <- Ghc.parseModule "M.hs" "-- | x"
             result `Hspec.shouldSatisfy` Either.isRight
             show result `Hspec.shouldSatisfy` List.isInfixOf "<document comment>"
+
+        Hspec.it "does not unlit by default" $ do
+            result <- Ghc.parseModule "M.hs" "> module M where"
+            result `Hspec.shouldSatisfy` Either.isLeft
+
+        Hspec.it "handles literate Haskell" $ do
+            result <- Ghc.parseModule "M.lhs" "> module M where"
+            result `Hspec.shouldSatisfy` Either.isRight

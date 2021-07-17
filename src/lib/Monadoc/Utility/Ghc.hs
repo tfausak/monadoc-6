@@ -31,6 +31,8 @@ import qualified GHC.Utils.Misc
 import qualified GHC.Utils.Outputable
 import qualified GHC.Utils.Ppr.Colour
 import qualified Language.Preprocessor.Cpphs as Cpphs
+import qualified Language.Preprocessor.Unlit as Unlit
+import qualified System.FilePath as FilePath
 import qualified Witch
 
 newtype HsErrors
@@ -67,15 +69,18 @@ parseModule
     -> m (Either HsErrors HsModule)
 parseModule filePath string1 = do
     let
+        string2 = if FilePath.isExtensionOf "lhs" filePath
+            then Unlit.unlit filePath string1
+            else string1
         dynFlags1 = GHC.Driver.Session.gopt_set dynFlags GHC.Driver.Session.Opt_Haddock
-        stringBuffer1 = GHC.Data.StringBuffer.stringToStringBuffer string1
+        stringBuffer1 = GHC.Data.StringBuffer.stringToStringBuffer string2
         locatedStrings = GHC.Parser.Header.getOptions dynFlags1 stringBuffer1 filePath
     (dynFlags2, _, _) <- GHC.Driver.Session.parseDynamicFilePragma dynFlags1 locatedStrings
-    string2 <- if GHC.Driver.Session.xopt GHC.LanguageExtensions.Type.Cpp dynFlags2
-        then IO.liftIO $ Cpphs.runCpphs Cpphs.defaultCpphsOptions filePath string1
-        else pure string1
+    string3 <- if GHC.Driver.Session.xopt GHC.LanguageExtensions.Type.Cpp dynFlags2
+        then IO.liftIO $ Cpphs.runCpphs Cpphs.defaultCpphsOptions filePath string2
+        else pure string2
     let
-        stringBuffer2 = GHC.Data.StringBuffer.stringToStringBuffer string2
+        stringBuffer2 = GHC.Data.StringBuffer.stringToStringBuffer string3
         fastString = GHC.Data.FastString.mkFastString filePath
         realSrcLoc = GHC.Types.SrcLoc.mkRealSrcLoc fastString 1 1
         pState1 = GHC.Parser.Lexer.mkPState dynFlags2 stringBuffer2 realSrcLoc
