@@ -4,7 +4,7 @@
 
 module Monadoc.Utility.Ghc where
 
-import qualified Control.Exception as Exception
+import qualified Control.Monad.Catch as Exception
 import qualified Control.Monad.IO.Class as IO
 import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
@@ -22,6 +22,8 @@ import qualified GHC.Parser.Lexer
 import qualified GHC.Platform
 import qualified GHC.Settings
 import qualified GHC.Types.Basic
+import qualified GHC.Types.Name.Occurrence
+import qualified GHC.Types.Name.Reader
 import qualified GHC.Types.SrcLoc
 import qualified GHC.Unit.Module.Name
 import qualified GHC.Unit.State
@@ -44,7 +46,9 @@ instance Witch.From GHC.Utils.Error.ErrorMessages HsErrors
 instance Witch.From HsErrors GHC.Utils.Error.ErrorMessages
 
 instance Show HsErrors where
-    show = show . GHC.Data.Bag.bagToList . Witch.into @GHC.Utils.Error.ErrorMessages
+    show = show
+        . GHC.Data.Bag.bagToList
+        . Witch.into @GHC.Utils.Error.ErrorMessages
 
 instance Exception.Exception HsErrors
 
@@ -56,8 +60,7 @@ instance Witch.From (GHC.Types.SrcLoc.Located GHC.Hs.HsModule) HsModule
 instance Witch.From HsModule (GHC.Types.SrcLoc.Located GHC.Hs.HsModule)
 
 instance Witch.From HsModule String where
-    from = GHC.Utils.Outputable.showSDoc dynFlags
-        . GHC.Utils.Outputable.ppr
+    from = GHC.Utils.Outputable.showPpr dynFlags
         . Witch.into @(GHC.Types.SrcLoc.Located GHC.Hs.HsModule)
 
 instance Show HsModule where
@@ -108,6 +111,33 @@ parseModule maybeLanguage explicitExtensions filePath string1 = do
         GHC.Parser.Lexer.PFailed pState2 -> Left . Witch.into @HsErrors
             $ GHC.Parser.Lexer.getErrorMessages pState2 dynFlags2
         GHC.Parser.Lexer.POk _ m -> Right $ Witch.into @HsModule m
+
+-- TODO: The intent of this pile of "todoN" functions is to extract all the
+-- exported declarations from the given module. Unfortunately I don't know what
+-- I want the output type to look like, so that may change as the
+-- implementation progresses.
+todo1 :: HsModule -> [String]
+todo1 = todo2
+    . GHC.Types.SrcLoc.unLoc
+    . Witch.into @(GHC.Types.SrcLoc.Located GHC.Hs.HsModule)
+
+todo2 :: GHC.Hs.HsModule -> [String]
+todo2 = concatMap (todo3 . GHC.Types.SrcLoc.unLoc) . GHC.Hs.hsmodDecls
+
+todo3 :: GHC.Hs.HsDecl GHC.Hs.GhcPs -> [String]
+todo3 hsDecl = case hsDecl of
+    GHC.Hs.ValD _ hsBind -> todo4 hsBind
+    _ -> ["TODO: unknown HsDecl: " <> GHC.Utils.Outputable.showPpr dynFlags hsDecl]
+
+todo4 :: GHC.Hs.HsBind GHC.Hs.GhcPs -> [String]
+todo4 hsBind = case hsBind of
+    GHC.Hs.FunBind _ lIdP _ _ -> [todo5 $ GHC.Types.SrcLoc.unLoc lIdP]
+    _ -> ["TODO: unknown HsBind: " <> GHC.Utils.Outputable.showPpr dynFlags hsBind]
+
+todo5 :: GHC.Types.Name.Reader.RdrName -> String
+todo5 rdrName = case rdrName of
+    GHC.Types.Name.Reader.Unqual occName -> GHC.Types.Name.Occurrence.occNameString occName
+    _ -> "TODO: unknown RdrName: " <> GHC.Utils.Outputable.showPpr dynFlags rdrName
 
 ghcNameVersion :: GHC.Driver.Session.GhcNameVersion
 ghcNameVersion = GHC.Driver.Session.GhcNameVersion

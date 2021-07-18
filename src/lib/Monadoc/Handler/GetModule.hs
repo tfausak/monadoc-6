@@ -110,6 +110,8 @@ handler packageName release componentId moduleName context request = do
             , Xml.node "component" [] [ToXml.toXml $ Witch.into @String componentId]
             , Xml.node "module" [] [ToXml.toXml moduleName]
             , Xml.node "file" []
+                -- TODO: Accurately represent file contents even with pretty
+                -- printed XML.
                 [ Xml.node "contents" [] [ToXml.toXml $ fmap (Witch.into @String) maybeHsModule]
                 , Xml.node "path" [] [ToXml.toXml $ fmap (File.path . Model.value) maybeFile]
                 , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName release . File.path . Model.value) maybeFile]

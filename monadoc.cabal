@@ -214,6 +214,7 @@ test-suite test
     import: executable
 
     build-depends:
+        , exceptions
         , ghc-boot-th
         , hspec ^>= 2.8.2
         , witch

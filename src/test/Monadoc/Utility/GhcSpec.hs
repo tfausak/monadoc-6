@@ -1,5 +1,6 @@
 module Monadoc.Utility.GhcSpec where
 
+import qualified Control.Monad.Catch as Exception
 import qualified Data.Either as Either
 import qualified Data.List as List
 import qualified GHC.LanguageExtensions.Type as X
@@ -74,3 +75,15 @@ spec = do
             -- Haskell98, but it succeeds even though empty data declarations
             -- aren't part of that language.
             Hspec.pending
+
+    Hspec.describe "todo1" $ do
+
+        Hspec.it "handles a value declaration" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "x = ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.todo1 hsModule `Hspec.shouldBe` ["x"]
+
+        Hspec.it "handles a function declaration" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "f x = ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.todo1 hsModule `Hspec.shouldBe` ["f"]
