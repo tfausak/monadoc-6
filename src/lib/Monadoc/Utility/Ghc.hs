@@ -15,6 +15,7 @@ import qualified GHC.Data.FastString
 import qualified GHC.Data.StringBuffer
 import qualified GHC.Driver.Session
 import qualified GHC.Hs
+import qualified GHC.Hs.Binds
 import qualified GHC.LanguageExtensions.Type
 import qualified GHC.Parser
 import qualified GHC.Parser.Header
@@ -127,6 +128,7 @@ todo2 = concatMap (todo3 . GHC.Types.SrcLoc.unLoc) . GHC.Hs.hsmodDecls
 todo3 :: GHC.Hs.HsDecl GHC.Hs.GhcPs -> [String]
 todo3 hsDecl = case hsDecl of
     GHC.Hs.ValD _ hsBind -> todo4 hsBind
+    GHC.Hs.SigD _ sig -> todo6 sig
     _ -> ["TODO: unknown HsDecl: " <> GHC.Utils.Outputable.showPpr dynFlags hsDecl]
 
 todo4 :: GHC.Hs.HsBind GHC.Hs.GhcPs -> [String]
@@ -138,6 +140,11 @@ todo5 :: GHC.Types.Name.Reader.RdrName -> String
 todo5 rdrName = case rdrName of
     GHC.Types.Name.Reader.Unqual occName -> GHC.Types.Name.Occurrence.occNameString occName
     _ -> "TODO: unknown RdrName: " <> GHC.Utils.Outputable.showPpr dynFlags rdrName
+
+todo6 :: GHC.Hs.Binds.Sig GHC.Hs.GhcPs -> [String]
+todo6 sig = case sig of
+    GHC.Hs.Binds.TypeSig _ lIdPs _ -> fmap (todo5 . GHC.Types.SrcLoc.unLoc) lIdPs
+    _ -> ["TODO: unknown HsBind: " <> GHC.Utils.Outputable.showPpr dynFlags sig]
 
 ghcNameVersion :: GHC.Driver.Session.GhcNameVersion
 ghcNameVersion = GHC.Driver.Session.GhcNameVersion

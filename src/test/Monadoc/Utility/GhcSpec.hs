@@ -87,3 +87,21 @@ spec = do
             result <- Ghc.parseModule Nothing [] "M.hs" "f x = ()"
             hsModule <- either Exception.throwM pure result
             Ghc.todo1 hsModule `Hspec.shouldBe` ["f"]
+
+        Hspec.it "handles one type signature declaration" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "x :: ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.todo1 hsModule `Hspec.shouldBe` ["x"]
+
+        Hspec.it "handles multiple type signature declaration" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "x, y, z :: ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.todo1 hsModule `Hspec.shouldBe` ["x", "y", "z"]
+
+        Hspec.it "handles a both a type signature and value declaration" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "x :: ()\nx = ()"
+            hsModule <- either Exception.throwM pure result
+            -- TODO: This isn't really what I want. Ideally the type signature
+            -- would be attached to the value declaration. They are "the same"
+            -- declaration, after all.
+            Ghc.todo1 hsModule `Hspec.shouldBe` ["x", "x"]
