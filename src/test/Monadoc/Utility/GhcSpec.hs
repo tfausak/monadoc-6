@@ -76,32 +76,49 @@ spec = do
             -- aren't part of that language.
             Hspec.pending
 
-    Hspec.describe "todo1" $ do
+    Hspec.describe "extract" $ do
 
-        Hspec.it "handles a value declaration" $ do
+        Hspec.it "handles a simple binding" $ do
             result <- Ghc.parseModule Nothing [] "M.hs" "x = ()"
             hsModule <- either Exception.throwM pure result
-            Ghc.todo1 hsModule `Hspec.shouldBe` ["x"]
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["x"]
 
-        Hspec.it "handles a function declaration" $ do
-            result <- Ghc.parseModule Nothing [] "M.hs" "f x = ()"
-            hsModule <- either Exception.throwM pure result
-            Ghc.todo1 hsModule `Hspec.shouldBe` ["f"]
-
-        Hspec.it "handles one type signature declaration" $ do
+        Hspec.it "handles a simple type signature" $ do
             result <- Ghc.parseModule Nothing [] "M.hs" "x :: ()"
             hsModule <- either Exception.throwM pure result
-            Ghc.todo1 hsModule `Hspec.shouldBe` ["x"]
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["x"]
 
-        Hspec.it "handles multiple type signature declaration" $ do
-            result <- Ghc.parseModule Nothing [] "M.hs" "x, y, z :: ()"
+        Hspec.it "handles a complex type signature" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "x, y :: ()"
             hsModule <- either Exception.throwM pure result
-            Ghc.todo1 hsModule `Hspec.shouldBe` ["x", "y", "z"]
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["x", "y"]
 
-        Hspec.it "handles a both a type signature and value declaration" $ do
-            result <- Ghc.parseModule Nothing [] "M.hs" "x :: ()\nx = ()"
+        Hspec.it "handles multiple declarations" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "x :: ()\ny = ()"
             hsModule <- either Exception.throwM pure result
-            -- TODO: This isn't really what I want. Ideally the type signature
-            -- would be attached to the value declaration. They are "the same"
-            -- declaration, after all.
-            Ghc.todo1 hsModule `Hspec.shouldBe` ["x", "x"]
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["x", "y"]
+
+        Hspec.it "ignores documentation comments" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "-- | x"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just []
+
+        Hspec.it "handles a fixity declaration" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "infix 5 %"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["%"]
+
+        Hspec.it "ignores duplicates" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "x = ()\nx = ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["x"]
+
+        Hspec.it "handles an inline pragma" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "{-# inline x #-}"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["x"]
+
+        Hspec.it "ignores default declarations" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "default ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just []

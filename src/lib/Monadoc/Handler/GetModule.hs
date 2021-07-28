@@ -26,6 +26,7 @@ import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Ghc as Ghc
+import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Witch
 
@@ -74,7 +75,9 @@ handler packageName release componentId moduleName context request = do
             result <- Ghc.parseModule Nothing [] filePath contents
             case result of
                 Left errors -> Exception.throwM errors
-                Right hsModule -> pure $ Just hsModule
+                Right hsModule -> do
+                    either (Log.warn . show) (Log.info . show) $ Ghc.extract hsModule -- TODO
+                    pure $ Just hsModule
         _ -> pure Nothing
 
     pure $ Common.makeResponse Root.Root
