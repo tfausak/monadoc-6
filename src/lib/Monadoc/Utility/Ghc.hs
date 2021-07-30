@@ -17,6 +17,7 @@ import qualified GHC.Data.StringBuffer
 import qualified GHC.Driver.Session
 import qualified GHC.Hs
 import qualified GHC.Hs.Binds
+import qualified GHC.Hs.Decls
 import qualified GHC.LanguageExtensions.Type
 import qualified GHC.Parser
 import qualified GHC.Parser.Header
@@ -101,6 +102,7 @@ parseModule maybeLanguage explicitExtensions filePath string1 = do
         locatedStrings = GHC.Parser.Header.getOptions dynFlags1 stringBuffer1 filePath
     (dynFlags2, _, _) <- GHC.Driver.Session.parseDynamicFilePragma dynFlags1 locatedStrings
     string3 <- if GHC.Driver.Session.xopt GHC.LanguageExtensions.Type.Cpp dynFlags2
+        -- TODO: Handle `#include`d files.
         then IO.liftIO $ Cpphs.runCpphs Cpphs.defaultCpphsOptions filePath string2
         else pure string2
     let
@@ -130,6 +132,7 @@ extractDecl hsDecl = case hsDecl of
     GHC.Hs.DefD _ _ -> pure []
     GHC.Hs.DocD _ _ -> pure []
     GHC.Hs.SigD _ sig -> extractSig sig
+    GHC.Hs.TyClD _ tyClDecl -> extractTyClDecl tyClDecl
     GHC.Hs.ValD _ hsBind -> extractHsBind hsBind
     _ -> Exception.throwM $ UnknownHsDecl hsDecl
 
@@ -153,6 +156,11 @@ extractHsBind hsBind = case hsBind of
 extractFixitySig :: Exception.MonadThrow m => GHC.Hs.Binds.FixitySig GHC.Hs.GhcPs -> m [String]
 extractFixitySig fixitySig = case fixitySig of
     GHC.Hs.Binds.FixitySig _ lIdPs _ -> mapM (extractRdrName . GHC.Types.SrcLoc.unLoc) lIdPs
+
+extractTyClDecl :: Exception.MonadThrow m => GHC.Hs.Decls.TyClDecl GHC.Hs.GhcPs -> m [String]
+extractTyClDecl tyClDecl = case tyClDecl of
+    GHC.Hs.Decls.DataDecl _ lIdP _ _ _ -> pure . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
+    _ -> Exception.throwM $ UnknownTyClDecl tyClDecl
 
 newtype UnknownHsDecl
     = UnknownHsDecl (GHC.Hs.HsDecl GHC.Hs.GhcPs)
@@ -193,6 +201,16 @@ instance Show UnknownHsBind where
         <> ")"
 
 instance Exception.Exception UnknownHsBind
+
+newtype UnknownTyClDecl
+    = UnknownTyClDecl (GHC.Hs.Decls.TyClDecl GHC.Hs.GhcPs)
+
+instance Show UnknownTyClDecl where
+    show (UnknownTyClDecl x) = "UnknownTyClDecl ("
+        <> GHC.Utils.Outputable.showPpr dynFlags x
+        <> ")"
+
+instance Exception.Exception UnknownTyClDecl
 
 ghcNameVersion :: GHC.Driver.Session.GhcNameVersion
 ghcNameVersion = GHC.Driver.Session.GhcNameVersion

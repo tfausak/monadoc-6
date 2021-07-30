@@ -122,3 +122,8 @@ spec = do
             result <- Ghc.parseModule Nothing [] "M.hs" "default ()"
             hsModule <- either Exception.throwM pure result
             Ghc.extract hsModule `Hspec.shouldBe` Just []
+
+        Hspec.it "handles a data declaration" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "data X"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["X"]
