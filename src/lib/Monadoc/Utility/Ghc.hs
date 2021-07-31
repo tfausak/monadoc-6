@@ -143,6 +143,7 @@ extractSig :: Exception.MonadThrow m => GHC.Hs.Binds.Sig GHC.Hs.GhcPs -> m [Stri
 extractSig sig = case sig of
     GHC.Hs.Binds.FixSig _ fixitySig -> extractFixitySig fixitySig
     GHC.Hs.Binds.InlineSig _ lIdP _ -> pure . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
+    GHC.Hs.Binds.PatSynSig _ lIdPs _ -> mapM (fmap ("pattern " <>) . extractRdrName . GHC.Types.SrcLoc.unLoc) lIdPs
     GHC.Hs.Binds.TypeSig _ lIdPs _ -> mapM (extractRdrName . GHC.Types.SrcLoc.unLoc) lIdPs
     _ -> Exception.throwM $ UnknownSig sig
 
@@ -154,6 +155,7 @@ extractRdrName rdrName = case rdrName of
 extractHsBind :: Exception.MonadThrow m => GHC.Hs.Binds.HsBind GHC.Hs.GhcPs -> m [String]
 extractHsBind hsBind = case hsBind of
     GHC.Hs.Binds.FunBind _ lIdP _ _ -> pure . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
+    GHC.Hs.Binds.PatSynBind _ patSynBind -> extractPatSynBind patSynBind
     _ -> Exception.throwM $ UnknownHsBind hsBind
 
 extractFixitySig :: Exception.MonadThrow m => GHC.Hs.Binds.FixitySig GHC.Hs.GhcPs -> m [String]
@@ -163,7 +165,7 @@ extractFixitySig fixitySig = case fixitySig of
 extractTyClDecl :: Exception.MonadThrow m => GHC.Hs.Decls.TyClDecl GHC.Hs.GhcPs -> m [String]
 extractTyClDecl tyClDecl = case tyClDecl of
     GHC.Hs.Decls.ClassDecl _ _ lIdP _ _ _ _ _ _ _ _ -> pure . fmap ("class " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
-    GHC.Hs.Decls.DataDecl _ lIdP _ _ _ -> pure . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
+    GHC.Hs.Decls.DataDecl _ lIdP _ _ _ -> pure . fmap ("data " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
     _ -> Exception.throwM $ UnknownTyClDecl tyClDecl
 
 extractInstDecl :: Exception.MonadThrow m => GHC.Hs.Decls.InstDecl GHC.Hs.GhcPs -> m [String]
@@ -175,6 +177,10 @@ extractClsInstDecl :: Exception.MonadThrow m => GHC.Hs.Decls.ClsInstDecl GHC.Hs.
 extractClsInstDecl clsInstDecl = case clsInstDecl of
     -- TODO: This has a lot of room for improvement.
     GHC.Hs.Decls.ClsInstDecl _ x _ _ _ _ _ -> pure ["instance " <> GHC.Utils.Outputable.showPpr dynFlags x]
+
+extractPatSynBind :: Exception.MonadThrow m => GHC.Hs.Binds.PatSynBind GHC.Hs.GhcPs GHC.Hs.GhcPs -> m [String]
+extractPatSynBind patSynBind = case patSynBind of
+    GHC.Hs.Binds.PSB _ lIdP _ _ _ -> pure . fmap ("pattern " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
 
 newtype UnknownHsDecl
     = UnknownHsDecl (GHC.Hs.HsDecl GHC.Hs.GhcPs)

@@ -126,14 +126,29 @@ spec = do
         Hspec.it "handles a data declaration" $ do
             result <- Ghc.parseModule Nothing [] "M.hs" "data X"
             hsModule <- either Exception.throwM pure result
-            Ghc.extract hsModule `Hspec.shouldBe` Just ["X"]
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["data X"]
 
         Hspec.it "handles an instance declaration" $ do
-            result <- Ghc.parseModule Nothing [] "M.hs" "instance C T"
+            result <- Ghc.parseModule Nothing [] "M.hs" "instance X Y"
             hsModule <- either Exception.throwM pure result
-            Ghc.extract hsModule `Hspec.shouldBe` Just ["instance C T"]
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["instance X Y"]
 
         Hspec.it "handles a type class declaration" $ do
-            result <- Ghc.parseModule Nothing [] "M.hs" "class C"
+            result <- Ghc.parseModule Nothing [] "M.hs" "class X"
             hsModule <- either Exception.throwM pure result
-            Ghc.extract hsModule `Hspec.shouldBe` Just ["class C"]
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["class X"]
+
+        Hspec.it "handles a pattern signature" $ do
+            result <- Ghc.parseModule Nothing [(True, X.PatternSynonyms)] "M.hs" "pattern X :: ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["pattern X"]
+
+        Hspec.it "handles a unidirectional pattern synonym" $ do
+            result <- Ghc.parseModule Nothing [(True, X.PatternSynonyms)] "M.hs" "pattern X <- ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["pattern X"]
+
+        Hspec.it "handles a bidirectional pattern synonym" $ do
+            result <- Ghc.parseModule Nothing [(True, X.PatternSynonyms)] "M.hs" "pattern X = ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["pattern X"]
