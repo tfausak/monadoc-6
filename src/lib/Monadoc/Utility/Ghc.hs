@@ -166,12 +166,13 @@ extractTyClDecl :: Exception.MonadThrow m => GHC.Hs.Decls.TyClDecl GHC.Hs.GhcPs 
 extractTyClDecl tyClDecl = case tyClDecl of
     GHC.Hs.Decls.ClassDecl _ _ lIdP _ _ _ _ _ _ _ _ -> pure . fmap ("class " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
     GHC.Hs.Decls.DataDecl _ lIdP _ _ _ -> pure . fmap ("data " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
+    GHC.Hs.Decls.FamDecl _ familyDecl -> extractFamilyDecl familyDecl
     GHC.Hs.Decls.SynDecl _ lIdP _ _ _ -> pure . fmap ("type " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
-    _ -> Exception.throwM $ UnknownTyClDecl tyClDecl
 
 extractInstDecl :: Exception.MonadThrow m => GHC.Hs.Decls.InstDecl GHC.Hs.GhcPs -> m [String]
 extractInstDecl instDecl = case instDecl of
     GHC.Hs.Decls.ClsInstD _ clsInstDecl -> extractClsInstDecl clsInstDecl
+    GHC.Hs.Decls.TyFamInstD _ tyFamInstDecl -> extractTyFamInstDecl tyFamInstDecl
     _ -> Exception.throwM $ UnknownInstDecl instDecl
 
 extractClsInstDecl :: Exception.MonadThrow m => GHC.Hs.Decls.ClsInstDecl GHC.Hs.GhcPs -> m [String]
@@ -182,6 +183,14 @@ extractClsInstDecl clsInstDecl = case clsInstDecl of
 extractPatSynBind :: Exception.MonadThrow m => GHC.Hs.Binds.PatSynBind GHC.Hs.GhcPs GHC.Hs.GhcPs -> m [String]
 extractPatSynBind patSynBind = case patSynBind of
     GHC.Hs.Binds.PSB _ lIdP _ _ _ -> pure . fmap ("pattern " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
+
+extractFamilyDecl :: Exception.MonadThrow m => GHC.Hs.Decls.FamilyDecl GHC.Hs.GhcPs -> m [String]
+extractFamilyDecl familyDecl = case familyDecl of
+    GHC.Hs.Decls.FamilyDecl _ _ lIdP _ _ _ _ -> pure . fmap ("type family " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
+
+extractTyFamInstDecl :: Exception.MonadThrow m => GHC.Hs.Decls.TyFamInstDecl GHC.Hs.GhcPs -> m [String]
+extractTyFamInstDecl tyFamInstDecl = case tyFamInstDecl of
+    GHC.Hs.Decls.TyFamInstDecl (GHC.Hs.HsIB _ (GHC.Hs.Decls.FamEqn _ lIdP _ _ _ _)) -> pure . fmap ("type instance " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
 
 newtype UnknownHsDecl
     = UnknownHsDecl (GHC.Hs.HsDecl GHC.Hs.GhcPs)

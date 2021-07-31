@@ -157,3 +157,13 @@ spec = do
             result <- Ghc.parseModule Nothing [] "M.hs" "type X = ()"
             hsModule <- either Exception.throwM pure result
             Ghc.extract hsModule `Hspec.shouldBe` Just ["type X"]
+
+        Hspec.it "handles a type family" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "type family X :: *"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["type family X"]
+
+        Hspec.it "handles a type family instance" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "type instance X = ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["type instance X"]
