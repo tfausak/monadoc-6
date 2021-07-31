@@ -26,7 +26,6 @@ import qualified Monadoc.Type.Release as Release
 import qualified Monadoc.Type.Root as Root
 import qualified Monadoc.Type.Route as Route
 import qualified Monadoc.Utility.Ghc as Ghc
-import qualified Monadoc.Utility.Log as Log
 import qualified Monadoc.Utility.Xml as Xml
 import qualified Witch
 
@@ -75,10 +74,11 @@ handler packageName release componentId moduleName context request = do
             result <- Ghc.parseModule Nothing [] filePath contents
             case result of
                 Left errors -> Exception.throwM errors
-                Right hsModule -> do
-                    either (Log.warn . show) (Log.info . show) $ Ghc.extract hsModule -- TODO
-                    pure $ Just hsModule
+                Right hsModule -> pure $ Just hsModule
         _ -> pure Nothing
+    identifiers <- case maybeHsModule of
+        Nothing -> pure []
+        Just hsModule -> either Exception.throwM pure $ Ghc.extract hsModule
 
     pure $ Common.makeResponse Root.Root
         { Root.meta = (Meta.fromContext context route)
@@ -119,5 +119,6 @@ handler packageName release componentId moduleName context request = do
                 , Xml.node "path" [] [ToXml.toXml $ fmap (File.path . Model.value) maybeFile]
                 , Xml.node "route" [] [ToXml.toXml $ fmap (Route.File packageName release . File.path . Model.value) maybeFile]
                 ]
+            , Xml.node "identifiers" [] $ fmap (\ identifier -> Xml.node "identifier" [] [ToXml.toXml identifier]) identifiers
             ]
         }

@@ -122,6 +122,8 @@ extract = fmap ListUtils.nubOrd
     . GHC.Types.SrcLoc.unLoc
     . Witch.into @(GHC.Types.SrcLoc.Located GHC.Hs.HsModule)
 
+-- TODO: Handle explicit export lists.
+-- TODO: Handle re-exports.
 extractModule :: Exception.MonadThrow m => GHC.Hs.HsModule -> m [String]
 extractModule = fmap concat
     . mapM (extractDecl . GHC.Types.SrcLoc.unLoc)

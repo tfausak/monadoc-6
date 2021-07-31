@@ -398,6 +398,16 @@
             <dt> release </dt> <dd> <xsl:value-of select="release"/> </dd>
             <dt> component </dt> <dd> <xsl:value-of select="component"/> </dd>
             <dt> module </dt> <dd> <xsl:value-of select="module"/> </dd>
+            <dt> identifiers </dt>
+            <dd>
+                <ul>
+                    <xsl:for-each select="identifiers/identifier">
+                        <li>
+                            <xsl:value-of select="."/>
+                        </li>
+                    </xsl:for-each>
+                </ul>
+            </dd>
             <dt> file </dt>
             <dd>
                 <a href="{$baseUrl}{normalize-space(file/route)}">
