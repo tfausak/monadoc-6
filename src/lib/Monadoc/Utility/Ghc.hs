@@ -160,6 +160,7 @@ extractFixitySig fixitySig = case fixitySig of
 
 extractTyClDecl :: Exception.MonadThrow m => GHC.Hs.Decls.TyClDecl GHC.Hs.GhcPs -> m [String]
 extractTyClDecl tyClDecl = case tyClDecl of
+    GHC.Hs.Decls.ClassDecl _ _ lIdP _ _ _ _ _ _ _ _ -> pure . fmap ("class " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
     GHC.Hs.Decls.DataDecl _ lIdP _ _ _ -> pure . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
     _ -> Exception.throwM $ UnknownTyClDecl tyClDecl
 
