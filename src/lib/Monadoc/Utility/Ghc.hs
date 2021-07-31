@@ -134,6 +134,7 @@ extractDecl hsDecl = case hsDecl of
     GHC.Hs.DefD _ _ -> pure []
     GHC.Hs.DocD _ _ -> pure []
     GHC.Hs.InstD _ instDecl -> extractInstDecl instDecl
+    GHC.Hs.RuleD _ ruleDecls -> extractRuleDecls ruleDecls
     GHC.Hs.SigD _ sig -> extractSig sig
     GHC.Hs.TyClD _ tyClDecl -> extractTyClDecl tyClDecl
     GHC.Hs.ValD _ hsBind -> extractHsBind hsBind
@@ -190,7 +191,16 @@ extractFamilyDecl familyDecl = case familyDecl of
 
 extractTyFamInstDecl :: Exception.MonadThrow m => GHC.Hs.Decls.TyFamInstDecl GHC.Hs.GhcPs -> m [String]
 extractTyFamInstDecl tyFamInstDecl = case tyFamInstDecl of
-    GHC.Hs.Decls.TyFamInstDecl (GHC.Hs.HsIB _ (GHC.Hs.Decls.FamEqn _ lIdP _ _ _ _)) -> pure . fmap ("type instance " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
+    GHC.Hs.Decls.TyFamInstDecl (GHC.Hs.HsIB _ (GHC.Hs.Decls.FamEqn _ lIdP _ _ _ _)) ->
+        pure . fmap ("type instance " <>) . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
+
+extractRuleDecls :: Exception.MonadThrow m => GHC.Hs.Decls.RuleDecls GHC.Hs.GhcPs -> m [String]
+extractRuleDecls ruleDecls = case ruleDecls of
+    GHC.Hs.Decls.HsRules _ _ lRuleDecls -> fmap concat $ mapM (extractRuleDecl . GHC.Types.SrcLoc.unLoc) lRuleDecls
+
+extractRuleDecl :: Exception.MonadThrow m => GHC.Hs.Decls.RuleDecl GHC.Hs.GhcPs -> m [String]
+extractRuleDecl ruleDecl = case ruleDecl of
+    GHC.Hs.Decls.HsRule _ (GHC.Types.SrcLoc.L _ (_, ruleName)) _ _ _ _ _ -> pure ["rule " <> GHC.Data.FastString.unpackFS ruleName]
 
 newtype UnknownHsDecl
     = UnknownHsDecl (GHC.Hs.HsDecl GHC.Hs.GhcPs)

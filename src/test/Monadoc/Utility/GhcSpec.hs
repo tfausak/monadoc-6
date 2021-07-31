@@ -167,3 +167,8 @@ spec = do
             result <- Ghc.parseModule Nothing [] "M.hs" "type instance X = ()"
             hsModule <- either Exception.throwM pure result
             Ghc.extract hsModule `Hspec.shouldBe` Just ["type instance X"]
+
+        Hspec.it "handles a rewrite rule" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "{-# rules \"x\" y = () #-}"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["rule x"]
