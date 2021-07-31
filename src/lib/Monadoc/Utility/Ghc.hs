@@ -131,6 +131,7 @@ extractDecl :: Exception.MonadThrow m => GHC.Hs.HsDecl GHC.Hs.GhcPs -> m [String
 extractDecl hsDecl = case hsDecl of
     GHC.Hs.DefD _ _ -> pure []
     GHC.Hs.DocD _ _ -> pure []
+    GHC.Hs.InstD _ instDecl -> extractInstDecl instDecl
     GHC.Hs.SigD _ sig -> extractSig sig
     GHC.Hs.TyClD _ tyClDecl -> extractTyClDecl tyClDecl
     GHC.Hs.ValD _ hsBind -> extractHsBind hsBind
@@ -161,6 +162,16 @@ extractTyClDecl :: Exception.MonadThrow m => GHC.Hs.Decls.TyClDecl GHC.Hs.GhcPs 
 extractTyClDecl tyClDecl = case tyClDecl of
     GHC.Hs.Decls.DataDecl _ lIdP _ _ _ -> pure . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
     _ -> Exception.throwM $ UnknownTyClDecl tyClDecl
+
+extractInstDecl :: Exception.MonadThrow m => GHC.Hs.Decls.InstDecl GHC.Hs.GhcPs -> m [String]
+extractInstDecl instDecl = case instDecl of
+    GHC.Hs.Decls.ClsInstD _ clsInstDecl -> extractClsInstDecl clsInstDecl
+    _ -> Exception.throwM $ UnknownInstDecl instDecl
+
+extractClsInstDecl :: Exception.MonadThrow m => GHC.Hs.Decls.ClsInstDecl GHC.Hs.GhcPs -> m [String]
+extractClsInstDecl clsInstDecl = case clsInstDecl of
+    -- TODO: This has a lot of room for improvement.
+    GHC.Hs.Decls.ClsInstDecl _ x _ _ _ _ _ -> pure ["instance " <> GHC.Utils.Outputable.showPpr dynFlags x]
 
 newtype UnknownHsDecl
     = UnknownHsDecl (GHC.Hs.HsDecl GHC.Hs.GhcPs)
@@ -211,6 +222,16 @@ instance Show UnknownTyClDecl where
         <> ")"
 
 instance Exception.Exception UnknownTyClDecl
+
+newtype UnknownInstDecl
+    = UnknownInstDecl (GHC.Hs.Decls.InstDecl GHC.Hs.GhcPs)
+
+instance Show UnknownInstDecl where
+    show (UnknownInstDecl x) = "UnknownInstDecl ("
+        <> GHC.Utils.Outputable.showPpr dynFlags x
+        <> ")"
+
+instance Exception.Exception UnknownInstDecl
 
 ghcNameVersion :: GHC.Driver.Session.GhcNameVersion
 ghcNameVersion = GHC.Driver.Session.GhcNameVersion

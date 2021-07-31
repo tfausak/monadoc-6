@@ -127,3 +127,8 @@ spec = do
             result <- Ghc.parseModule Nothing [] "M.hs" "data X"
             hsModule <- either Exception.throwM pure result
             Ghc.extract hsModule `Hspec.shouldBe` Just ["X"]
+
+        Hspec.it "handles a type class instance" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "instance C T"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["instance C T"]
