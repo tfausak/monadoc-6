@@ -152,3 +152,8 @@ spec = do
             result <- Ghc.parseModule Nothing [(True, X.PatternSynonyms)] "M.hs" "pattern X = ()"
             hsModule <- either Exception.throwM pure result
             Ghc.extract hsModule `Hspec.shouldBe` Just ["pattern X"]
+
+        Hspec.it "handles a type alias" $ do
+            result <- Ghc.parseModule Nothing [] "M.hs" "type X = ()"
+            hsModule <- either Exception.throwM pure result
+            Ghc.extract hsModule `Hspec.shouldBe` Just ["type X"]
