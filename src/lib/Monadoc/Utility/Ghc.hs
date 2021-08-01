@@ -9,6 +9,7 @@ import qualified Control.Monad.IO.Class as IO
 import qualified Data.Containers.ListUtils as ListUtils
 import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
+import qualified Data.Typeable as Typeable
 import qualified GHC.ByteOrder
 import qualified GHC.Data.Bag
 import qualified GHC.Data.EnumSet
@@ -138,7 +139,7 @@ extractDecl hsDecl = case hsDecl of
     GHC.Hs.SigD _ sig -> extractSig sig
     GHC.Hs.TyClD _ tyClDecl -> extractTyClDecl tyClDecl
     GHC.Hs.ValD _ hsBind -> extractHsBind hsBind
-    _ -> Exception.throwM $ UnknownHsDecl hsDecl
+    _ -> Exception.throwM $ Unknown hsDecl
 
 extractSig :: Exception.MonadThrow m => GHC.Hs.Binds.Sig GHC.Hs.GhcPs -> m [String]
 extractSig sig = case sig of
@@ -146,18 +147,18 @@ extractSig sig = case sig of
     GHC.Hs.Binds.InlineSig _ lIdP _ -> pure . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
     GHC.Hs.Binds.PatSynSig _ lIdPs _ -> mapM (fmap ("pattern " <>) . extractRdrName . GHC.Types.SrcLoc.unLoc) lIdPs
     GHC.Hs.Binds.TypeSig _ lIdPs _ -> mapM (extractRdrName . GHC.Types.SrcLoc.unLoc) lIdPs
-    _ -> Exception.throwM $ UnknownSig sig
+    _ -> Exception.throwM $ Unknown sig
 
 extractRdrName :: Exception.MonadThrow m => GHC.Types.Name.Reader.RdrName -> m String
 extractRdrName rdrName = case rdrName of
     GHC.Types.Name.Reader.Unqual occName -> pure $ GHC.Types.Name.Occurrence.occNameString occName
-    _ -> Exception.throwM $ UnknownRdrName rdrName
+    _ -> Exception.throwM $ Unknown rdrName
 
 extractHsBind :: Exception.MonadThrow m => GHC.Hs.Binds.HsBind GHC.Hs.GhcPs -> m [String]
 extractHsBind hsBind = case hsBind of
     GHC.Hs.Binds.FunBind _ lIdP _ _ -> pure . extractRdrName $ GHC.Types.SrcLoc.unLoc lIdP
     GHC.Hs.Binds.PatSynBind _ patSynBind -> extractPatSynBind patSynBind
-    _ -> Exception.throwM $ UnknownHsBind hsBind
+    _ -> Exception.throwM $ Unknown hsBind
 
 extractFixitySig :: Exception.MonadThrow m => GHC.Hs.Binds.FixitySig GHC.Hs.GhcPs -> m [String]
 extractFixitySig fixitySig = case fixitySig of
@@ -174,7 +175,7 @@ extractInstDecl :: Exception.MonadThrow m => GHC.Hs.Decls.InstDecl GHC.Hs.GhcPs 
 extractInstDecl instDecl = case instDecl of
     GHC.Hs.Decls.ClsInstD _ clsInstDecl -> extractClsInstDecl clsInstDecl
     GHC.Hs.Decls.TyFamInstD _ tyFamInstDecl -> extractTyFamInstDecl tyFamInstDecl
-    _ -> Exception.throwM $ UnknownInstDecl instDecl
+    _ -> Exception.throwM $ Unknown instDecl
 
 extractClsInstDecl :: Exception.MonadThrow m => GHC.Hs.Decls.ClsInstDecl GHC.Hs.GhcPs -> m [String]
 extractClsInstDecl clsInstDecl = case clsInstDecl of
@@ -202,65 +203,22 @@ extractRuleDecl :: Exception.MonadThrow m => GHC.Hs.Decls.RuleDecl GHC.Hs.GhcPs 
 extractRuleDecl ruleDecl = case ruleDecl of
     GHC.Hs.Decls.HsRule _ (GHC.Types.SrcLoc.L _ (_, ruleName)) _ _ _ _ _ -> pure ["rule " <> GHC.Data.FastString.unpackFS ruleName]
 
-newtype UnknownHsDecl
-    = UnknownHsDecl (GHC.Hs.HsDecl GHC.Hs.GhcPs)
+newtype Unknown a
+    = Unknown a
 
-instance Show UnknownHsDecl where
-    show (UnknownHsDecl x) = "UnknownHsDecl ("
-        <> GHC.Utils.Outputable.showPpr dynFlags x
-        <> ")"
+instance
+    ( GHC.Utils.Outputable.Outputable a
+    , Typeable.Typeable a
+    ) => Show (Unknown a) where
+        show (Unknown x)
+            = "Unknown ("
+            <> GHC.Utils.Outputable.showPpr dynFlags x
+            <> ")"
 
-instance Exception.Exception UnknownHsDecl
-
-newtype UnknownSig
-    = UnknownSig (GHC.Hs.Binds.Sig GHC.Hs.GhcPs)
-
-instance Show UnknownSig where
-    show (UnknownSig x) = "UnknownSig ("
-        <> GHC.Utils.Outputable.showPpr dynFlags x
-        <> ")"
-
-instance Exception.Exception UnknownSig
-
-newtype UnknownRdrName
-    = UnknownRdrName GHC.Types.Name.Reader.RdrName
-
-instance Show UnknownRdrName where
-    show (UnknownRdrName x) = "UnknownRdrName ("
-        <> GHC.Utils.Outputable.showPpr dynFlags x
-        <> ")"
-
-instance Exception.Exception UnknownRdrName
-
-newtype UnknownHsBind
-    = UnknownHsBind (GHC.Hs.Binds.HsBind GHC.Hs.GhcPs)
-
-instance Show UnknownHsBind where
-    show (UnknownHsBind x) = "UnknownHsBind ("
-        <> GHC.Utils.Outputable.showPpr dynFlags x
-        <> ")"
-
-instance Exception.Exception UnknownHsBind
-
-newtype UnknownTyClDecl
-    = UnknownTyClDecl (GHC.Hs.Decls.TyClDecl GHC.Hs.GhcPs)
-
-instance Show UnknownTyClDecl where
-    show (UnknownTyClDecl x) = "UnknownTyClDecl ("
-        <> GHC.Utils.Outputable.showPpr dynFlags x
-        <> ")"
-
-instance Exception.Exception UnknownTyClDecl
-
-newtype UnknownInstDecl
-    = UnknownInstDecl (GHC.Hs.Decls.InstDecl GHC.Hs.GhcPs)
-
-instance Show UnknownInstDecl where
-    show (UnknownInstDecl x) = "UnknownInstDecl ("
-        <> GHC.Utils.Outputable.showPpr dynFlags x
-        <> ")"
-
-instance Exception.Exception UnknownInstDecl
+instance
+    ( GHC.Utils.Outputable.Outputable a
+    , Typeable.Typeable a
+    ) => Exception.Exception (Unknown a)
 
 ghcNameVersion :: GHC.Driver.Session.GhcNameVersion
 ghcNameVersion = GHC.Driver.Session.GhcNameVersion
