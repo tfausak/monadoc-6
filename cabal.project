@@ -1,7 +1,0 @@
-packages: .
-
--- https://github.com/bos/blaze-textual/pull/14
-source-repository-package
-    location: https://github.com/swamp-agr/blaze-textual
-    tag: c93b53a4aaad5a6ee2ddf90010957981d75d3579
-    type: git
