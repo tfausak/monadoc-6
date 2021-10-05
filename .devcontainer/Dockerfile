@@ -16,6 +16,6 @@ ARG GHC_VERSION=9.0.1
 RUN ghcup install ghc "$GHC_VERSION"
 RUN ghcup set ghc "$GHC_VERSION"
 
-ARG CABAL_VERSION=3.6.0.0
+ARG CABAL_VERSION=3.4.0.0
 RUN ghcup install cabal "$CABAL_VERSION"
 RUN ghcup set cabal "$CABAL_VERSION"
