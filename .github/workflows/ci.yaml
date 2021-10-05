@@ -26,7 +26,8 @@ jobs:
         with:
           ghc-version: ${{ matrix.ghc }}
           cabal-version: ${{ matrix.cabal }}
-      - run: cabal freeze --flags pedantic --minimize-conflict-set
+      - run: cabal configure --enable-tests --flags pedantic --jobs --test-show-details direct
+      - run: cabal freeze --minimize-conflict-set
       - run: cat cabal.project.freeze
       - uses: actions/cache@v2
         with:
@@ -35,5 +36,6 @@ jobs:
           restore-keys: |
             ${{ matrix.os }}-${{ matrix.ghc }}-${{ matrix.cabal }}-
             ${{ matrix.os }}-${{ matrix.ghc }}-
-      - run: cabal test --flags pedantic --test-show-details direct
+      - run: cabal build
+      - run: cabal test
       - run: cabal check
