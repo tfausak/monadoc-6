@@ -34,3 +34,9 @@ jobs:
       - run: cabal build
       - run: cabal test
       - run: cabal check
+      - run: mkdir artifact
+      - run: mkdir artifact/${{ matrix.os }}
+      - run: cabal install --install-method copy --installdir artifact/${{ matrix.os }}
+      - uses: actions/upload-artifact@v2
+        with:
+          path: artifact
