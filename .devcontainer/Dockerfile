@@ -19,3 +19,7 @@ RUN ghcup set ghc "$GHC_VERSION"
 ARG CABAL_VERSION=3.4.0.0
 RUN ghcup install cabal "$CABAL_VERSION"
 RUN ghcup set cabal "$CABAL_VERSION"
+
+ARG HLS_VERSION=1.4.0
+RUN ghcup install hls "$HLS_VERSION"
+RUN ghcup set hls "$HLS_VERSION"
