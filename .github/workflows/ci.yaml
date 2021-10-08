@@ -41,4 +41,5 @@ jobs:
           args: --best
       - uses: actions/upload-artifact@v2
         with:
+          name: monadoc-${{ github.sha }}
           path: artifact
