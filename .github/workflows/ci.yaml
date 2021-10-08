@@ -32,13 +32,13 @@ jobs:
       - run: cabal build
       - run: cabal test
       - run: cabal check
-      - run: mkdir monadoc-${{ github.sha }}
-      - run: mkdir monadoc-${{ github.sha }}/${{ matrix.os }}
-      - run: cabal install --install-method copy --installdir monadoc-${{ github.sha }}/${{ matrix.os }}
+      - run: mkdir artifact
+      - run: mkdir artifact/${{ matrix.os }}
+      - run: cabal install --install-method copy --installdir artifact/${{ matrix.os }}
       - uses: svenstaro/upx-action@v2
         with:
-          file: monadoc-${{ github.sha }}/${{ matrix.os }}/monadoc${{ matrix.exe }}
+          file: artifact/${{ matrix.os }}/monadoc${{ matrix.exe }}
           args: --best
       - uses: actions/upload-artifact@v2
         with:
-          path: monadoc-${{ github.sha }}
+          path: artifact
